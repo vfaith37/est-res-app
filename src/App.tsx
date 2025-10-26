@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-// import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar';
 import { Provider } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ export function App() {
         <SafeAreaProvider>
           <NotificationProvider>
             <AppNavigator />
-            {/* <StatusBar style="auto" /> */}
+            <StatusBar style="auto" />
           </NotificationProvider>
         </SafeAreaProvider>
       </Provider>

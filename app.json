@@ -1,36 +1,131 @@
 {
   "expo": {
-    "name": "est-res-app",
-    "slug": "est-res-app",
+    "name": "EstateManager",
+    "slug": "estate-manager",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "scheme": "estresapp",
+    "scheme": "estatemanager",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true,
-      "bundleIdentifier": "com.estresapp"
+      "bundleIdentifier": "com.st33v3.estatemanager",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture maintenance issues and scan QR codes.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to upload images.",
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby amenities.",
+        "NSCalendarsUsageDescription": "This app needs calendar access to schedule amenity bookings.",
+        "NSContactsUsageDescription": "This app needs access to contacts for emergency contacts."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.estresapp"
+      "package": "com.st33v3.estatemanager",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "READ_CONTACTS",
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "extraPodspecsSources": [
+              "https://github.com/mrousavy/nitro.git"
+            ],
+            "newArchEnabled": true,
+            "useFrameworks": "static",
+            "useModularHeaders": true,
+            "buildReactNativeFromSource": true,
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "newArchEnabled": true,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "usesFeatures": [
+              {
+                "name": "android.hardware.location.gps",
+                "required": false
+              },
+              {
+                "name": "android.hardware.camera.autofocus",
+                "required": false
+              }
+            ]
+          }
+        }
+      ],
+      "expo-font",
       "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Estate Manager to access your camera for scanning QR codes and documenting issues."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Estate Manager to access your photos to upload images."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Estate Manager to use your location to show nearby amenities."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./assets/notification-sound.wav"
+          ]
+        }
+      ],
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#ffffff",
           "image": "./assets/splash-icon.png"
         }
-      ]
-    ]
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b9d6fccc-1a80-4278-8db1-3570d5b5b6d4"
+      }
+    },
+    "owner": "st33v3"
   }
 }

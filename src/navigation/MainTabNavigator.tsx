@@ -18,6 +18,12 @@ import QRScannerScreen from '@/screens/security/QRScannerScreen';
 import CheckedInVisitorsScreen from '@/screens/security/CheckedInVisitorsScreen';
 import EmergencyListScreen from '@/screens/emergency/EmergencyListScreen';
 import ReportEmergencyScreen from '@/screens/emergency/ReportEmergencyScreen';
+import FamilyMembersListScreen from '@/screens/household/FamilyMembersListScreen';
+import AddFamilyMemberScreen from '@/screens/household/AddFamilyMemberScreen';
+import DomesticStaffListScreen from '@/screens/household/DomesticStaffListScreen';
+import AddDomesticStaffScreen from '@/screens/household/AddDomesticStaffScreen';
+import NotificationsScreen from '@/screens/notifications/NotificationsScreen';
+// import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
 
 import type {
   SecurityTabParamList,
@@ -115,10 +121,20 @@ function PaymentsNavigator() {
 function HouseholdNavigator() {
   return (
     <HouseholdStack.Navigator>
-      <HouseholdStack.Screen 
+       <HouseholdStack.Screen 
         name="HouseholdMain" 
         component={HouseholdMainScreen}
         options={{ title: 'Household' }}
+      />
+      <HouseholdStack.Screen 
+        name="AddFamilyMember" 
+        component={AddFamilyMemberScreen}
+        options={{ title: 'Add Family Member' }}
+      />
+      <HouseholdStack.Screen 
+        name="AddDomesticStaff" 
+        component={AddDomesticStaffScreen}
+        options={{ title: 'Add Staff Member' }}
       />
     </HouseholdStack.Navigator>
   );
@@ -164,6 +180,11 @@ function ProfileNavigator() {
         name="ProfileMain" 
         component={ProfileScreen}
         options={{ title: 'Profile' }}
+      />
+      <ProfileStack.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+        options={{ headerShown: false }}
       />
     </ProfileStack.Navigator>
   );
@@ -299,6 +320,15 @@ function HomeHeadTabNavigator() {
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="alert-circle-outline" size={size} color={color} />
+          ),
+        }}
+      />
+       <HomeHeadTab.Screen 
+        name="Profile" 
+        component={ProfileNavigator}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />

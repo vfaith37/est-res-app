@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { 
   useGetDomesticStaffQuery, 
   useUpdateStaffStatusMutation,
@@ -8,7 +9,8 @@ import {
 } from '@/store/api/householdApi';
 import { haptics } from '@/utils/haptics';
 
-export default function DomesticStaffListScreen({ navigation }: any) {
+export default function DomesticStaffListScreen() {
+  const navigation = useNavigation<any>();
   const { data: staff, isLoading, refetch, isFetching } = useGetDomesticStaffQuery({});
   const [updateStatus] = useUpdateStaffStatusMutation();
   const [deleteStaff] = useDeleteDomesticStaffMutation();
@@ -57,6 +59,11 @@ export default function DomesticStaffListScreen({ navigation }: any) {
         },
       },
     ]);
+  };
+
+  const handleAddStaff = () => {
+    haptics.medium();
+    navigation.navigate('AddDomesticStaff');
   };
 
   const renderStaff = ({ item }: any) => (
@@ -121,7 +128,7 @@ export default function DomesticStaffListScreen({ navigation }: any) {
           style={styles.actionButton}
           onPress={() => {
             haptics.light();
-            navigation.navigate('EditDomesticStaff', { staffId: item.id });
+            // navigation.navigate('EditDomesticStaff', { staffId: item.id });
           }}
         >
           <Ionicons name="create-outline" size={20} color="#007AFF" />
@@ -137,7 +144,7 @@ export default function DomesticStaffListScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <FlatList
         data={staff}
         renderItem={renderStaff}
@@ -155,14 +162,11 @@ export default function DomesticStaffListScreen({ navigation }: any) {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => {
-          haptics.medium();
-          // navigation.navigate('AddDomesticStaff');
-        }}
+        onPress={handleAddStaff}
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 

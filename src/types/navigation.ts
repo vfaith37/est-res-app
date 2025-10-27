@@ -78,6 +78,7 @@ export type AmenitiesStackParamList = {
 // Profile Stack
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+  Notifications: undefined;
 };
 
 // Incidents Stack (Security only)

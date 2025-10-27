@@ -12,10 +12,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useCreateFamilyMemberMutation } from '@/store/api/householdApi';
 import { haptics } from '@/utils/haptics';
 
-export default function AddFamilyMemberScreen({ navigation }: any) {
+export default function AddFamilyMemberScreen() {
+  const navigation = useNavigation<any>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -175,7 +177,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    },
+  },
   form: {
     gap: 20,
   },

@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { 
   useGetFamilyMembersQuery, 
   useDeleteFamilyMemberMutation 
 } from '@/store/api/householdApi';
 import { haptics } from '@/utils/haptics';
 
-export default function FamilyMembersListScreen({ navigation }: any) {
+export default function FamilyMembersListScreen() {
+  const navigation = useNavigation<any>();
   const { data: members, isLoading, refetch, isFetching } = useGetFamilyMembersQuery();
   const [deleteMember] = useDeleteFamilyMemberMutation();
 
@@ -30,6 +32,11 @@ export default function FamilyMembersListScreen({ navigation }: any) {
         },
       },
     ]);
+  };
+
+  const handleAddMember = () => {
+    haptics.medium();
+    navigation.navigate('AddFamilyMember');
   };
 
   const renderMember = ({ item }: any) => (
@@ -66,7 +73,7 @@ export default function FamilyMembersListScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <FlatList
         data={members}
         renderItem={renderMember}
@@ -84,14 +91,11 @@ export default function FamilyMembersListScreen({ navigation }: any) {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => {
-          haptics.medium();
-          // navigation.navigate('AddFamilyMember');
-        }}
+        onPress={handleAddMember}
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 

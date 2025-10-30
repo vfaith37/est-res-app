@@ -49,6 +49,7 @@ export default function LoginScreen({ navigation }: Props) {
       }).unwrap();
       
       // Normalize role returned from the API so it matches the authSlice.User type
+      console.log(result);
       const normalizedUser = {
         ...result.user,
         role:
@@ -64,6 +65,8 @@ export default function LoginScreen({ navigation }: Props) {
       
       haptics.success();
     } catch (error: any) {
+      console.log(error);
+      
       haptics.error();
       Alert.alert('Login Failed', error?.data?.message || 'Invalid credentials');
     }

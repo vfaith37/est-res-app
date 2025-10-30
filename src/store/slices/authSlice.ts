@@ -8,6 +8,7 @@ export interface User {
   role: "security" | "home_head" | "family_member";
   unit: string;
   avatar?: string;
+  homeHeadId?: string;
 }
 
 interface AuthState {

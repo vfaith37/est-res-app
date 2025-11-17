@@ -21,9 +21,6 @@ export default function ProfileScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
 
-  // About Modal State
-  const [showAboutModal, setShowAboutModal] = useState(false);
-
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
@@ -32,11 +29,7 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: () => {
           haptics.medium();
-          
-          // Clear saved auth data
           clearState('auth');
-          
-          // Dispatch logout action
           dispatch(logout());
         },
       },
@@ -46,12 +39,6 @@ export default function ProfileScreen() {
   const handleEditProfile = () => {
     haptics.light();
     Alert.alert('Edit Profile', 'Profile editing feature coming soon!');
-    // TODO: Navigate to Edit Profile screen when ready
-  };
-
-  const handleNotificationSettings = () => {
-    haptics.light();
-    navigation.navigate('Notifications');
   };
 
   const handleChangePassword = () => {
@@ -93,24 +80,54 @@ export default function ProfileScreen() {
     }
   };
 
-  const handlePrivacySecurity = () => {
+  const handleFamilyMembers = () => {
     haptics.light();
-    Alert.alert('Privacy & Security', 'Privacy settings coming soon!');
-    // TODO: Navigate to Privacy & Security screen when ready
+    navigation.navigate('FamilyMembersList');
   };
 
-  const handleHelp = () => {
+  const handleDomesticStaff = () => {
     haptics.light();
-    Alert.alert(
-      'Help & Support',
-      'Need help?\n\nEmail: support@estatemanager.com\nPhone: +234 XXX XXX XXXX\n\nOr visit our FAQ section.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('DomesticStaffList');
   };
 
-  const handleAbout = () => {
+  const handleEstateVendors = () => {
     haptics.light();
-    setShowAboutModal(true);
+    Alert.alert('Estate Vendors', 'Estate vendors list coming soon!');
+  };
+
+  const handleEstateDrivers = () => {
+    haptics.light();
+    Alert.alert('Estate Drivers', 'Estate drivers list coming soon!');
+  };
+
+  const handleEmergencies = () => {
+    haptics.light();
+    navigation.navigate('EmergencyList');
+  };
+
+  const handleComplaints = () => {
+    haptics.light();
+    Alert.alert('Complaints', 'Complaint system coming soon!');
+  };
+
+  const handleNotifications = () => {
+    haptics.light();
+    navigation.navigate('Notifications');
+  };
+
+  const handleGenerateReport = () => {
+    haptics.light();
+    Alert.alert('Generate Report', 'Report generation coming soon!');
+  };
+
+  const handleTerms = () => {
+    haptics.light();
+    Alert.alert('Terms & Conditions', 'Terms and conditions coming soon!');
+  };
+
+  const handlePrivacy = () => {
+    haptics.light();
+    Alert.alert('Privacy Policy', 'Privacy policy coming soon!');
   };
 
   const getRoleName = (role: string) => {
@@ -126,13 +143,45 @@ export default function ProfileScreen() {
     }
   };
 
-  const menuItems = [
-    { icon: 'person-outline', title: 'Edit Profile', onPress: handleEditProfile },
-    { icon: 'notifications-outline', title: 'Notifications', onPress: handleNotificationSettings },
-    { icon: 'lock-closed-outline', title: 'Change Password', onPress: handleChangePassword },
-    { icon: 'shield-checkmark-outline', title: 'Privacy & Security', onPress: handlePrivacySecurity },
-    { icon: 'help-circle-outline', title: 'Help & Support', onPress: handleHelp },
-    { icon: 'information-circle-outline', title: 'About', onPress: handleAbout },
+  // Menu sections structure
+  const menuSections = [
+    {
+      title: 'Account Settings',
+      items: [
+        { icon: 'person-outline', title: 'Profile', onPress: handleEditProfile },
+        { icon: 'lock-closed-outline', title: 'Change Password', onPress: handleChangePassword },
+      ],
+    },
+    {
+      title: 'Household & Vendors',
+      items: [
+        { icon: 'people-outline', title: 'Family Member List', onPress: handleFamilyMembers },
+        { icon: 'home-outline', title: 'Domestic Staff List', onPress: handleDomesticStaff },
+        { icon: 'storefront-outline', title: 'Estate Vendors', onPress: handleEstateVendors },
+        { icon: 'car-outline', title: 'Estate Drivers', onPress: handleEstateDrivers },
+      ],
+    },
+    {
+      title: 'Estate Services',
+      items: [
+        { icon: 'alert-circle-outline', title: 'Emergencies', onPress: handleEmergencies },
+        { icon: 'megaphone-outline', title: 'Complaints', onPress: handleComplaints },
+        { icon: 'notifications-outline', title: 'Notifications & Announcements', onPress: handleNotifications },
+      ],
+    },
+    {
+      title: 'Reports',
+      items: [
+        { icon: 'document-text-outline', title: 'Generate Report', onPress: handleGenerateReport },
+      ],
+    },
+    {
+      title: 'About Application',
+      items: [
+        { icon: 'document-outline', title: 'Terms & Conditions', onPress: handleTerms },
+        { icon: 'shield-checkmark-outline', title: 'Privacy Policy', onPress: handlePrivacy },
+      ],
+    },
   ];
 
   return (
@@ -157,26 +206,31 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Menu Items */}
-        <View style={styles.menuSection}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.menuItem,
-                index === menuItems.length - 1 && styles.menuItemLast,
-              ]}
-              onPress={() => {
-                haptics.light();
-                item.onPress();
-              }}
-            >
-              <Ionicons name={item.icon as any} size={24} color="#000" />
-              <Text style={styles.menuText}>{item.title}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Menu Sections */}
+        {menuSections.map((section, sectionIndex) => (
+          <View key={sectionIndex} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <View style={styles.sectionContent}>
+              {section.items.map((item, itemIndex) => (
+                <TouchableOpacity
+                  key={itemIndex}
+                  style={[
+                    styles.menuItem,
+                    itemIndex === section.items.length - 1 && styles.menuItemLast,
+                  ]}
+                  onPress={() => {
+                    haptics.light();
+                    item.onPress();
+                  }}
+                >
+                  <Ionicons name={item.icon as any} size={22} color="#007AFF" />
+                  <Text style={styles.menuText}>{item.title}</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ))}
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -263,62 +317,6 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* About Modal */}
-      <Modal
-        visible={showAboutModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowAboutModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>About</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  haptics.light();
-                  setShowAboutModal(false);
-                }}
-              >
-                <Ionicons name="close" size={24} color="#8E8E93" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <View style={styles.aboutLogoContainer}>
-                <Ionicons name="home" size={60} color="#007AFF" />
-              </View>
-              
-              <Text style={styles.aboutTitle}>Estate Manager</Text>
-              <Text style={styles.aboutVersion}>Version 1.0.0</Text>
-              
-              <Text style={styles.aboutDescription}>
-                Comprehensive estate and residence management solution for modern communities.
-              </Text>
-
-              <View style={styles.aboutSection}>
-                <Text style={styles.aboutSectionTitle}>Features</Text>
-                <Text style={styles.aboutText}>• Visitor Management</Text>
-                <Text style={styles.aboutText}>• Maintenance Requests</Text>
-                <Text style={styles.aboutText}>• Payment Tracking</Text>
-                <Text style={styles.aboutText}>• Emergency Reporting</Text>
-                <Text style={styles.aboutText}>• Family & Staff Management</Text>
-              </View>
-
-              <View style={styles.aboutSection}>
-                <Text style={styles.aboutSectionTitle}>Contact</Text>
-                <Text style={styles.aboutText}>Email: support@estatemanager.com</Text>
-                <Text style={styles.aboutText}>Website: www.estatemanager.com</Text>
-              </View>
-
-              <Text style={styles.aboutCopyright}>
-                © 2025 Estate Manager. All rights reserved.
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -384,12 +382,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  menuSection: {
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textTransform: 'uppercase',
+    marginLeft: 16,
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  sectionContent: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 20,
   },
   menuItem: {
     flexDirection: 'row',
@@ -404,7 +413,8 @@ const styles = StyleSheet.create({
   menuText: {
     flex: 1,
     fontSize: 16,
-    marginLeft: 16,
+    marginLeft: 12,
+    color: '#000',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -483,53 +493,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  aboutLogoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#007AFF20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  aboutTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  aboutVersion: {
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  aboutDescription: {
-    fontSize: 14,
-    color: '#000',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  aboutSection: {
-    marginBottom: 20,
-  },
-  aboutSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  aboutText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  aboutCopyright: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginTop: 12,
   },
 });

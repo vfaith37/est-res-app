@@ -31,10 +31,7 @@ export type SecurityTabParamList = {
 export type HomeHeadTabParamList = {
   Home: undefined;
   Visitors: undefined;
-  Household: undefined;
-  Maintenance: undefined;
   Payments: undefined;
-  Emergency: undefined;
   Amenities: undefined;
   Profile: undefined;
 };
@@ -82,6 +79,27 @@ export type AmenitiesStackParamList = {
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   Notifications: undefined;
+  // Household & Vendors
+  FamilyMembersList: undefined;
+  AddFamilyMember: undefined;
+  EditFamilyMember: { memberId: string };
+  DomesticStaffList: undefined;
+  AddDomesticStaff: undefined;
+  EditDomesticStaff: { staffId: string };
+  EstateVendors: undefined;
+  EstateDrivers: undefined;
+  // Estate Services
+  EmergencyList: undefined;
+  ReportEmergency: undefined;
+  EmergencyDetails: { emergencyId: string };
+  MaintenanceList: undefined;
+  ReportIssue: undefined;
+  Complaints: undefined;
+  // Reports
+  GenerateReport: undefined;
+  // About
+  Terms: undefined;
+  Privacy: undefined;
 };
 
 // Incidents Stack (Security only)

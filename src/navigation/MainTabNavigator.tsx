@@ -187,6 +187,48 @@ function ProfileNavigator() {
         component={NotificationsScreen}
         options={{ headerShown: false }}
       />
+      {/* Household & Vendors */}
+      <ProfileStack.Screen
+        name="FamilyMembersList"
+        component={FamilyMembersListScreen}
+        options={{ title: "Family Members" }}
+      />
+      <ProfileStack.Screen
+        name="AddFamilyMember"
+        component={AddFamilyMemberScreen}
+        options={{ title: "Add Family Member" }}
+      />
+      <ProfileStack.Screen
+        name="DomesticStaffList"
+        component={DomesticStaffListScreen}
+        options={{ title: "Domestic Staff" }}
+      />
+      <ProfileStack.Screen
+        name="AddDomesticStaff"
+        component={AddDomesticStaffScreen}
+        options={{ title: "Add Staff Member" }}
+      />
+      {/* Estate Services */}
+      <ProfileStack.Screen
+        name="EmergencyList"
+        component={EmergencyListScreen}
+        options={{ title: "Emergencies" }}
+      />
+      <ProfileStack.Screen
+        name="ReportEmergency"
+        component={ReportEmergencyScreen}
+        options={{ title: "Report Emergency" }}
+      />
+      <ProfileStack.Screen
+        name="MaintenanceList"
+        component={MaintenanceListScreen}
+        options={{ title: "Maintenance" }}
+      />
+      <ProfileStack.Screen
+        name="ReportIssue"
+        component={ReportIssueScreen}
+        options={{ title: "Report Issue" }}
+      />
     </ProfileStack.Navigator>
   );
 }
@@ -288,39 +330,20 @@ function HomeHeadTabNavigator() {
         }}
       />
       <HomeHeadTab.Screen
-        name="Household"
-        component={HouseholdNavigator}
-        options={{
-          title: "Family",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-circle-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <HomeHeadTab.Screen
-        name="Maintenance"
-        component={MaintenanceNavigator}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="build-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <HomeHeadTab.Screen
         name="Payments"
         component={PaymentsNavigator}
         options={{
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size}) => (
             <Ionicons name="card-outline" size={size} color={color} />
           ),
         }}
       />
       <HomeHeadTab.Screen
-        name="Emergency"
-        component={EmergencyNavigator}
+        name="Amenities"
+        component={AmenitiesScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="alert-circle-outline" size={size} color={color} />
+            <Ionicons name="fitness-outline" size={size} color={color} />
           ),
         }}
       />
@@ -404,11 +427,11 @@ export default function MainTabNavigator() {
     return <SecurityTabNavigator />;
   }
 
-  if (user?.role === "family_member") {
+  if (user?.role === "home_head") {
     return <HomeHeadTabNavigator />;
   }
 
-  if (user?.role === "home_head") {
+  if (user?.role === "family_member") {
     return <FamilyMemberTabNavigator />;
   }
 

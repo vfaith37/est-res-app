@@ -26,10 +26,25 @@ export default function EditProfileScreen() {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId;
 
+  if (__DEV__) {
+    console.log('EditProfileScreen - user:', user);
+    console.log('EditProfileScreen - residentId:', residentId);
+  }
+
   // Fetch resident data
-  const { data: resident, isLoading, isError } = useGetResidentQuery(residentId!, {
+  const { data: resident, isLoading, isError, error } = useGetResidentQuery(residentId!, {
     skip: !residentId,
   });
+
+  if (__DEV__) {
+    console.log('useGetResidentQuery result:', {
+      resident,
+      isLoading,
+      isError,
+      error,
+      hasData: !!resident
+    });
+  }
 
   // Edit mutation
   const [editResident, { isLoading: isSaving }] = useEditResidentMutation();

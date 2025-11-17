@@ -55,10 +55,32 @@ export const residentApi = api.injectEndpoints({
         method: "GET",
       }),
       transformResponse: (response: ApiResponse<ResidentData>) => {
+        if (__DEV__) {
+          console.log('getResident response:', JSON.stringify(response, null, 2));
+        }
+
         if (response.respCode !== "00") {
           throw new Error(response.message || "Failed to fetch resident data");
         }
+
+        if (!response.data) {
+          console.error('getResident: response.data is undefined', response);
+          throw new Error("No resident data in response");
+        }
+
         return response.data;
+      },
+      transformErrorResponse: (response: any) => {
+        if (__DEV__) {
+          console.error('getResident error:', response);
+        }
+        return {
+          status: response.status,
+          data: {
+            message: response.data?.message || "Failed to fetch resident data",
+            respCode: response.data?.respCode,
+          },
+        };
       },
       providesTags: (result, error, residentId) => [
         { type: "Resident", id: residentId },

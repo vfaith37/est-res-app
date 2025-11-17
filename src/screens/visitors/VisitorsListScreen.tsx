@@ -46,12 +46,18 @@ export default function VisitorsListScreen({ navigation }: Props) {
     const iconColor = isGuest ? '#FF9500' : '#007AFF';
     const iconBgColor = isGuest ? '#FF950020' : '#007AFF20';
 
-    // Calculate duration for guests
-    const duration = isGuest && item.departureDate
+    // Calculate duration for guests (can be negative if departure before arrival)
+    const durationDays = isGuest && item.departureDate
       ? Math.ceil(
           (new Date(item.departureDate).getTime() - new Date(item.visitDate).getTime()) /
             (1000 * 60 * 60 * 24)
         )
+      : null;
+
+    const duration = durationDays !== null && durationDays !== 0
+      ? durationDays > 0
+        ? `${durationDays} ${durationDays === 1 ? 'night' : 'nights'}`
+        : null // Don't show duration if departure is before arrival
       : null;
 
     return (
@@ -73,9 +79,8 @@ export default function VisitorsListScreen({ navigation }: Props) {
           <Text style={styles.visitorDetails}>
             {new Date(item.visitDate).toLocaleDateString()}
             {isGuest && item.departureDate && (
-              <> → {new Date(item.departureDate).toLocaleDateString()}</>
+              <> → {new Date(item.departureDate).toLocaleDateString()}{duration && <> ({duration})</>}</>
             )}
-            {duration && <> ({duration} {duration === 1 ? 'night' : 'nights'})</>}
           </Text>
           {item.visitorNum > 0 && (
             <Text style={styles.visitorDetails}>

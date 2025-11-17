@@ -72,11 +72,16 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       return;
     }
 
-    // Validate departure date for guests
-    if (type === 'guest' && departureDate <= visitDate) {
-      haptics.error();
-      Alert.alert('Error', 'Departure date must be after arrival date');
-      return;
+    // Validate departure date for guests (must be different day, not same day)
+    if (type === 'guest') {
+      const arrivalDay = visitDate.toISOString().split('T')[0];
+      const departureDay = departureDate.toISOString().split('T')[0];
+
+      if (arrivalDay === departureDay) {
+        haptics.error();
+        Alert.alert('Error', 'Departure date must be different from arrival date');
+        return;
+      }
     }
 
     if (!residentId) {
@@ -330,11 +335,17 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                     setShowVisitDatePicker(false);
                     if (selectedDate) {
                       setVisitDate(selectedDate);
-                      // Adjust departure date if it's before new arrival date
-                      if (type === 'guest' && departureDate <= selectedDate) {
-                        setDepartureDate(
-                          new Date(selectedDate.getTime() + 86400000)
-                        );
+                      // Adjust departure date if it's the same day as new arrival date
+                      if (type === 'guest') {
+                        const newArrivalDay = selectedDate.toISOString().split('T')[0];
+                        const currentDepartureDay = departureDate.toISOString().split('T')[0];
+
+                        if (newArrivalDay === currentDepartureDay) {
+                          // Set departure to next day if they're the same
+                          setDepartureDate(
+                            new Date(selectedDate.getTime() + 86400000)
+                          );
+                        }
                       }
                     }
                   }}
@@ -362,9 +373,6 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                   <DateTimePicker
                     value={departureDate}
                     mode="date"
-                    minimumDate={
-                      new Date(visitDate.getTime() + 86400000)
-                    }
                     onChange={(event, selectedDate) => {
                       setShowDepartureDatePicker(false);
                       if (selectedDate) {
@@ -374,15 +382,19 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                   />
                 )}
                 <Text style={styles.helperText}>
-                  Duration:{' '}
-                  {Math.ceil(
-                    (departureDate.getTime() - visitDate.getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  )}{' '}
-                  {Math.ceil(
-                    (departureDate.getTime() - visitDate.getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  ) === 1 ? 'night' : 'nights'}
+                  {(() => {
+                    const days = Math.ceil(
+                      (departureDate.getTime() - visitDate.getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    if (days > 0) {
+                      return `Duration: ${days} ${days === 1 ? 'night' : 'nights'}`;
+                    } else if (days < 0) {
+                      return `Note: Departure is ${Math.abs(days)} ${Math.abs(days) === 1 ? 'day' : 'days'} before arrival`;
+                    } else {
+                      return 'Departure and arrival are on the same day';
+                    }
+                  })()}
                 </Text>
               </View>
             )}

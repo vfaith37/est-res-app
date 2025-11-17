@@ -6,7 +6,11 @@ import type {
 } from "@reduxjs/toolkit/query";
 import type { RootState } from "../index";
 import Constants from "expo-constants";
-import { encryptPayload, requiresEncryption } from "@/utils/encryption";
+import {
+  encryptPayload,
+  requiresEncryption,
+  generateSecretHash,
+} from "@/utils/encryption";
 import { ENCRYPTION_CONFIG } from "@/config/encryption.config";
 import { updateTokens, logout } from "../slices/authSlice";
 
@@ -32,13 +36,14 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
     },
   });
 
-  // Check if encryption is needed
+  // Check if encryption/hash is needed
   let modifiedArgs: string | FetchArgs = args;
 
-  if (typeof args === "object" && args.body) {
+  if (typeof args === "object") {
     const method = (args.method || "GET").toUpperCase();
 
-    if (requiresEncryption(method) && ENCRYPTION_CONFIG.ENABLED) {
+    // Handle POST/PUT requests with body (encrypt + hash)
+    if (args.body && requiresEncryption(method) && ENCRYPTION_CONFIG.ENABLED) {
       try {
         console.log(`🚀 Encrypting ${method} request to:`, args.url);
 
@@ -75,17 +80,45 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
           } as FetchBaseQueryError,
         };
       }
-    } else if (requiresEncryption(method) && !ENCRYPTION_CONFIG.ENABLED) {
+    }
+    // Handle GET requests (hash only, no encryption)
+    else if (!args.body && ENCRYPTION_CONFIG.ENABLED) {
+      try {
+        console.log(`🔑 Adding hash to ${method} request:`, args.url);
+
+        // Generate secret-only hash for GET requests
+        const hash = await generateSecretHash();
+
+        // Get existing headers
+        const existingHeaders =
+          typeof args.headers === "object" ? args.headers : {};
+
+        // Create new headers
+        const newHeaders = new Headers(existingHeaders as HeadersInit);
+        newHeaders.set("X-Payload-Hash", hash);
+
+        // Modify args with hash header
+        modifiedArgs = {
+          ...args,
+          headers: newHeaders,
+        };
+
+        console.log("✅ Hash added to GET request");
+      } catch (error) {
+        console.error("❌ Hash generation failed:", error);
+        return {
+          error: {
+            status: "CUSTOM_ERROR",
+            error: "Failed to generate hash",
+            data: error,
+          } as FetchBaseQueryError,
+        };
+      }
+    } else if (!ENCRYPTION_CONFIG.ENABLED) {
       console.log(
         `⚠️ ${method} request to:`,
         args.url,
-        "(encryption DISABLED)"
-      );
-    } else {
-      console.log(
-        `📤 ${method} request to:`,
-        args.url,
-        "(no encryption required)"
+        "(encryption/hash DISABLED)"
       );
     }
   }

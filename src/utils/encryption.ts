@@ -221,11 +221,41 @@ export async function encryptPayload(data: any): Promise<{
 // ==================== UTILITY FUNCTIONS ====================
 
 /**
- * Check if HTTP method requires encryption
+ * Check if HTTP method requires encryption (POST/PUT have encrypted body)
  */
 export function requiresEncryption(method: string): boolean {
   const normalizedMethod = method.toUpperCase();
   return normalizedMethod === "POST" || normalizedMethod === "PUT";
+}
+
+/**
+ * Check if HTTP method requires hash header (all methods need hash)
+ */
+export function requiresHash(method: string): boolean {
+  // All methods require the hash header for validation
+  return true;
+}
+
+/**
+ * Generate hash for GET requests (secret only, no payload)
+ */
+export async function generateSecretHash(): Promise<string> {
+  try {
+    const hash = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      ENCRYPTION_CONFIG.SECRET,
+      { encoding: Crypto.CryptoEncoding.BASE64 }
+    );
+
+    if (__DEV__) {
+      console.log("🔑 Generated secret-only hash for GET request");
+    }
+
+    return hash;
+  } catch (error) {
+    console.error("❌ Failed to generate secret hash:", error);
+    throw new Error(`Hash generation failed: ${error}`);
+  }
 }
 
 /**

@@ -8,9 +8,14 @@ import type { RootState } from "../index";
 import Constants from "expo-constants";
 import { encryptPayload, requiresEncryption } from "@/utils/encryption";
 import { ENCRYPTION_CONFIG } from "@/config/encryption.config";
+import { updateTokens, logout } from "../slices/authSlice";
 
 const API_URL =
   Constants.expoConfig?.extra?.apiUrl || "https://api.yourestate.com";
+
+// Simple mutex to prevent multiple simultaneous token refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<any> | null = null;
 
 // ==================== CUSTOM BASE QUERY WITH ENCRYPTION ====================
 const baseQueryWithEncryption = (async (args, api, extraOptions) => {
@@ -89,10 +94,163 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
   return baseQuery(modifiedArgs, api, extraOptions);
 }) as BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
 
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Check if an error is a JWT expired error
+ */
+function isJwtExpiredError(error: any): boolean {
+  if (!error) return false;
+
+  // Check for various JWT expired error patterns
+  const errorData = error.data;
+  if (errorData) {
+    // Pattern 1: {"data": {"err": {"message": "jwt expired"}}}
+    if (errorData.err?.message === "jwt expired") return true;
+    if (errorData.err?.name === "TokenExpiredError") return true;
+
+    // Pattern 2: {"data": {"message": "jwt expired"}}
+    if (errorData.message === "jwt expired") return true;
+
+    // Pattern 3: Direct message
+    if (typeof errorData === "string" && errorData.includes("jwt expired"))
+      return true;
+  }
+
+  // Check error message
+  const message = error.message || error.error;
+  if (typeof message === "string" && message.includes("jwt expired"))
+    return true;
+
+  return false;
+}
+
+/**
+ * Base query with automatic token refresh on JWT expiration
+ */
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  // Try the initial request
+  let result = await baseQueryWithEncryption(args, api, extraOptions);
+
+  // Check if we got a JWT expired error
+  if (
+    result.error &&
+    (result.error.status === 401 ||
+      result.error.status === 500 ||
+      result.error.status === 403) &&
+    isJwtExpiredError(result.error)
+  ) {
+    if (__DEV__) {
+      console.log("🔄 JWT expired, attempting token refresh...");
+    }
+
+    // If already refreshing, wait for the existing refresh to complete
+    if (isRefreshing && refreshPromise) {
+      try {
+        await refreshPromise;
+        // Retry the original request with new token
+        result = await baseQueryWithEncryption(args, api, extraOptions);
+        return result;
+      } catch (error) {
+        // Refresh failed, logout
+        if (__DEV__) {
+          console.error("❌ Token refresh failed, logging out");
+        }
+        api.dispatch(logout());
+        return result;
+      }
+    }
+
+    // Start new refresh
+    isRefreshing = true;
+    refreshPromise = (async () => {
+      try {
+        const state = api.getState() as RootState;
+        const refreshToken = state.auth.refreshToken;
+
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        // Create a simple fetch request for token refresh
+        const refreshBaseQuery = fetchBaseQuery({
+          baseUrl: API_URL,
+        });
+
+        // Call refresh token endpoint
+        const refreshResult = await refreshBaseQuery(
+          {
+            url: "/token/refresh",
+            method: "POST",
+            body: { refresh_token: refreshToken },
+          },
+          api,
+          extraOptions
+        );
+
+        if (refreshResult.data) {
+          const data = refreshResult.data as any;
+
+          // Check if refresh was successful
+          if (data.respCode === "00" && data.data) {
+            const newToken = data.data.access_token;
+            const newRefreshToken = data.data.refresh_token;
+
+            if (__DEV__) {
+              console.log("✅ Token refreshed successfully");
+            }
+
+            // Update tokens in state
+            api.dispatch(
+              updateTokens({
+                token: newToken,
+                refreshToken: newRefreshToken,
+              })
+            );
+
+            return { success: true };
+          } else {
+            throw new Error(data.message || "Token refresh failed");
+          }
+        } else {
+          throw new Error("Token refresh failed");
+        }
+      } catch (error) {
+        if (__DEV__) {
+          console.error("❌ Token refresh error:", error);
+        }
+        // Logout on refresh failure
+        api.dispatch(logout());
+        throw error;
+      } finally {
+        isRefreshing = false;
+        refreshPromise = null;
+      }
+    })();
+
+    try {
+      await refreshPromise;
+      // Retry the original request with new token
+      result = await baseQueryWithEncryption(args, api, extraOptions);
+    } catch (error) {
+      // Refresh failed, already logged out
+      if (__DEV__) {
+        console.error("❌ Failed to refresh token and retry request");
+      }
+    }
+  }
+
+  return result;
+};
+
 // ==================== API SLICE ====================
 export const api = createApi({
   reducerPath: "api",
-  baseQuery: baseQueryWithEncryption,
+  baseQuery: baseQueryWithReauth,
   tagTypes: [
     "Visitors",
     "Maintenance",

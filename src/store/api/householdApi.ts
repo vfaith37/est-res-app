@@ -29,23 +29,33 @@ export interface DomesticStaff {
 }
 
 export interface CreateFamilyMemberRequest {
-  name: string;
-  email: string;
+  firstName: string;
+  lastName: string;
+  gender: 'Male' | 'Female';
+  dateOfBirth: string;
   phone: string;
+  email: string;
   relationship: string;
-  dateOfBirth?: string;
+  photo?: string; // URI or base64
+  // Employment Information
+  employmentStatus: 'Employed' | 'Unemployed' | 'Self-employed' | 'Student';
+  jobTitle?: string;
+  employerName?: string;
 }
 
 export interface CreateDomesticStaffRequest {
-  name: string;
+  firstName: string;
+  lastName: string;
+  gender: 'Male' | 'Female';
+  dateOfBirth: string;
   phone: string;
+  email: string;
+  photo?: string; // URI or base64
+  // Employment Information
   role: string;
-  idNumber: string;
-  address: string;
-  emergencyContact: string;
-  emergencyPhone: string;
+  employmentType: 'Full-time' | 'Part-time' | 'Contract';
+  workDays?: string[]; // Array of day names
   startDate: string;
-  photo?: string;
 }
 
 export const householdApi = api.injectEndpoints({

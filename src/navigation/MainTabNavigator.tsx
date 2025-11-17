@@ -24,6 +24,7 @@ import AddFamilyMemberScreen from "@/screens/household/AddFamilyMemberScreen";
 import DomesticStaffListScreen from "@/screens/household/DomesticStaffListScreen";
 import AddDomesticStaffScreen from "@/screens/household/AddDomesticStaffScreen";
 import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
+import EstateVendorsScreen from "@/screens/estate/EstateVendorsScreen";
 // import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
 
 import type {
@@ -213,6 +214,11 @@ function ProfileNavigator() {
         name="AddDomesticStaff"
         component={AddDomesticStaffScreen}
         options={{ title: "Add Staff Member" }}
+      />
+      <ProfileStack.Screen
+        name="EstateVendors"
+        component={EstateVendorsScreen}
+        options={{ title: "Estate Vendors" }}
       />
       {/* Estate Services */}
       <ProfileStack.Screen

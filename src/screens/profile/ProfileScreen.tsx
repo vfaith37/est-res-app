@@ -92,7 +92,7 @@ export default function ProfileScreen() {
 
   const handleEstateVendors = () => {
     haptics.light();
-    Alert.alert('Estate Vendors', 'Estate vendors list coming soon!');
+    navigation.navigate('EstateVendors');
   };
 
   const handleEstateDrivers = () => {

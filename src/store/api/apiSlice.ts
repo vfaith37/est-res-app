@@ -296,6 +296,7 @@ export const api = createApi({
     "DomesticStaff",
     "Emergencies",
     "Resident",
+    "EstateVendors",
   ],
   endpoints: () => ({}),
 });

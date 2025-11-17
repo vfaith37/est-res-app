@@ -119,7 +119,7 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       Alert.alert('Success', message, [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('VisitorQR', { visitorId: visitor.id }),
+          onPress: () => navigation.navigate('VisitorQR', { visitor }),
         },
       ]);
     } catch (error: any) {

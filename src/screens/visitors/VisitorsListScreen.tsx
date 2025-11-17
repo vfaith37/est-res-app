@@ -35,9 +35,9 @@ export default function VisitorsListScreen({ navigation }: Props) {
     navigation.navigate('CreateVisitor');
   };
 
-  const handleVisitorPress = (visitorId: string) => {
+  const handleVisitorPress = (visitor: any) => {
     haptics.light();
-    navigation.navigate('VisitorQR', { visitorId });
+    navigation.navigate('VisitorQR', { visitor });
   };
 
   const renderVisitor = ({ item }: any) => {
@@ -63,7 +63,7 @@ export default function VisitorsListScreen({ navigation }: Props) {
     return (
       <TouchableOpacity
         style={styles.visitorCard}
-        onPress={() => handleVisitorPress(item.id)}
+        onPress={() => handleVisitorPress(item)}
       >
         <View style={[styles.visitorIcon, { backgroundColor: iconBgColor }]}>
           <Ionicons name={iconName} size={24} color={iconColor} />

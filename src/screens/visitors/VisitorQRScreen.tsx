@@ -6,10 +6,8 @@ import { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { VisitorsStackParamList } from '@/types/navigation';
-import { 
-  useGetVisitorQuery, 
-  useRevokeVisitorMutation, 
-  useShareVisitorPassMutation 
+import {
+  useRevokeVisitorMutation
 } from '@/store/api/visitorsApi';
 import { haptics } from '@/utils/haptics';
 
@@ -26,32 +24,34 @@ type Props = {
 };
 
 export default function VisitorQRScreen({ navigation, route }: Props) {
-  const { visitorId } = route.params;
-  const { data: visitor, isLoading } = useGetVisitorQuery(visitorId);
+  const { visitor } = route.params;
   const [revokeVisitor, { isLoading: isRevoking }] = useRevokeVisitorMutation();
-  const [sharePass] = useShareVisitorPassMutation();
 
   const handleShare = async () => {
     if (!visitor) return;
 
     try {
       haptics.light();
-      
-      const duration = visitor.type === 'visitor' && visitor.checkOutDate
-        ? `\nDuration: ${new Date(visitor.visitDate).toLocaleDateString()} - ${new Date(visitor.checkOutDate).toLocaleDateString()}`
-        : '';
+
+      const isGuest = visitor.type === 'guest';
+      const dateInfo = isGuest && visitor.departureDate
+        ? `Arrival: ${new Date(visitor.visitDate).toLocaleDateString()}\nDeparture: ${new Date(visitor.departureDate).toLocaleDateString()}`
+        : `Visit Date: ${new Date(visitor.visitDate).toLocaleDateString()}`;
 
       await Share.share({
-        message: `Guest Pass for ${visitor.name}\n` +
-          `Type: ${visitor.type === 'guest' ? 'Single Day Guest' : 'Multiple Days Visitor'}\n` +
-          `Visit Date: ${new Date(visitor.visitDate).toLocaleDateString()}` +
-          duration +
-          `\nTime: ${visitor.timeSlot}\n` +
-          `Entry Token: ${visitor.entryToken}\n` +
-          `QR Code: ${visitor.qrCode}`,
+        message: `${isGuest ? 'Guest' : 'Visitor'} Pass for ${visitor.name}\n` +
+          `Token ID: ${visitor.id}\n` +
+          `${dateInfo}\n` +
+          `Email: ${visitor.email}\n` +
+          `Phone: ${visitor.phone}\n` +
+          `Purpose: ${visitor.purpose}\n` +
+          `Number of People: ${visitor.visitorNum}\n` +
+          `\nShow the QR code at the gate for entry.`,
       });
     } catch (error) {
-      console.error('Error sharing:', error);
+      if (__DEV__) {
+        console.error('Error sharing:', error);
+      }
     }
   };
 
@@ -59,8 +59,8 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
     if (!visitor) return;
 
     Alert.alert(
-      'Revoke Guest Pass',
-      'Are you sure you want to revoke this guest pass? This action cannot be undone.',
+      'Revoke Pass',
+      `Are you sure you want to revoke this ${visitor.type} pass? This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -69,14 +69,17 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
           onPress: async () => {
             try {
               haptics.medium();
-              await revokeVisitor(visitor.id).unwrap();
+              await revokeVisitor({ tokenId: visitor.id }).unwrap();
               haptics.success();
-              Alert.alert('Success', 'Guest pass revoked successfully', [
+              Alert.alert('Success', 'Pass revoked successfully', [
                 { text: 'OK', onPress: () => navigation.goBack() },
               ]);
             } catch (error: any) {
               haptics.error();
-              Alert.alert('Error', error?.data?.message || 'Failed to revoke guest pass');
+              if (__DEV__) {
+                console.error('Revoke error:', error);
+              }
+              Alert.alert('Error', error?.data?.message || 'Failed to revoke pass');
             }
           },
         },
@@ -84,30 +87,19 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
     );
   };
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   if (!visitor) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.errorText}>Guest pass not found</Text>
+          <Text style={styles.errorText}>Pass not found</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const isRevoked = visitor.status === 'revoked';
-  const canRevoke = ['pending', 'approved'].includes(visitor.status);
+  const isRevoked = visitor.status === 'Revoked';
+  const canRevoke = visitor.status === 'Active';
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -115,12 +107,12 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
         {/* Type Badge */}
         <View style={styles.typeBadge}>
           <Ionicons
-            name={visitor.type === 'guest' ? 'person' : 'people'}
+            name={visitor.type === 'guest' ? 'bed' : 'person'}
             size={16}
-            color="#007AFF"
+            color={visitor.type === 'guest' ? '#FF9500' : '#007AFF'}
           />
-          <Text style={styles.typeBadgeText}>
-            {visitor.type === 'guest' ? 'Single Day Guest' : 'Multiple Days Visitor'}
+          <Text style={[styles.typeBadgeText, visitor.type === 'guest' && { color: '#FF9500' }]}>
+            {visitor.type === 'guest' ? '🛏️ Guest (Overnight)' : '👤 Visitor (Day Visit)'}
           </Text>
         </View>
 
@@ -136,42 +128,47 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
           )}
         </View>
 
-        {/* Entry Token */}
+        {/* Token ID */}
         <View style={styles.tokenCard}>
-          <Text style={styles.tokenLabel}>Entry Token</Text>
-          <Text style={styles.tokenValue}>{visitor.entryToken}</Text>
-          <Text style={styles.tokenHelper}>Security can use this token for manual entry</Text>
+          <Text style={styles.tokenLabel}>Token ID</Text>
+          <Text style={styles.tokenValue}>{visitor.id}</Text>
+          <Text style={styles.tokenHelper}>Show QR code to security for entry</Text>
         </View>
 
-        {/* Guest Info */}
+        {/* Visitor Info */}
         <View style={styles.infoCard}>
           <Text style={styles.name}>{visitor.name}</Text>
           <Text style={styles.phone}>{visitor.phone}</Text>
+          <Text style={styles.email}>{visitor.email}</Text>
 
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
               <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
               <Text style={styles.detailText}>
-                {new Date(visitor.visitDate).toLocaleDateString()}
-                {visitor.type === 'visitor' && visitor.checkOutDate &&
-                  ` - ${new Date(visitor.checkOutDate).toLocaleDateString()}`}
+                {visitor.type === 'guest' && visitor.departureDate
+                  ? `${new Date(visitor.visitDate).toLocaleDateString()} → ${new Date(visitor.departureDate).toLocaleDateString()}`
+                  : new Date(visitor.visitDate).toLocaleDateString()}
               </Text>
             </View>
 
-            <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={20} color="#8E8E93" />
-              <Text style={styles.detailText}>{visitor.timeSlot}</Text>
-            </View>
+            {visitor.visitorNum > 0 && (
+              <View style={styles.detailRow}>
+                <Ionicons name="people-outline" size={20} color="#8E8E93" />
+                <Text style={styles.detailText}>
+                  {visitor.visitorNum} {visitor.visitorNum === 1 ? 'person' : 'people'}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.detailRow}>
               <Ionicons name="information-circle-outline" size={20} color="#8E8E93" />
               <Text style={styles.detailText}>{visitor.purpose}</Text>
             </View>
 
-            {visitor.vehicleNumber && (
+            {visitor.address && (
               <View style={styles.detailRow}>
-                <Ionicons name="car-outline" size={20} color="#8E8E93" />
-                <Text style={styles.detailText}>{visitor.vehicleNumber}</Text>
+                <Ionicons name="location-outline" size={20} color="#8E8E93" />
+                <Text style={styles.detailText}>{visitor.address}</Text>
               </View>
             )}
           </View>
@@ -221,7 +218,14 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
 }
 
 function getStatusColor(status: string) {
-  switch (status) {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return '#34C759';
+    case 'revoked':
+      return '#FF3B30';
+    case 'expired':
+      return '#8E8E93';
+    // Legacy statuses
     case 'approved':
       return '#34C759';
     case 'pending':
@@ -230,10 +234,6 @@ function getStatusColor(status: string) {
       return '#007AFF';
     case 'checked-out':
       return '#8E8E93';
-    case 'expired':
-      return '#8E8E93';
-    case 'revoked':
-      return '#FF3B30';
     default:
       return '#8E8E93';
   }
@@ -338,6 +338,11 @@ const styles = StyleSheet.create({
   },
   phone: {
     fontSize: 16,
+    color: '#8E8E93',
+    textAlign: 'center',
+  },
+  email: {
+    fontSize: 14,
     color: '#8E8E93',
     textAlign: 'center',
     marginBottom: 8,

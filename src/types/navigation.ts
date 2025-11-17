@@ -4,6 +4,7 @@ import type {
   CompositeNavigationProp,
   RouteProp,
 } from "@react-navigation/native";
+import type { Visitor } from "@/store/api/visitorsApi";
 
 // Root Stack (from AppNavigator)
 export type RootStackParamList = {
@@ -55,7 +56,7 @@ export type HomeStackParamList = {
 export type VisitorsStackParamList = {
   VisitorsList: undefined;
   CreateVisitor: undefined;
-  VisitorQR: { visitorId: string };
+  VisitorQR: { visitor: Visitor };
 };
 
 // Maintenance Stack

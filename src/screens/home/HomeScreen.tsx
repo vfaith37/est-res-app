@@ -1,32 +1,53 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { BarChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
-import { useAppSelector } from '@/store/hooks';
-import { useGetPendingPaymentsQuery, useGetPaymentsQuery } from '@/store/api/paymentsApi';
-import { useGetVisitorsQuery } from '@/store/api/visitorsApi';
-import { useGetMaintenanceRequestsQuery } from '@/store/api/maintenanceApi';
-import { useGetNotificationsQuery } from '@/store/api/notificationsApi';
-import { haptics } from '@/utils/haptics';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { BarChart } from "react-native-chart-kit";
+import { Dimensions } from "react-native";
+import { useAppSelector } from "@/store/hooks";
+import {
+  useGetPendingPaymentsQuery,
+  useGetPaymentsQuery,
+} from "@/store/api/paymentsApi";
+import { useGetVisitorsQuery } from "@/store/api/visitorsApi";
+import { useGetMaintenanceRequestsQuery } from "@/store/api/maintenanceApi";
+import { useGetNotificationsQuery } from "@/store/api/notificationsApi";
+import { haptics } from "@/utils/haptics";
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 export default function HomeScreen({ navigation }: any) {
   const user = useAppSelector((state) => state.auth.user);
-  
-  const { data: pendingPayments, refetch: refetchPayments, isFetching: isFetchingPayments } = 
-    useGetPendingPaymentsQuery();
-  
-  const { data: allPayments, refetch: refetchAllPayments } = 
+
+  console.log(user);
+
+  const {
+    data: pendingPayments,
+    refetch: refetchPayments,
+    isFetching: isFetchingPayments,
+  } = useGetPendingPaymentsQuery();
+
+  const { data: allPayments, refetch: refetchAllPayments } =
     useGetPaymentsQuery({ limit: 100 });
-  
-  const { data: upcomingVisitors, refetch: refetchVisitors, isFetching: isFetchingVisitors } = 
-    useGetVisitorsQuery({ status: 'approved', limit: 5 });
-  
-  const { data: maintenanceRequests, refetch: refetchMaintenance, isFetching: isFetchingMaintenance } = 
-    useGetMaintenanceRequestsQuery({ status: 'pending' });
-  
+
+  const {
+    data: upcomingVisitors,
+    refetch: refetchVisitors,
+    isFetching: isFetchingVisitors,
+  } = useGetVisitorsQuery({ status: "approved", limit: 5 });
+
+  const {
+    data: maintenanceRequests,
+    refetch: refetchMaintenance,
+    isFetching: isFetchingMaintenance,
+  } = useGetMaintenanceRequestsQuery({ status: "pending" });
+
   const { data: unreadCount } = useGetNotificationsQuery({ unreadOnly: true });
 
   const handleRefresh = () => {
@@ -37,32 +58,37 @@ export default function HomeScreen({ navigation }: any) {
     refetchMaintenance();
   };
 
-  const isRefreshing = isFetchingPayments || isFetchingVisitors || isFetchingMaintenance;
+  const isRefreshing =
+    isFetchingPayments || isFetchingVisitors || isFetchingMaintenance;
+  console.log(allPayments);
 
   // Calculate payment trends for last 6 months
   const getPaymentTrends = () => {
-    if (!allPayments) return { labels: [], data: [] };
+    if (allPayments === undefined) return { labels: [], data: [] };
 
     const now = new Date();
     const monthlyData: { [key: string]: number } = {};
-    
+
     // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+      const monthKey = date.toLocaleDateString("en-US", { month: "short" });
       monthlyData[monthKey] = 0;
     }
 
     // Sum up payments by month
-    allPayments.forEach((payment) => {
-      if (payment.status === 'paid' && payment.paidDate) {
-        const paidDate = new Date(payment.paidDate);
-        const monthKey = paidDate.toLocaleDateString('en-US', { month: 'short' });
-        if (monthlyData.hasOwnProperty(monthKey)) {
-          monthlyData[monthKey] += payment.amount;
+    allPayments.length > 1 &&
+      allPayments.forEach((payment) => {
+        if (payment.status === "paid" && payment.paidDate) {
+          const paidDate = new Date(payment.paidDate);
+          const monthKey = paidDate.toLocaleDateString("en-US", {
+            month: "short",
+          });
+          if (monthlyData.hasOwnProperty(monthKey)) {
+            monthlyData[monthKey] += payment.amount;
+          }
         }
-      }
-    });
+      });
 
     return {
       labels: Object.keys(monthlyData),
@@ -73,13 +99,18 @@ export default function HomeScreen({ navigation }: any) {
   const paymentTrends = getPaymentTrends();
 
   // Get recent payments (last 3)
-  const recentPayments = allPayments
-    ?.filter(p => p.status === 'paid')
-    ?.sort((a, b) => new Date(b.paidDate!).getTime() - new Date(a.paidDate!).getTime())
-    ?.slice(0, 3) || [];
+  const recentPayments = Array.isArray(allPayments)
+    ? allPayments
+        .filter((p) => p.status === "paid")
+        .sort(
+          (a, b) =>
+            new Date(b.paidDate!).getTime() - new Date(a.paidDate!).getTime()
+        )
+        .slice(0, 3)
+    : [];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
@@ -106,143 +137,35 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Ionicons name="people-outline" size={24} color="#007AFF" />
-            <Text style={styles.statNumber}>{upcomingVisitors?.length || 0}</Text>
+            <Text style={styles.statNumber}>
+              {upcomingVisitors?.length || 0}
+            </Text>
             <Text style={styles.statLabel}>Upcoming Visitors</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Ionicons name="build-outline" size={24} color="#FF9500" />
-            <Text style={styles.statNumber}>{maintenanceRequests?.length || 0}</Text>
+            <Text style={styles.statNumber}>
+              {maintenanceRequests?.length || 0}
+            </Text>
             <Text style={styles.statLabel}>Pending Issues</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Ionicons name="card-outline" size={24} color="#FF3B30" />
-            <Text style={styles.statNumber}>{pendingPayments?.length || 0}</Text>
+            <Text style={styles.statNumber}>
+              {pendingPayments?.length || 0}
+            </Text>
             <Text style={styles.statLabel}>Due Payments</Text>
           </View>
         </View>
 
-        {/* Payment Trends Chart */}
-        {user?.role !== 'security' && paymentTrends.data.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Payment Trends</Text>
-              <Text style={styles.sectionSubtitle}>Last 6 months</Text>
-            </View>
-            
-            <View style={styles.chartContainer}>
-              {(() => {
-              interface BarChartDataset {
-                data: number[];
-              }
-              interface BarChartData {
-                labels: string[];
-                datasets: BarChartDataset[];
-              }
-              interface ChartConfigType {
-                backgroundColor: string;
-                backgroundGradientFrom: string;
-                backgroundGradientTo: string;
-                decimalPlaces: number;
-                color: (opacity?: number) => string;
-                labelColor: (opacity?: number) => string;
-                style: { borderRadius: number };
-                barPercentage: number;
-                propsForBackgroundLines: {
-                strokeWidth: number;
-                stroke: string;
-                strokeDasharray: string;
-                };
-              }
-
-              const chartData: BarChartData = {
-                labels: paymentTrends.labels,
-                datasets: [{ data: paymentTrends.data }],
-              };
-
-              const chartConfig: ChartConfigType = {
-                backgroundColor: '#fff',
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                style: {
-                borderRadius: 16,
-                },
-                barPercentage: 0.7,
-                propsForBackgroundLines: {
-                strokeWidth: 1,
-                stroke: '#E5E5EA',
-                strokeDasharray: '0',
-                },
-              };
-
-              return (
-                <BarChart
-                data={chartData}
-                width={screenWidth - 40}
-                height={220}
-                yAxisLabel="₦"
-                yAxisSuffix="k"
-                fromZero
-                chartConfig={chartConfig}
-                style={styles.chart}
-                showValuesOnTopOfBars
-                />
-              );
-              })()}
-            </View>
-          </View>
-        )}
-
-        {/* Recent Payments */}
-        {user?.role !== 'security' && recentPayments.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Payments</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  haptics.light();
-                  navigation.navigate('Payments');
-                }}
-              >
-                <Text style={styles.seeAllText}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {recentPayments.map((payment) => (
-              <View key={payment.id} style={styles.paymentCard}>
-                <View style={[styles.paymentIcon, { backgroundColor: getPaymentTypeColor(payment.type) }]}>
-                  <Ionicons name={getPaymentTypeIcon(payment.type)} size={20} color="#fff" />
-                </View>
-                
-                <View style={styles.paymentContent}>
-                  <Text style={styles.paymentTitle}>{payment.description}</Text>
-                  <Text style={styles.paymentDate}>
-                    Paid on {new Date(payment.paidDate!).toLocaleDateString()}
-                  </Text>
-                </View>
-
-                <View style={styles.paymentRight}>
-                  <Text style={styles.paymentAmount}>₦{payment.amount.toLocaleString()}</Text>
-                  <View style={styles.paidBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color="#34C759" />
-                    <Text style={styles.paidText}>Paid</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          
+
           <View style={styles.actionsGrid}>
-            {user?.role !== 'security' && (
+            {user?.role !== "security" && (
               <>
                 <QuickActionCard
                   icon="person-add-outline"
@@ -250,12 +173,12 @@ export default function HomeScreen({ navigation }: any) {
                   color="#007AFF"
                   onPress={() => {
                     haptics.medium();
-                    navigation.navigate('Visitors', {
-                      screen: 'CreateVisitor',
+                    navigation.navigate("Visitors", {
+                      screen: "CreateVisitor",
                     });
                   }}
                 />
-                {user?.role === 'home_head' && (
+                {user?.role === "home_head" && (
                   <>
                     <QuickActionCard
                       icon="build-outline"
@@ -263,8 +186,8 @@ export default function HomeScreen({ navigation }: any) {
                       color="#FF9500"
                       onPress={() => {
                         haptics.medium();
-                        navigation.navigate('Maintenance', {
-                          screen: 'ReportIssue',
+                        navigation.navigate("Maintenance", {
+                          screen: "ReportIssue",
                         });
                       }}
                     />
@@ -274,7 +197,7 @@ export default function HomeScreen({ navigation }: any) {
                       color="#34C759"
                       onPress={() => {
                         haptics.medium();
-                        navigation.navigate('Payments');
+                        navigation.navigate("Payments");
                       }}
                     />
                   </>
@@ -285,15 +208,15 @@ export default function HomeScreen({ navigation }: any) {
                   color="#FF3B30"
                   onPress={() => {
                     haptics.heavy();
-                    navigation.navigate('Emergency', {
-                      screen: 'ReportEmergency',
+                    navigation.navigate("Emergency", {
+                      screen: "ReportEmergency",
                     });
                   }}
                 />
               </>
             )}
 
-            {user?.role === 'security' && (
+            {user?.role === "security" && (
               <>
                 <QuickActionCard
                   icon="qr-code-outline"
@@ -301,8 +224,8 @@ export default function HomeScreen({ navigation }: any) {
                   color="#007AFF"
                   onPress={() => {
                     haptics.medium();
-                    navigation.navigate('Visitors', {
-                      screen: 'QRScanner',
+                    navigation.navigate("Visitors", {
+                      screen: "QRScanner",
                     });
                   }}
                 />
@@ -312,8 +235,8 @@ export default function HomeScreen({ navigation }: any) {
                   color="#5856D6"
                   onPress={() => {
                     haptics.medium();
-                    navigation.navigate('Visitors', {
-                      screen: 'QRScanner',
+                    navigation.navigate("Visitors", {
+                      screen: "QRScanner",
                     });
                   }}
                 />
@@ -323,8 +246,8 @@ export default function HomeScreen({ navigation }: any) {
                   color="#FF3B30"
                   onPress={() => {
                     haptics.heavy();
-                    navigation.navigate('Incidents', {
-                      screen: 'ReportEmergency',
+                    navigation.navigate("Incidents", {
+                      screen: "ReportEmergency",
                     });
                   }}
                 />
@@ -333,54 +256,186 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Recent Activity - Only for non-security */}
-        {user?.role !== 'security' && upcomingVisitors && upcomingVisitors.length > 0 && (
+        {/* Payment Trends Chart */}
+        {user?.role !== "security" && paymentTrends.data.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Visitors</Text>
+              <Text style={styles.sectionTitle}>Payment Trends</Text>
+              <Text style={styles.sectionSubtitle}>Last 6 months</Text>
+            </View>
+
+            <View style={styles.chartContainer}>
+              {(() => {
+                interface BarChartDataset {
+                  data: number[];
+                }
+                interface BarChartData {
+                  labels: string[];
+                  datasets: BarChartDataset[];
+                }
+                interface ChartConfigType {
+                  backgroundColor: string;
+                  backgroundGradientFrom: string;
+                  backgroundGradientTo: string;
+                  decimalPlaces: number;
+                  color: (opacity?: number) => string;
+                  labelColor: (opacity?: number) => string;
+                  style: { borderRadius: number };
+                  barPercentage: number;
+                  propsForBackgroundLines: {
+                    strokeWidth: number;
+                    stroke: string;
+                    strokeDasharray: string;
+                  };
+                }
+
+                const chartData: BarChartData = {
+                  labels: paymentTrends.labels,
+                  datasets: [{ data: paymentTrends.data }],
+                };
+
+                const chartConfig: ChartConfigType = {
+                  backgroundColor: "#fff",
+                  backgroundGradientFrom: "#fff",
+                  backgroundGradientTo: "#fff",
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  style: {
+                    borderRadius: 16,
+                  },
+                  barPercentage: 0.7,
+                  propsForBackgroundLines: {
+                    strokeWidth: 1,
+                    stroke: "#E5E5EA",
+                    strokeDasharray: "0",
+                  },
+                };
+
+                return (
+                  <BarChart
+                    data={chartData}
+                    width={screenWidth - 40}
+                    height={220}
+                    yAxisLabel="₦"
+                    yAxisSuffix="k"
+                    fromZero
+                    chartConfig={chartConfig}
+                    style={styles.chart}
+                    showValuesOnTopOfBars
+                  />
+                );
+              })()}
+            </View>
+          </View>
+        )}
+
+        {/* Recent Payments */}
+        {user?.role !== "security" && recentPayments.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Payments</Text>
               <TouchableOpacity
                 onPress={() => {
                   haptics.light();
-                  navigation.navigate('Visitors');
+                  navigation.navigate("Payments");
                 }}
               >
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
-            
-            {upcomingVisitors.slice(0, 3).map((visitor) => (
-              <TouchableOpacity
-                key={visitor.id}
-                style={styles.activityCard}
-                onPress={() => {
-                  haptics.light();
-                  navigation.navigate('Visitors', {
-                    screen: 'VisitorQR',
-                    params: { visitorId: visitor.id },
-                  });
-                }}
-              >
-                <View style={styles.activityIcon}>
-                  <Ionicons 
-                    name={visitor.type === 'guest' ? 'person' : 'people'} 
-                    size={20} 
-                    color="#007AFF" 
+
+            {recentPayments.map((payment) => (
+              <View key={payment.id} style={styles.paymentCard}>
+                <View
+                  style={[
+                    styles.paymentIcon,
+                    { backgroundColor: getPaymentTypeColor(payment.type) },
+                  ]}
+                >
+                  <Ionicons
+                    name={getPaymentTypeIcon(payment.type)}
+                    size={20}
+                    color="#fff"
                   />
                 </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>{visitor.name}</Text>
-                  <Text style={styles.activitySubtitle}>
-                    {new Date(visitor.visitDate).toLocaleDateString()} • {visitor.timeSlot}
-                  </Text>
-                  <Text style={styles.activityType}>
-                    {visitor.type === 'guest' ? 'Guest' : 'Visitor'}
+
+                <View style={styles.paymentContent}>
+                  <Text style={styles.paymentTitle}>{payment.description}</Text>
+                  <Text style={styles.paymentDate}>
+                    Paid on {new Date(payment.paidDate!).toLocaleDateString()}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-              </TouchableOpacity>
+
+                <View style={styles.paymentRight}>
+                  <Text style={styles.paymentAmount}>
+                    ₦{payment.amount.toLocaleString()}
+                  </Text>
+                  <View style={styles.paidBadge}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color="#34C759"
+                    />
+                    <Text style={styles.paidText}>Paid</Text>
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
         )}
+
+        {/* Recent Activity - Only for non-security */}
+        {user?.role !== "security" &&
+          upcomingVisitors &&
+          upcomingVisitors.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Upcoming Visitors</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.light();
+                    navigation.navigate("Visitors");
+                  }}
+                >
+                  <Text style={styles.seeAllText}>See All</Text>
+                </TouchableOpacity>
+              </View>
+
+              {upcomingVisitors.slice(0, 3).map((visitor) => (
+                <TouchableOpacity
+                  key={visitor.id}
+                  style={styles.activityCard}
+                  onPress={() => {
+                    haptics.light();
+                    navigation.navigate("Visitors", {
+                      screen: "VisitorQR",
+                      params: { visitorId: visitor.id },
+                    });
+                  }}
+                >
+                  <View style={styles.activityIcon}>
+                    <Ionicons
+                      name={visitor.type === "guest" ? "person" : "people"}
+                      size={20}
+                      color="#007AFF"
+                    />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>{visitor.name}</Text>
+                    <Text style={styles.activitySubtitle}>
+                      {new Date(visitor.visitDate).toLocaleDateString()} •{" "}
+                      {visitor.timeSlot}
+                    </Text>
+                    <Text style={styles.activityType}>
+                      {visitor.type === "guest" ? "Guest" : "Visitor"}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -388,11 +443,8 @@ export default function HomeScreen({ navigation }: any) {
 
 function QuickActionCard({ icon, title, color, onPress }: any) {
   return (
-    <TouchableOpacity
-      style={styles.actionCard}
-      onPress={onPress}
-    >
-      <View style={[styles.actionIcon, { backgroundColor: color + '20' }]}>
+    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
+      <View style={[styles.actionIcon, { backgroundColor: color + "20" }]}>
         <Ionicons name={icon} size={24} color={color} />
       </View>
       <Text style={styles.actionTitle}>{title}</Text>
@@ -402,93 +454,93 @@ function QuickActionCard({ icon, title, color, onPress }: any) {
 
 function getPaymentTypeIcon(type: string) {
   const icons: any = {
-    service_charge: 'home',
-    utility: 'flash',
-    amenity: 'fitness',
-    fine: 'warning',
-    other: 'card',
+    service_charge: "home",
+    utility: "flash",
+    amenity: "fitness",
+    fine: "warning",
+    other: "card",
   };
-  return icons[type] || 'card';
+  return icons[type] || "card";
 }
 
 function getPaymentTypeColor(type: string) {
   const colors: any = {
-    service_charge: '#007AFF',
-    utility: '#FF9500',
-    amenity: '#34C759',
-    fine: '#FF3B30',
-    other: '#8E8E93',
+    service_charge: "#007AFF",
+    utility: "#FF9500",
+    amenity: "#34C759",
+    fine: "#FF3B30",
+    other: "#8E8E93",
   };
-  return colors[type] || '#8E8E93';
+  return colors[type] || "#8E8E93";
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   greeting: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   name: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 4,
   },
   unit: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 2,
   },
   notificationButton: {
     padding: 8,
-    position: 'relative',
+    position: "relative",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: 4,
     right: 4,
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
     borderRadius: 10,
     minWidth: 18,
     height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   badgeText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 20,
     gap: 12,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
     marginTop: 4,
   },
   section: {
@@ -496,38 +548,38 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 2,
   },
   seeAllText: {
     fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
   },
   chartContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   chart: {
     borderRadius: 16,
   },
   paymentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -536,8 +588,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   paymentContent: {
@@ -545,60 +597,60 @@ const styles = StyleSheet.create({
   },
   paymentTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   paymentDate: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   paymentRight: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   paymentAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   paidBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   paidText: {
     fontSize: 12,
-    color: '#34C759',
-    fontWeight: '600',
+    color: "#34C759",
+    fontWeight: "600",
   },
   actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   actionCard: {
-    width: '48%',
-    backgroundColor: '#fff',
+    width: "48%",
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
   actionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   activityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
@@ -607,9 +659,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF20',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#007AFF20",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   activityContent: {
@@ -617,16 +669,16 @@ const styles = StyleSheet.create({
   },
   activityTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   activitySubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 2,
   },
   activityType: {
     fontSize: 12,
-    color: '#007AFF',
+    color: "#007AFF",
     marginTop: 2,
   },
 });

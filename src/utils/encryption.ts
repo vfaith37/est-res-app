@@ -205,6 +205,7 @@ export async function encryptPayload(data: any): Promise<{
     );
 
     console.log("🔑 Generated hash:", hash.substring(0, 30) + "...");
+    console.log(hash, finalPayload);
     console.log("✅ Encryption complete!");
 
     return {

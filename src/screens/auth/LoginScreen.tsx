@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -9,66 +9,94 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '@/types/navigation';
-import { useLoginMutation } from '@/store/api/authApi';
-import { useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/slices/authSlice';
-import { haptics } from '@/utils/haptics';
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AuthStackParamList } from "@/types/navigation";
+import { useLoginMutation } from "@/store/api/authApi";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/slices/authSlice";
+import { haptics } from "@/utils/haptics";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
+type LoginScreenNavigationProp = NativeStackNavigationProp<
+  AuthStackParamList,
+  "Login"
+>;
 
 type Props = {
   navigation: LoginScreenNavigationProp;
 };
 
 export default function LoginScreen({ navigation }: Props) {
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
     if (!emailOrPhone || !password) {
       haptics.error();
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
       haptics.light();
-      const result = await login({ 
-        email: emailOrPhone, 
-        password 
+
+      // Call login API
+      const result = await login({
+        email: emailOrPhone,
+        password,
       }).unwrap();
-      
-      // Normalize role returned from the API so it matches the authSlice.User type
-      console.log(result);
-      const normalizedUser = {
-        ...result.user,
-        role:
-          // map unknown "domestic_staff" role to an existing role expected by the slice
-          result.user.role === 'domestic_staff' ? 'family_member' : result.user.role,
-      };
-      
-      dispatch(setCredentials({ 
-        user: normalizedUser, 
-        token: result.token,
-        rememberMe 
-      }));
-      
+
+      if (__DEV__) {
+        console.log("Login successful:", result.user.fullname);
+        console.log("Account type:", result.user.accountType);
+        console.log("Role mapped to:", result.user.role);
+        console.log("Resident ID:", result.user.residentId);
+        console.log("Company:", result.user.companyName);
+      }
+
+      // Store credentials in Redux (with refresh token)
+      dispatch(
+        setCredentials({
+          user: result.user,
+          token: result.token,
+          refreshToken: result.refreshToken,
+          rememberMe,
+        })
+      );
+
       haptics.success();
+
+      // Navigation will happen automatically via AppNavigator
+      // based on isAuthenticated state
     } catch (error: any) {
-      console.log(error);
-      
+      console.error("Login error:", error);
+
       haptics.error();
-      Alert.alert('Login Failed', error?.data?.message || 'Invalid credentials');
+
+      // Handle different error types
+      let errorMessage = "Invalid credentials";
+
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.status === "FETCH_ERROR") {
+        errorMessage = "Network error. Please check your connection.";
+      } else if (error?.status === 401) {
+        errorMessage = "Invalid email or password";
+      } else if (error?.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+
+      Alert.alert("Login Failed", errorMessage);
     }
   };
 
@@ -83,80 +111,88 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
+        <Image
+          source={require("@/assets/images/auth.png")}
+          style={styles.authImage}
+        />
         <View style={styles.content}>
-          {/* Logo/Header */}
+          {/* Header */}
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="home" size={60} color="#007AFF" />
-            </View>
-            <Text style={styles.title}>Estate Manager</Text>
-            <Text style={styles.subtitle}>Sign in to your account</Text>
+            <Text style={styles.title}>Welcome Back, Resident Head</Text>
+            <Text style={styles.subtitle}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut
+            </Text>
           </View>
 
           {/* Form */}
           <View style={styles.form}>
             {/* Email/Phone Input */}
-            <View style={styles.inputContainer}>
-              <Ionicons 
-                name="mail-outline" 
-                size={20} 
-                color="#8E8E93" 
-                style={styles.inputIcon} 
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Email or Phone Number"
-                value={emailOrPhone}
-                onChangeText={setEmailOrPhone}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                editable={!isLoading}
-              />
+            <View>
+              <Text style={styles.label}>Email / Telephone Number</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="enter your email or telephone number."
+                  placeholderTextColor="#C7C7CC"
+                  value={emailOrPhone}
+                  onChangeText={setEmailOrPhone}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  editable={!isLoading}
+                  returnKeyType="next"
+                />
+              </View>
             </View>
 
             {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Ionicons 
-                name="lock-closed-outline" 
-                size={20} 
-                color="#8E8E93" 
-                style={styles.inputIcon} 
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                editable={!isLoading}
-              />
-              <TouchableOpacity 
-                style={styles.eyeIcon}
-                onPress={togglePasswordVisibility}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                  size={20} 
-                  color="#8E8E93" 
+            <View>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="enter your password"
+                  placeholderTextColor="#C7C7CC"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!isLoading}
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={togglePasswordVisibility}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color="#8E8E93"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Remember Me & Forgot Password */}
             <View style={styles.optionsRow}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.rememberMeContainer}
                 onPress={toggleRememberMe}
                 disabled={isLoading}
               >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    rememberMe && styles.checkboxChecked,
+                  ]}
+                >
                   {rememberMe && (
-                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Ionicons name="checkmark" size={14} color="#fff" />
                   )}
                 </View>
                 <Text style={styles.rememberMeText}>Remember me</Text>
@@ -165,17 +201,20 @@ export default function LoginScreen({ navigation }: Props) {
               <TouchableOpacity
                 onPress={() => {
                   haptics.light();
-                  navigation.navigate('ForgotPassword');
+                  navigation.navigate("ForgotPassword");
                 }}
                 disabled={isLoading}
               >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
 
             {/* Login Button */}
             <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+              style={[
+                styles.loginButton,
+                isLoading && styles.loginButtonDisabled,
+              ]}
               onPress={handleLogin}
               disabled={isLoading}
             >
@@ -188,117 +227,139 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+
+      {/* Copyright section */}
+      <View style={styles.copyrightContainer}>
+        <Text style={styles.copyrightText}>
+          © 2025 Estate Resident Management App (ERMA). All Rights Reserved.
+        </Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#000",
   },
   keyboardView: {
     flex: 1,
   },
+  authImage: {
+    width: "100%",
+    height: "45%",
+    alignSelf: "center",
+  },
   content: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: "#fff",
     flex: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
+    paddingTop: 32,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#007AFF20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    alignItems: "center",
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 12,
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
+    fontSize: 13,
+    color: "#8E8E93",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 8,
   },
   form: {
-    gap: 16,
+    gap: 20,
+  },
+  label: {
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#000",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
     paddingHorizontal: 16,
-    height: 56,
-  },
-  inputIcon: {
-    marginRight: 12,
+    height: 50,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: '#000',
+    fontSize: 14,
+    color: "#000",
   },
   eyeIcon: {
     padding: 4,
   },
   optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: -4,
   },
   rememberMeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#C7C7CC',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: "#C7C7CC",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
   },
   rememberMeText: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: 13,
+    color: "#000",
   },
   forgotPasswordText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
+    fontSize: 13,
+    color: "#0047FF",
+    fontWeight: "400",
   },
   loginButton: {
-    backgroundColor: '#007AFF',
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
+    backgroundColor: "#0047FF",
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
   },
   loginButtonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+  copyrightContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+  },
+  copyrightText: {
+    color: "#8E8E93",
+    fontSize: 11,
+    fontStyle: "italic",
+    textAlign: "center",
   },
 });

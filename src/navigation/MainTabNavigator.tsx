@@ -1,28 +1,28 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector } from '@/store/hooks';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppSelector } from "@/store/hooks";
 
 // Screens
-import HomeScreen from '@/screens/home/HomeScreen';
-import VisitorsListScreen from '@/screens/visitors/VisitorsListScreen';
-import CreateVisitorScreen from '@/screens/visitors/CreateVisitorScreen';
-import VisitorQRScreen from '@/screens/visitors/VisitorQRScreen';
-import MaintenanceListScreen from '@/screens/maintenance/MaintenanceListScreen';
-import ReportIssueScreen from '@/screens/maintenance/ReportIssueScreen';
-import PaymentsListScreen from '@/screens/payments/PaymentsListScreen';
-import PaymentDetailsScreen from '@/screens/payments/PaymentDetailsScreen';
-import ProfileScreen from '@/screens/profile/ProfileScreen';
-import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
-import QRScannerScreen from '@/screens/security/QRScannerScreen';
-import CheckedInVisitorsScreen from '@/screens/security/CheckedInVisitorsScreen';
-import EmergencyListScreen from '@/screens/emergency/EmergencyListScreen';
-import ReportEmergencyScreen from '@/screens/emergency/ReportEmergencyScreen';
-import FamilyMembersListScreen from '@/screens/household/FamilyMembersListScreen';
-import AddFamilyMemberScreen from '@/screens/household/AddFamilyMemberScreen';
-import DomesticStaffListScreen from '@/screens/household/DomesticStaffListScreen';
-import AddDomesticStaffScreen from '@/screens/household/AddDomesticStaffScreen';
-import NotificationsScreen from '@/screens/notifications/NotificationsScreen';
+import HomeScreen from "@/screens/home/HomeScreen";
+import VisitorsListScreen from "@/screens/visitors/VisitorsListScreen";
+import CreateVisitorScreen from "@/screens/visitors/CreateVisitorScreen";
+import VisitorQRScreen from "@/screens/visitors/VisitorQRScreen";
+import MaintenanceListScreen from "@/screens/maintenance/MaintenanceListScreen";
+import ReportIssueScreen from "@/screens/maintenance/ReportIssueScreen";
+import PaymentsListScreen from "@/screens/payments/PaymentsListScreen";
+import PaymentDetailsScreen from "@/screens/payments/PaymentDetailsScreen";
+import ProfileScreen from "@/screens/profile/ProfileScreen";
+import HouseholdMainScreen from "@/screens/household/HouseholdMainScreen";
+import QRScannerScreen from "@/screens/security/QRScannerScreen";
+import CheckedInVisitorsScreen from "@/screens/security/CheckedInVisitorsScreen";
+import EmergencyListScreen from "@/screens/emergency/EmergencyListScreen";
+import ReportEmergencyScreen from "@/screens/emergency/ReportEmergencyScreen";
+import FamilyMembersListScreen from "@/screens/household/FamilyMembersListScreen";
+import AddFamilyMemberScreen from "@/screens/household/AddFamilyMemberScreen";
+import DomesticStaffListScreen from "@/screens/household/DomesticStaffListScreen";
+import AddDomesticStaffScreen from "@/screens/household/AddDomesticStaffScreen";
+import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
 // import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
 
 import type {
@@ -34,7 +34,7 @@ import type {
   MaintenanceStackParamList,
   PaymentsStackParamList,
   ProfileStackParamList,
-} from '@/types/navigation';
+} from "@/types/navigation";
 
 const SecurityTab = createBottomTabNavigator<SecurityTabParamList>();
 const HomeHeadTab = createBottomTabNavigator<HomeHeadTabParamList>();
@@ -42,7 +42,8 @@ const FamilyMemberTab = createBottomTabNavigator<FamilyMemberTabParamList>();
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const VisitorsStack = createNativeStackNavigator<VisitorsStackParamList>();
-const MaintenanceStack = createNativeStackNavigator<MaintenanceStackParamList>();
+const MaintenanceStack =
+  createNativeStackNavigator<MaintenanceStackParamList>();
 const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const SecurityCheckInStack = createNativeStackNavigator();
@@ -53,10 +54,10 @@ const EmergencyStack = createNativeStackNavigator();
 function HomeNavigator() {
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen 
-        name="HomeMain" 
+      <HomeStack.Screen
+        name="HomeMain"
         component={HomeScreen}
-        options={{ title: 'Dashboard' }}
+        options={{ title: "Dashboard" }}
       />
     </HomeStack.Navigator>
   );
@@ -65,20 +66,20 @@ function HomeNavigator() {
 function VisitorsNavigator() {
   return (
     <VisitorsStack.Navigator>
-      <VisitorsStack.Screen 
-        name="VisitorsList" 
+      <VisitorsStack.Screen
+        name="VisitorsList"
         component={VisitorsListScreen}
-        options={{ title: 'Visitors' }}
+        options={{ title: "Visitors" }}
       />
-      <VisitorsStack.Screen 
-        name="CreateVisitor" 
+      <VisitorsStack.Screen
+        name="CreateVisitor"
         component={CreateVisitorScreen}
-        options={{ title: 'New Visitor Pass' }}
+        options={{ title: "New Visitor Pass" }}
       />
-      <VisitorsStack.Screen 
-        name="VisitorQR" 
+      <VisitorsStack.Screen
+        name="VisitorQR"
         component={VisitorQRScreen}
-        options={{ title: 'Visitor Pass' }}
+        options={{ title: "Visitor Pass" }}
       />
     </VisitorsStack.Navigator>
   );
@@ -87,15 +88,15 @@ function VisitorsNavigator() {
 function MaintenanceNavigator() {
   return (
     <MaintenanceStack.Navigator>
-      <MaintenanceStack.Screen 
-        name="MaintenanceList" 
+      <MaintenanceStack.Screen
+        name="MaintenanceList"
         component={MaintenanceListScreen}
-        options={{ title: 'Maintenance' }}
+        options={{ title: "Maintenance" }}
       />
-      <MaintenanceStack.Screen 
-        name="ReportIssue" 
+      <MaintenanceStack.Screen
+        name="ReportIssue"
         component={ReportIssueScreen}
-        options={{ title: 'Report Issue' }}
+        options={{ title: "Report Issue" }}
       />
     </MaintenanceStack.Navigator>
   );
@@ -104,15 +105,15 @@ function MaintenanceNavigator() {
 function PaymentsNavigator() {
   return (
     <PaymentsStack.Navigator>
-      <PaymentsStack.Screen 
-        name="PaymentsList" 
+      <PaymentsStack.Screen
+        name="PaymentsList"
         component={PaymentsListScreen}
-        options={{ title: 'Payments' }}
+        options={{ title: "Payments" }}
       />
-      <PaymentsStack.Screen 
-        name="PaymentDetails" 
+      <PaymentsStack.Screen
+        name="PaymentDetails"
         component={PaymentDetailsScreen}
-        options={{ title: 'Payment Details' }}
+        options={{ title: "Payment Details" }}
       />
     </PaymentsStack.Navigator>
   );
@@ -121,20 +122,20 @@ function PaymentsNavigator() {
 function HouseholdNavigator() {
   return (
     <HouseholdStack.Navigator>
-       <HouseholdStack.Screen 
-        name="HouseholdMain" 
+      <HouseholdStack.Screen
+        name="HouseholdMain"
         component={HouseholdMainScreen}
-        options={{ title: 'Household' }}
+        options={{ title: "Household" }}
       />
-      <HouseholdStack.Screen 
-        name="AddFamilyMember" 
+      <HouseholdStack.Screen
+        name="AddFamilyMember"
         component={AddFamilyMemberScreen}
-        options={{ title: 'Add Family Member' }}
+        options={{ title: "Add Family Member" }}
       />
-      <HouseholdStack.Screen 
-        name="AddDomesticStaff" 
+      <HouseholdStack.Screen
+        name="AddDomesticStaff"
         component={AddDomesticStaffScreen}
-        options={{ title: 'Add Staff Member' }}
+        options={{ title: "Add Staff Member" }}
       />
     </HouseholdStack.Navigator>
   );
@@ -142,15 +143,15 @@ function HouseholdNavigator() {
 function EmergencyNavigator() {
   return (
     <EmergencyStack.Navigator>
-      <EmergencyStack.Screen 
-        name="EmergencyList" 
+      <EmergencyStack.Screen
+        name="EmergencyList"
         component={EmergencyListScreen}
-        options={{ title: 'Emergency' }}
+        options={{ title: "Emergency" }}
       />
-      <EmergencyStack.Screen 
-        name="ReportEmergency" 
+      <EmergencyStack.Screen
+        name="ReportEmergency"
         component={ReportEmergencyScreen}
-        options={{ title: 'Report Emergency' }}
+        options={{ title: "Report Emergency" }}
       />
     </EmergencyStack.Navigator>
   );
@@ -159,15 +160,15 @@ function EmergencyNavigator() {
 function SecurityCheckInNavigator() {
   return (
     <SecurityCheckInStack.Navigator>
-      <SecurityCheckInStack.Screen 
-        name="QRScanner" 
+      <SecurityCheckInStack.Screen
+        name="QRScanner"
         component={QRScannerScreen}
         options={{ headerShown: false }}
       />
-      <SecurityCheckInStack.Screen 
-        name="CheckedInList" 
+      <SecurityCheckInStack.Screen
+        name="CheckedInList"
         component={CheckedInVisitorsScreen}
-        options={{ title: 'Checked-In Visitors' }}
+        options={{ title: "Checked-In Visitors" }}
       />
     </SecurityCheckInStack.Navigator>
   );
@@ -176,13 +177,13 @@ function SecurityCheckInNavigator() {
 function ProfileNavigator() {
   return (
     <ProfileStack.Navigator>
-      <ProfileStack.Screen 
-        name="ProfileMain" 
+      <ProfileStack.Screen
+        name="ProfileMain"
         component={ProfileScreen}
-        options={{ title: 'Profile' }}
+        options={{ title: "Profile" }}
       />
-      <ProfileStack.Screen 
-        name="Notifications" 
+      <ProfileStack.Screen
+        name="Notifications"
         component={NotificationsScreen}
         options={{ headerShown: false }}
       />
@@ -211,32 +212,32 @@ function SecurityTabNavigator() {
     <SecurityTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: "#007AFF",
+        tabBarInactiveTintColor: "gray",
       }}
     >
-      <SecurityTab.Screen 
-        name="Dashboard" 
+      <SecurityTab.Screen
+        name="Dashboard"
         component={CheckedInVisitorsScreen}
         options={{
-          title: 'Dashboard',
+          title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid-outline" size={size} color={color} />
           ),
         }}
       />
-      <SecurityTab.Screen 
-        name="Visitors" 
+      <SecurityTab.Screen
+        name="Visitors"
         component={SecurityCheckInNavigator}
         options={{
-          title: 'Check-In',
+          title: "Check-In",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="qr-code-outline" size={size} color={color} />
           ),
         }}
       />
-      <SecurityTab.Screen 
-        name="Incidents" 
+      <SecurityTab.Screen
+        name="Incidents"
         component={EmergencyNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -244,8 +245,8 @@ function SecurityTabNavigator() {
           ),
         }}
       />
-      <SecurityTab.Screen 
-        name="Profile" 
+      <SecurityTab.Screen
+        name="Profile"
         component={ProfileNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -263,13 +264,13 @@ function HomeHeadTabNavigator() {
     <HomeHeadTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: "#007AFF",
+        tabBarInactiveTintColor: "gray",
         tabBarStyle: { height: 60, paddingBottom: 8 },
       }}
     >
-      <HomeHeadTab.Screen 
-        name="Home" 
+      <HomeHeadTab.Screen
+        name="Home"
         component={HomeNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -277,8 +278,8 @@ function HomeHeadTabNavigator() {
           ),
         }}
       />
-      <HomeHeadTab.Screen 
-        name="Visitors" 
+      <HomeHeadTab.Screen
+        name="Visitors"
         component={VisitorsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -286,18 +287,18 @@ function HomeHeadTabNavigator() {
           ),
         }}
       />
-      <HomeHeadTab.Screen 
-        name="Household" 
+      <HomeHeadTab.Screen
+        name="Household"
         component={HouseholdNavigator}
         options={{
-          title: 'Family',
+          title: "Family",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-circle-outline" size={size} color={color} />
           ),
         }}
       />
-      <HomeHeadTab.Screen 
-        name="Maintenance" 
+      <HomeHeadTab.Screen
+        name="Maintenance"
         component={MaintenanceNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -305,8 +306,8 @@ function HomeHeadTabNavigator() {
           ),
         }}
       />
-      <HomeHeadTab.Screen 
-        name="Payments" 
+      <HomeHeadTab.Screen
+        name="Payments"
         component={PaymentsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -314,8 +315,8 @@ function HomeHeadTabNavigator() {
           ),
         }}
       />
-      <HomeHeadTab.Screen 
-        name="Emergency" 
+      <HomeHeadTab.Screen
+        name="Emergency"
         component={EmergencyNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -323,8 +324,8 @@ function HomeHeadTabNavigator() {
           ),
         }}
       />
-       <HomeHeadTab.Screen 
-        name="Profile" 
+      <HomeHeadTab.Screen
+        name="Profile"
         component={ProfileNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -342,12 +343,12 @@ function FamilyMemberTabNavigator() {
     <FamilyMemberTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: "#007AFF",
+        tabBarInactiveTintColor: "gray",
       }}
     >
-      <FamilyMemberTab.Screen 
-        name="Home" 
+      <FamilyMemberTab.Screen
+        name="Home"
         component={HomeNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -355,8 +356,8 @@ function FamilyMemberTabNavigator() {
           ),
         }}
       />
-      <FamilyMemberTab.Screen 
-        name="Visitors" 
+      <FamilyMemberTab.Screen
+        name="Visitors"
         component={VisitorsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -364,8 +365,8 @@ function FamilyMemberTabNavigator() {
           ),
         }}
       />
-      <FamilyMemberTab.Screen 
-        name="Amenities" 
+      <FamilyMemberTab.Screen
+        name="Amenities"
         component={AmenitiesScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -373,8 +374,8 @@ function FamilyMemberTabNavigator() {
           ),
         }}
       />
-      <FamilyMemberTab.Screen 
-        name="Emergency" 
+      <FamilyMemberTab.Screen
+        name="Emergency"
         component={EmergencyNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -382,8 +383,8 @@ function FamilyMemberTabNavigator() {
           ),
         }}
       />
-      <FamilyMemberTab.Screen 
-        name="Profile" 
+      <FamilyMemberTab.Screen
+        name="Profile"
         component={ProfileNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -399,15 +400,15 @@ function FamilyMemberTabNavigator() {
 export default function MainTabNavigator() {
   const user = useAppSelector((state) => state.auth.user);
 
-  if (user?.role === 'security') {
+  if (user?.role === "security") {
     return <SecurityTabNavigator />;
   }
 
-  if (user?.role === 'home_head') {
+  if (user?.role === "family_member") {
     return <HomeHeadTabNavigator />;
   }
 
-  if (user?.role === 'family_member') {
+  if (user?.role === "home_head") {
     return <FamilyMemberTabNavigator />;
   }
 

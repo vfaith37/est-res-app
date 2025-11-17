@@ -17,6 +17,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VisitorsStackParamList } from '@/types/navigation';
 import { useCreateVisitorMutation } from '@/store/api/visitorsApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { haptics } from '@/utils/haptics';
 
 type CreateVisitorScreenNavigationProp = NativeStackNavigationProp<
@@ -29,47 +31,69 @@ type Props = {
 };
 
 export default function CreateVisitorScreen({ navigation }: Props) {
-  const [type, setType] = useState<'guest' | 'visitor'>('guest');
-  const [name, setName] = useState('');
+  const user = useSelector((state: RootState) => state.auth.user);
+  const residentId = user?.residentId || '';
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [purpose, setPurpose] = useState('');
-  const [vehicleNumber, setVehicleNumber] = useState('');
+  const [visitorNum, setVisitorNum] = useState('1');
   const [visitDate, setVisitDate] = useState(new Date());
-  const [checkOutDate, setCheckOutDate] = useState(new Date(Date.now() + 86400000)); // Tomorrow
-  const [timeSlot, setTimeSlot] = useState('10:00-12:00');
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
-  const [showCheckOutDatePicker, setShowCheckOutDatePicker] = useState(false);
 
   const [createVisitor, { isLoading }] = useCreateVisitorMutation();
 
   const handleSubmit = async () => {
-    if (!name || !phone || !purpose) {
+    // Validate required fields
+    if (!firstName || !lastName || !phone || !email || !purpose) {
       haptics.error();
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
-    if (type === 'visitor' && checkOutDate <= visitDate) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       haptics.error();
-      Alert.alert('Error', 'Check-out date must be after visit date');
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    // Validate visitor number
+    const visitorCount = parseInt(visitorNum, 10);
+    if (isNaN(visitorCount) || visitorCount < 0) {
+      haptics.error();
+      Alert.alert('Error', 'Please enter a valid number of visitors');
+      return;
+    }
+
+    if (!residentId) {
+      haptics.error();
+      Alert.alert('Error', 'Unable to identify resident. Please log in again.');
       return;
     }
 
     try {
       haptics.light();
+
+      // Format date as YYYY-MM-DD for backend
+      const formattedDate = visitDate.toISOString().split('T')[0];
+
       const visitor = await createVisitor({
-        name,
+        residentId,
+        firstName,
+        lastName,
+        email,
         phone,
+        arriveDate: formattedDate,
+        visitorNum: visitorCount,
         purpose,
-        vehicleNumber: vehicleNumber || undefined,
-        visitDate: visitDate.toISOString(),
-        checkOutDate: type === 'visitor' ? checkOutDate.toISOString() : undefined,
-        timeSlot,
-        type,
       }).unwrap();
 
       haptics.success();
-      Alert.alert('Success', 'Guest pass created successfully', [
+      Alert.alert('Success', 'Visitor pass created successfully', [
         {
           text: 'OK',
           onPress: () => navigation.navigate('VisitorQR', { visitorId: visitor.id }),
@@ -77,7 +101,10 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       ]);
     } catch (error: any) {
       haptics.error();
-      Alert.alert('Error', error?.data?.message || 'Failed to create guest pass');
+      if (__DEV__) {
+        console.error('Create visitor error:', error);
+      }
+      Alert.alert('Error', error?.data?.message || 'Failed to create visitor pass');
     }
   };
 
@@ -89,93 +116,50 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.form}>
-            {/* Guest Type Selection */}
+            {/* First Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Guest Type <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.typeContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    type === 'guest' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setType('guest');
-                  }}
-                  disabled={isLoading}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={24}
-                    color={type === 'guest' ? '#fff' : '#007AFF'}
-                  />
-                  <Text
-                    style={[
-                      styles.typeText,
-                      type === 'guest' && styles.typeTextActive,
-                    ]}
-                  >
-                    Guest
-                  </Text>
-                  <Text
-                    style={[
-                      styles.typeSubtext,
-                      type === 'guest' && styles.typeSubtextActive,
-                    ]}
-                  >
-                    Single Day
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    type === 'visitor' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setType('visitor');
-                  }}
-                  disabled={isLoading}
-                >
-                  <Ionicons
-                    name="people-outline"
-                    size={24}
-                    color={type === 'visitor' ? '#fff' : '#007AFF'}
-                  />
-                  <Text
-                    style={[
-                      styles.typeText,
-                      type === 'visitor' && styles.typeTextActive,
-                    ]}
-                  >
-                    Visitor
-                  </Text>
-                  <Text
-                    style={[
-                      styles.typeSubtext,
-                      type === 'visitor' && styles.typeSubtextActive,
-                    ]}
-                  >
-                    Multiple Days
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Name <Text style={styles.required}>*</Text>
+                First Name <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter guest name"
-                value={name}
-                onChangeText={setName}
+                placeholder="Enter first name"
+                value={firstName}
+                onChangeText={setFirstName}
                 editable={!isLoading}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Last Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Last Name <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter last name"
+                value={lastName}
+                onChangeText={setLastName}
+                editable={!isLoading}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Email */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Email <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="visitor@example.com"
+                value={email}
+                onChangeText={setEmail}
+                editable={!isLoading}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
               />
             </View>
 
@@ -186,7 +170,7 @@ export default function CreateVisitorScreen({ navigation }: Props) {
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter phone number"
+                placeholder="08012345678"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -201,31 +185,37 @@ export default function CreateVisitorScreen({ navigation }: Props) {
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g., Personal visit, Delivery"
+                placeholder="e.g., Personal visit, Delivery, Business"
                 value={purpose}
                 onChangeText={setPurpose}
                 editable={!isLoading}
+                multiline
+                numberOfLines={2}
               />
             </View>
 
-            {/* Vehicle Number */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Vehicle Number (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., ABC-123"
-                value={vehicleNumber}
-                onChangeText={setVehicleNumber}
-                autoCapitalize="characters"
-                editable={!isLoading}
-              />
-            </View>
-
-            {/* Visit Date */}
+            {/* Number of Visitors */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                {type === 'guest' ? 'Visit Date' : 'Check-In Date'}{' '}
-                <Text style={styles.required}>*</Text>
+                Number of Visitors <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., 1, 2, 3"
+                value={visitorNum}
+                onChangeText={setVisitorNum}
+                keyboardType="number-pad"
+                editable={!isLoading}
+              />
+              <Text style={styles.helperText}>
+                How many people will be visiting?
+              </Text>
+            </View>
+
+            {/* Arrival Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Arrival Date <Text style={styles.required}>*</Text>
               </Text>
               <TouchableOpacity
                 style={styles.dateButton}
@@ -246,95 +236,10 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                     setShowVisitDatePicker(false);
                     if (selectedDate) {
                       setVisitDate(selectedDate);
-                      // Adjust checkout date if it's before new visit date
-                      if (type === 'visitor' && checkOutDate <= selectedDate) {
-                        setCheckOutDate(
-                          new Date(selectedDate.getTime() + 86400000)
-                        );
-                      }
                     }
                   }}
                 />
               )}
-            </View>
-
-            {/* Check-Out Date (Only for Visitors) */}
-            {type === 'visitor' && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Check-Out Date <Text style={styles.required}>*</Text>
-                </Text>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => setShowCheckOutDatePicker(true)}
-                  disabled={isLoading}
-                >
-                  <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
-                  <Text style={styles.dateText}>
-                    {checkOutDate.toLocaleDateString()}
-                  </Text>
-                </TouchableOpacity>
-                {showCheckOutDatePicker && (
-                  <DateTimePicker
-                    value={checkOutDate}
-                    mode="date"
-                    minimumDate={
-                      new Date(visitDate.getTime() + 86400000)
-                    }
-                    onChange={(event, selectedDate) => {
-                      setShowCheckOutDatePicker(false);
-                      if (selectedDate) {
-                        setCheckOutDate(selectedDate);
-                      }
-                    }}
-                  />
-                )}
-                <Text style={styles.helperText}>
-                  Duration:{' '}
-                  {Math.ceil(
-                    (checkOutDate.getTime() - visitDate.getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  )}{' '}
-                  days
-                </Text>
-              </View>
-            )}
-
-            {/* Time Slot */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Arrival Time <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.timeSlotContainer}>
-                {[
-                  '09:00-12:00',
-                  '12:00-15:00',
-                  '15:00-18:00',
-                  '18:00-21:00',
-                ].map((slot) => (
-                  <TouchableOpacity
-                    key={slot}
-                    style={[
-                      styles.timeSlotButton,
-                      timeSlot === slot && styles.timeSlotButtonActive,
-                    ]}
-                    onPress={() => {
-                      haptics.light();
-                      setTimeSlot(slot);
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Text
-                      style={[
-                        styles.timeSlotText,
-                        timeSlot === slot && styles.timeSlotTextActive,
-                      ]}
-                    >
-                      {slot}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
             </View>
           </View>
         </ScrollView>
@@ -348,7 +253,7 @@ export default function CreateVisitorScreen({ navigation }: Props) {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Create Guest Pass</Text>
+              <Text style={styles.buttonText}>Create Visitor Pass</Text>
             )}
           </TouchableOpacity>
         </View>

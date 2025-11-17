@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VisitorsStackParamList } from '@/types/navigation';
 import { useGetVisitorsQuery } from '@/store/api/visitorsApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 import { haptics } from '@/utils/haptics';
 
 type VisitorsListScreenNavigationProp = NativeStackNavigationProp<
@@ -16,7 +18,12 @@ type Props = {
 };
 
 export default function VisitorsListScreen({ navigation }: Props) {
-  const { data: visitors, isLoading, refetch, isFetching } = useGetVisitorsQuery({ limit: 50 });
+  const user = useSelector((state: RootState) => state.auth.user);
+  const residentId = user?.residentId || '';
+
+  const { data: visitors, isLoading, refetch, isFetching } = useGetVisitorsQuery(residentId, {
+    skip: !residentId, // Skip the query if residentId is not available
+  });
 
   const handleRefresh = () => {
     haptics.light();
@@ -45,7 +52,8 @@ export default function VisitorsListScreen({ navigation }: Props) {
       <View style={styles.visitorContent}>
         <Text style={styles.visitorName}>{item.name}</Text>
         <Text style={styles.visitorDetails}>
-          {new Date(item.visitDate).toLocaleDateString()} • {item.timeSlot}
+          {new Date(item.visitDate).toLocaleDateString()}
+          {item.visitorNum > 0 && ` • ${item.visitorNum} ${item.visitorNum === 1 ? 'visitor' : 'visitors'}`}
         </Text>
         <Text style={styles.visitorPurpose}>{item.purpose}</Text>
       </View>
@@ -91,15 +99,20 @@ export default function VisitorsListScreen({ navigation }: Props) {
 }
 
 function getStatusColor(status: string) {
-  switch (status) {
+  switch (status.toLowerCase()) {
+    case 'active':
+      return '#34C759';
+    case 'revoked':
+      return '#FF3B30';
+    case 'expired':
+      return '#8E8E93';
+    // Legacy status values
     case 'approved':
       return '#34C759';
     case 'pending':
       return '#FF9500';
     case 'checked-in':
       return '#007AFF';
-    case 'expired':
-      return '#8E8E93';
     default:
       return '#8E8E93';
   }

@@ -16,6 +16,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "@/types/navigation";
 import { haptics } from "@/utils/haptics";
+import { useConfirmResetPasswordMutation } from "@/store/api/authApi";
+
+// Constants
+const PASSWORD_REQUIREMENTS = {
+  MIN_LENGTH: 8,
+  REQUIRE_UPPERCASE: true,
+  REQUIRE_LOWERCASE: true,
+  REQUIRE_NUMBER: true,
+  REQUIRE_SPECIAL_CHAR: true,
+} as const;
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -33,7 +43,10 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // API hook
+  const [confirmResetPassword, { isLoading }] =
+    useConfirmResetPasswordMutation();
 
   // Password strength validation
   const [passwordStrength, setPasswordStrength] = useState({
@@ -46,11 +59,19 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
 
   const validatePassword = (password: string) => {
     setPasswordStrength({
-      hasMinLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /\d/.test(password),
-      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      hasMinLength: password.length >= PASSWORD_REQUIREMENTS.MIN_LENGTH,
+      hasUpperCase: PASSWORD_REQUIREMENTS.REQUIRE_UPPERCASE
+        ? /[A-Z]/.test(password)
+        : true,
+      hasLowerCase: PASSWORD_REQUIREMENTS.REQUIRE_LOWERCASE
+        ? /[a-z]/.test(password)
+        : true,
+      hasNumber: PASSWORD_REQUIREMENTS.REQUIRE_NUMBER
+        ? /\d/.test(password)
+        : true,
+      hasSpecialChar: PASSWORD_REQUIREMENTS.REQUIRE_SPECIAL_CHAR
+        ? /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        : true,
     });
   };
 
@@ -91,19 +112,21 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
       return;
     }
 
+    if (!otp) {
+      haptics.error();
+      Alert.alert("Error", "OTP is required. Please go back and verify your OTP.");
+      return;
+    }
+
     try {
-      setIsLoading(true);
       haptics.light();
 
-      // TODO: Call your reset password API here
-      // const result = await resetPassword({
-      //   email,
-      //   otp,
-      //   newPassword
-      // }).unwrap();
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call reset password API
+      await confirmResetPassword({
+        email,
+        otp,
+        newPassword,
+      }).unwrap();
 
       haptics.success();
       Alert.alert("Success", "Your password has been reset successfully!", [
@@ -116,17 +139,19 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
         },
       ]);
     } catch (error: any) {
-      console.error("Reset password error:", error);
+      if (__DEV__) {
+        console.error("Reset password error:", error);
+      }
       haptics.error();
 
       let errorMessage = "Failed to reset password";
       if (error?.data?.message) {
         errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
 
       Alert.alert("Reset Failed", errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -234,7 +259,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
                   </Text>
                   <PasswordRequirement
                     met={passwordStrength.hasMinLength}
-                    text="At least 8 characters"
+                    text={`At least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`}
                   />
                   <PasswordRequirement
                     met={passwordStrength.hasUpperCase}
@@ -323,7 +348,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#000",
+    backgroundColor: "#000",
   },
   keyboardView: {
     flex: 1,

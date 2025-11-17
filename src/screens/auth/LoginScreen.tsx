@@ -77,7 +77,9 @@ export default function LoginScreen({ navigation }: Props) {
       // Navigation will happen automatically via AppNavigator
       // based on isAuthenticated state
     } catch (error: any) {
-      console.error("Login error:", error);
+      if (__DEV__) {
+        console.error("Login error:", error);
+      }
 
       haptics.error();
 
@@ -123,10 +125,10 @@ export default function LoginScreen({ navigation }: Props) {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back, Resident Head</Text>
+            <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut
+              Sign in to access your estate management dashboard and stay
+              connected with your community.
             </Text>
           </View>
 

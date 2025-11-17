@@ -19,18 +19,6 @@ export interface CompanyDetails {
   coycity: string;
 }
 
-// export interface ApiResponse<T> {
-//   respCode: string;
-//   message: string;
-//   data: T;
-//   description: {
-//     status: number;
-//     description: string;
-//     code: string;
-//     range: string;
-//   };
-// }
-
 export interface LoginResponseData {
   id: string;
   email: string;
@@ -245,7 +233,49 @@ export const authApi = api.injectEndpoints({
       },
     }),
 
-    resetPassword: builder.mutation<void, { email: string }>({
+    requestPasswordReset: builder.mutation<void, { email: string }>({
+      query: (data) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to send reset email");
+        }
+      },
+    }),
+
+    verifyOTP: builder.mutation<void, { email: string; otp: string }>({
+      query: (data) => ({
+        url: "/auth/verify-otp",
+        method: "POST",
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Invalid OTP code");
+        }
+      },
+    }),
+
+    resendOTP: builder.mutation<void, { email: string }>({
+      query: (data) => ({
+        url: "/auth/resend-otp",
+        method: "POST",
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to resend OTP");
+        }
+      },
+    }),
+
+    confirmResetPassword: builder.mutation<
+      void,
+      { email: string; otp: string; newPassword: string }
+    >({
       query: (data) => ({
         url: "/auth/reset-password",
         method: "POST",
@@ -253,7 +283,7 @@ export const authApi = api.injectEndpoints({
       }),
       transformResponse: (response: ApiResponse<any>) => {
         if (response.respCode !== "00") {
-          throw new Error(response.message || "Failed to send reset email");
+          throw new Error(response.message || "Failed to reset password");
         }
       },
     }),
@@ -265,7 +295,9 @@ export const authApi = api.injectEndpoints({
       }),
       transformResponse: (response: ApiResponse<any>) => {
         // Logout might return error even on success, so don't throw
-        console.log("Logout response:", response.message);
+        if (__DEV__) {
+          console.log("Logout response:", response.message);
+        }
       },
       // Always invalidate cache on logout
       invalidatesTags: ["User"],
@@ -279,6 +311,9 @@ export const {
   useUpdateProfileMutation,
   useRefreshTokenMutation,
   useChangePasswordMutation,
-  useResetPasswordMutation,
+  useRequestPasswordResetMutation,
+  useVerifyOTPMutation,
+  useResendOTPMutation,
+  useConfirmResetPasswordMutation,
   useLogoutMutation,
 } = authApi;

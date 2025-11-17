@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "@/types/navigation";
 import { haptics } from "@/utils/haptics";
 import { StatusBar } from "expo-status-bar";
+import { useRequestPasswordResetMutation } from "@/store/api/authApi";
 
 type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -29,8 +30,11 @@ type Props = {
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  // API hook
+  const [requestPasswordReset, { isLoading }] =
+    useRequestPasswordResetMutation();
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -39,30 +43,41 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      haptics.error();
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
     try {
-      setIsLoading(true);
       haptics.light();
 
-      // TODO: Implement password reset API call
-      // await resetPasswordAPI(email);
+      // Call password reset API
+      await requestPasswordReset({ email }).unwrap();
 
       haptics.success();
       setEmailSent(true);
-      Alert.alert(
-        "Email Sent",
-        "Password reset instructions have been sent to your email",
-        [
-          {
-            text: "OK",
-            // onPress: () => navigation.goBack(),
-          },
-        ]
-      );
+
+      // Navigate to OTP screen after a short delay
+      setTimeout(() => {
+        navigation.navigate("OTP", { email });
+      }, 1500);
     } catch (error: any) {
+      if (__DEV__) {
+        console.error("Password reset request error:", error);
+      }
       haptics.error();
-      Alert.alert("Error", error?.message || "Failed to send reset email");
-    } finally {
-      setIsLoading(false);
+
+      let errorMessage = "Failed to send reset email";
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
     }
   };
 

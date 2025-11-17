@@ -16,6 +16,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "@/types/navigation";
 import { haptics } from "@/utils/haptics";
+import { useVerifyOTPMutation, useResendOTPMutation } from "@/store/api/authApi";
+
+// Constants
+const OTP_CONFIG = {
+  CODE_LENGTH: 6,
+  TIMER_SECONDS: 60,
+  AUTO_VERIFY_DELAY_MS: 500,
+} as const;
 
 type OTPScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -29,10 +37,13 @@ type Props = {
 
 export default function OTPScreen({ navigation, route }: Props) {
   const { email } = route.params;
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [timer, setTimer] = useState(60);
+  const [otp, setOtp] = useState(Array(OTP_CONFIG.CODE_LENGTH).fill(""));
+  const [timer, setTimer] = useState(OTP_CONFIG.TIMER_SECONDS);
   const [canResend, setCanResend] = useState(false);
+
+  // API hooks
+  const [verifyOTP, { isLoading }] = useVerifyOTPMutation();
+  const [resendOTP, { isLoading: isResending }] = useResendOTPMutation();
 
   // Refs for input fields
   const inputRefs = useRef<Array<TextInput | null>>([]);
@@ -59,7 +70,8 @@ export default function OTPScreen({ navigation, route }: Props) {
       const clipboardContent = await Clipboard.getStringAsync();
 
       // Check if clipboard contains a 6-digit number
-      if (/^\d{6}$/.test(clipboardContent.trim())) {
+      const pattern = new RegExp(`^\\d{${OTP_CONFIG.CODE_LENGTH}}$`);
+      if (pattern.test(clipboardContent.trim())) {
         Alert.alert(
           "Code Detected",
           `Would you like to use the code ${clipboardContent} from your clipboard?`,
@@ -76,7 +88,9 @@ export default function OTPScreen({ navigation, route }: Props) {
         );
       }
     } catch (error) {
-      console.error("Error reading clipboard:", error);
+      if (__DEV__) {
+        console.error("Error reading clipboard:", error);
+      }
     }
   };
 
@@ -85,10 +99,12 @@ export default function OTPScreen({ navigation, route }: Props) {
       haptics.light();
       const clipboardContent = code || (await Clipboard.getStringAsync());
 
-      // Extract only digits and take first 6
-      const digits = clipboardContent.replace(/\D/g, "").slice(0, 6);
+      // Extract only digits and take first OTP_CONFIG.CODE_LENGTH
+      const digits = clipboardContent
+        .replace(/\D/g, "")
+        .slice(0, OTP_CONFIG.CODE_LENGTH);
 
-      if (digits.length === 6) {
+      if (digits.length === OTP_CONFIG.CODE_LENGTH) {
         const newOtp = digits.split("");
         setOtp(newOtp);
         haptics.success();
@@ -96,15 +112,17 @@ export default function OTPScreen({ navigation, route }: Props) {
         // Auto-verify after pasting
         setTimeout(() => {
           handleVerifyOTP(newOtp);
-        }, 500);
+        }, OTP_CONFIG.AUTO_VERIFY_DELAY_MS);
       } else {
         Alert.alert(
           "Invalid Code",
-          "Clipboard doesn't contain a valid 6-digit code"
+          `Clipboard doesn't contain a valid ${OTP_CONFIG.CODE_LENGTH}-digit code`
         );
       }
     } catch (error) {
-      console.error("Error pasting from clipboard:", error);
+      if (__DEV__) {
+        console.error("Error pasting from clipboard:", error);
+      }
       Alert.alert("Error", "Failed to paste from clipboard");
     }
   };
@@ -117,17 +135,26 @@ export default function OTPScreen({ navigation, route }: Props) {
 
     // Handle paste event (when multiple digits are entered at once)
     if (value.length > 1) {
-      const digits = value.replace(/\D/g, "").slice(0, 6);
+      const digits = value
+        .replace(/\D/g, "")
+        .slice(0, OTP_CONFIG.CODE_LENGTH);
       const pastedOtp = digits.split("");
 
-      for (let i = 0; i < pastedOtp.length && index + i < 6; i++) {
+      for (
+        let i = 0;
+        i < pastedOtp.length && index + i < OTP_CONFIG.CODE_LENGTH;
+        i++
+      ) {
         newOtp[index + i] = pastedOtp[i];
       }
 
       setOtp(newOtp);
 
       // Focus on the last filled input or the next empty one
-      const nextIndex = Math.min(index + pastedOtp.length, 5);
+      const nextIndex = Math.min(
+        index + pastedOtp.length,
+        OTP_CONFIG.CODE_LENGTH - 1
+      );
       inputRefs.current[nextIndex]?.focus();
 
       return;
@@ -137,7 +164,7 @@ export default function OTPScreen({ navigation, route }: Props) {
     setOtp(newOtp);
 
     // Auto-focus next input
-    if (value && index < 5) {
+    if (value && index < OTP_CONFIG.CODE_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -151,71 +178,79 @@ export default function OTPScreen({ navigation, route }: Props) {
   const handleVerifyOTP = async (otpArray?: string[]) => {
     const otpCode = (otpArray || otp).join("");
 
-    if (otpCode.length !== 6) {
+    if (otpCode.length !== OTP_CONFIG.CODE_LENGTH) {
       haptics.error();
-      Alert.alert("Error", "Please enter the complete 6-digit code");
+      Alert.alert(
+        "Error",
+        `Please enter the complete ${OTP_CONFIG.CODE_LENGTH}-digit code`
+      );
       return;
     }
 
     try {
-      setIsLoading(true);
       haptics.light();
 
-      // TODO: Call your OTP verification API here
-      // const result = await verifyOTP({ email, otp: otpCode }).unwrap();
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call OTP verification API
+      await verifyOTP({ email, otp: otpCode }).unwrap();
 
       haptics.success();
       Alert.alert("Success", "OTP verified successfully!", [
         {
           text: "OK",
           onPress: () => {
-            // Navigate to reset password or home screen
+            // Navigate to reset password screen
             navigation.navigate("ResetPassword", { email, otp: otpCode });
           },
         },
       ]);
     } catch (error: any) {
-      console.error("OTP verification error:", error);
+      if (__DEV__) {
+        console.error("OTP verification error:", error);
+      }
       haptics.error();
 
       let errorMessage = "Invalid OTP code";
       if (error?.data?.message) {
         errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
 
       Alert.alert("Verification Failed", errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleResendOTP = async () => {
-    if (!canResend) return;
+    if (!canResend || isResending) return;
 
     try {
       haptics.light();
 
-      // TODO: Call your resend OTP API here
-      // await resendOTP({ email }).unwrap();
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call resend OTP API
+      await resendOTP({ email }).unwrap();
 
       haptics.success();
       Alert.alert("Success", "A new code has been sent to your email");
 
       // Reset timer and OTP
-      setTimer(60);
+      setTimer(OTP_CONFIG.TIMER_SECONDS);
       setCanResend(false);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(Array(OTP_CONFIG.CODE_LENGTH).fill(""));
       inputRefs.current[0]?.focus();
     } catch (error: any) {
-      console.error("Resend OTP error:", error);
+      if (__DEV__) {
+        console.error("Resend OTP error:", error);
+      }
       haptics.error();
-      Alert.alert("Error", "Failed to resend code. Please try again.");
+
+      let errorMessage = "Failed to resend code. Please try again.";
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
     }
   };
 
@@ -252,8 +287,8 @@ export default function OTPScreen({ navigation, route }: Props) {
           <View style={styles.header}>
             <Text style={styles.title}>Enter Verification Code</Text>
             <Text style={styles.subtitle}>
-              We've sent a 6-digit verification code to {email}. Please enter it
-              below to continue.
+              We've sent a {OTP_CONFIG.CODE_LENGTH}-digit verification code to{" "}
+              {email}. Please enter it below to continue.
             </Text>
           </View>
 
@@ -268,7 +303,7 @@ export default function OTPScreen({ navigation, route }: Props) {
                 style={[
                   styles.otpInput,
                   digit && styles.otpInputFilled,
-                  isLoading && styles.otpInputDisabled,
+                  (isLoading || isResending) && styles.otpInputDisabled,
                 ]}
                 value={digit}
                 onChangeText={(value) => handleOtpChange(value, index)}
@@ -278,24 +313,18 @@ export default function OTPScreen({ navigation, route }: Props) {
                 keyboardType="number-pad"
                 maxLength={1}
                 selectTextOnFocus
-                editable={!isLoading}
-                returnKeyType={index === 5 ? "done" : "next"}
+                editable={!isLoading && !isResending}
+                returnKeyType={
+                  index === OTP_CONFIG.CODE_LENGTH - 1 ? "done" : "next"
+                }
                 onSubmitEditing={
-                  index === 5 ? () => handleVerifyOTP() : undefined
+                  index === OTP_CONFIG.CODE_LENGTH - 1
+                    ? () => handleVerifyOTP()
+                    : undefined
                 }
               />
             ))}
           </View>
-
-          {/* Paste Button */}
-          {/* <TouchableOpacity
-            style={styles.pasteButton}
-            onPress={() => pasteFromClipboard()}
-            disabled={isLoading}
-          >
-            <Ionicons name="clipboard-outline" size={18} color="#0047FF" />
-            <Text style={styles.pasteButtonText}>Paste from Clipboard</Text>
-          </TouchableOpacity> */}
 
           {/* Timer & Resend */}
           <View style={styles.resendContainer}>
@@ -315,10 +344,10 @@ export default function OTPScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={[
               styles.verifyButton,
-              isLoading && styles.verifyButtonDisabled,
+              (isLoading || isResending) && styles.verifyButtonDisabled,
             ]}
             onPress={() => handleVerifyOTP()}
-            disabled={isLoading}
+            disabled={isLoading || isResending}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />

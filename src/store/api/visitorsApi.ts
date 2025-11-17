@@ -7,22 +7,47 @@ import {
 
 // Backend API response for visitor token
 export interface VisitorTokenData {
+  id: string; // UUID
+  coyid: string; // Company ID
+  residentid: string;
   tok: string; // Token ID (e.g., "TT1000000051")
   fullName: string;
-  address: string;
-  phoneno: string;
   email: string;
+  phoneno: string;
   visitReason: string;
   arriveDate: string; // ISO date string
   departureDate?: string; // ISO date string - Only for guests
   visitorNum: number;
-  qr: string; // Base64 QR code image data
-  status?: "Active" | "Revoked" | "Expired"; // Status from getresidenttoken
+  status: "Un-Used" | "Used" | "In-Use" | "Revoked" | "Expired";
+  createdat: string; // ISO date string
+  assigneddays: any[]; // Array of assigned days
+  qr?: string; // Base64 QR code image data (from create response)
+  address?: string; // Address (from create response)
+}
+
+// Backend response structure for getresidenttoken
+export interface GetResidentTokensResponse {
+  data: VisitorTokenData[];
+  summary?: {
+    total_tokens: number;
+    unUsed_token: number;
+    used_token: number;
+    inUsed_token: number;
+    revoked_token: number;
+    expired_token: number;
+  };
+  pagination?: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
 
 // Frontend normalized Visitor type
 export interface Visitor {
   id: string; // tok from backend
+  uuid: string; // id (UUID) from backend
   name: string; // fullName
   phone: string; // phoneno
   purpose: string; // visitReason
@@ -31,19 +56,13 @@ export interface Visitor {
   visitDate: string; // arriveDate
   departureDate?: string; // departureDate - Only for guests
   visitorNum: number; // Number of visitors
-  qrCode: string; // qr base64 data
-  status: "Active" | "Revoked" | "Expired";
-  residentId: string;
+  qrCode?: string; // qr base64 data (only from create response)
+  status: "Un-Used" | "Used" | "In-Use" | "Revoked" | "Expired";
+  residentId: string; // residentid
   type: "guest" | "visitor"; // guest = has departure date, visitor = day visit only
-
-  // Legacy fields for backward compatibility (can be removed later)
-  vehicleNumber?: string;
-  checkOutDate?: string;
-  timeSlot?: string;
-  entryToken?: string;
-  createdAt?: string;
-  residentName?: string;
-  createdBy?: string;
+  createdAt: string; // createdat
+  companyId: string; // coyid
+  assignedDays: any[]; // assigneddays
 }
 
 // Backend API request for creating visitor token
@@ -81,15 +100,13 @@ export interface ValidateVisitorRequest {
 /**
  * Transform backend VisitorTokenData to frontend Visitor format
  */
-function transformVisitorToken(
-  tokenData: VisitorTokenData,
-  residentId: string
-): Visitor {
+function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
   // Determine type based on whether departure date exists
   const type = tokenData.departureDate ? "guest" : "visitor";
 
   return {
     id: tokenData.tok,
+    uuid: tokenData.id,
     name: tokenData.fullName,
     phone: tokenData.phoneno,
     email: tokenData.email,
@@ -99,9 +116,12 @@ function transformVisitorToken(
     departureDate: tokenData.departureDate,
     visitorNum: tokenData.visitorNum,
     qrCode: tokenData.qr,
-    status: tokenData.status || "Active",
-    residentId: residentId,
+    status: tokenData.status,
+    residentId: tokenData.residentid,
     type: type,
+    createdAt: tokenData.createdat,
+    companyId: tokenData.coyid,
+    assignedDays: tokenData.assigneddays,
   };
 }
 
@@ -143,19 +163,18 @@ export const visitorsApi = api.injectEndpoints({
         method: "GET",
       }),
       transformResponse: (
-        response: ApiResponse<VisitorTokenData[]>,
-        meta,
-        residentId
+        response: ApiResponse<GetResidentTokensResponse>
       ) => {
         if (response.respCode !== "00") {
           throw new Error(
             response.message || "Failed to fetch visitor tokens"
           );
         }
+        // Response has nested structure: data.data[]
+        const tokens = response.data.data || [];
+
         // Transform backend data to frontend format
-        return response.data.map((token) =>
-          transformVisitorToken(token, residentId)
-        );
+        return tokens.map((token) => transformVisitorToken(token));
       },
       providesTags: ["Visitors"],
     }),
@@ -177,13 +196,48 @@ export const visitorsApi = api.injectEndpoints({
             response.message || "Failed to create visitor token"
           );
         }
+        // Create response may not have all fields, fill in defaults
+        const tokenData: VisitorTokenData = {
+          ...response.data,
+          id: response.data.id || "",
+          coyid: response.data.coyid || "",
+          residentid: response.data.residentid || request.residentId,
+          status: response.data.status || "Un-Used",
+          createdat: response.data.createdat || new Date().toISOString(),
+          assigneddays: response.data.assigneddays || [],
+        };
+
         // Transform backend response to frontend format
-        return transformVisitorToken(response.data, request.residentId);
+        return transformVisitorToken(tokenData);
       },
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Revoke visitor token (change status to "Revoked")
+    // ✅ Change visitor token status
+    changeVisitorStatus: builder.mutation<
+      void,
+      {
+        tokenId: string;
+        status: "In-Use" | "Used" | "Un-Used" | "Revoked" | "Expired";
+      }
+    >({
+      query: ({ tokenId, status }) => ({
+        url: "resident/statustokenchange",
+        method: "POST",
+        body: {
+          tok: tokenId,
+          status: status,
+        },
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to change token status");
+        }
+      },
+      invalidatesTags: ["Visitors"],
+    }),
+
+    // ✅ Revoke visitor token (convenience wrapper)
     revokeVisitor: builder.mutation<void, { tokenId: string }>({
       query: ({ tokenId }) => ({
         url: "resident/statustokenchange",
@@ -197,6 +251,28 @@ export const visitorsApi = api.injectEndpoints({
         if (response.respCode !== "00") {
           throw new Error(response.message || "Failed to revoke visitor token");
         }
+      },
+      invalidatesTags: ["Visitors"],
+    }),
+
+    // ✅ Edit visitor token
+    editVisitor: builder.mutation<
+      Visitor,
+      { tokenId: string; updates: Partial<CreateVisitorTokenRequest> }
+    >({
+      query: ({ tokenId, updates }) => ({
+        url: "resident/editresidenttoken",
+        method: "POST",
+        body: {
+          tok: tokenId,
+          ...updates,
+        },
+      }),
+      transformResponse: (response: ApiResponse<VisitorTokenData>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to edit visitor token");
+        }
+        return transformVisitorToken(response.data);
       },
       invalidatesTags: ["Visitors"],
     }),
@@ -253,10 +329,11 @@ export const visitorsApi = api.injectEndpoints({
 export const {
   useGetVisitorsQuery,
   useCreateVisitorMutation,
+  useChangeVisitorStatusMutation,
   useRevokeVisitorMutation,
+  useEditVisitorMutation,
   // ❌ Not yet available - backend endpoints not implemented
   // useGetVisitorQuery,
-  // useUpdateVisitorStatusMutation,
   // useCheckInVisitorMutation,
   // useCheckOutVisitorMutation,
   // useShareVisitorPassMutation,

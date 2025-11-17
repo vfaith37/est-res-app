@@ -132,20 +132,17 @@ export default function VisitorsListScreen({ navigation }: Props) {
 }
 
 function getStatusColor(status: string) {
-  switch (status.toLowerCase()) {
-    case 'active':
-      return '#34C759';
-    case 'revoked':
-      return '#FF3B30';
-    case 'expired':
-      return '#8E8E93';
-    // Legacy status values
-    case 'approved':
-      return '#34C759';
-    case 'pending':
-      return '#FF9500';
-    case 'checked-in':
-      return '#007AFF';
+  switch (status) {
+    case 'Un-Used':
+      return '#34C759'; // Green - ready to use
+    case 'In-Use':
+      return '#007AFF'; // Blue - currently being used
+    case 'Used':
+      return '#8E8E93'; // Gray - already used
+    case 'Revoked':
+      return '#FF3B30'; // Red - revoked
+    case 'Expired':
+      return '#8E8E93'; // Gray - expired
     default:
       return '#8E8E93';
   }

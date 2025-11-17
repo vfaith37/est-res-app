@@ -99,7 +99,7 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
   }
 
   const isRevoked = visitor.status === 'Revoked';
-  const canRevoke = visitor.status === 'Active';
+  const canRevoke = visitor.status === 'Un-Used';
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -218,22 +218,17 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
 }
 
 function getStatusColor(status: string) {
-  switch (status.toLowerCase()) {
-    case 'active':
-      return '#34C759';
-    case 'revoked':
-      return '#FF3B30';
-    case 'expired':
-      return '#8E8E93';
-    // Legacy statuses
-    case 'approved':
-      return '#34C759';
-    case 'pending':
-      return '#FF9500';
-    case 'checked-in':
-      return '#007AFF';
-    case 'checked-out':
-      return '#8E8E93';
+  switch (status) {
+    case 'Un-Used':
+      return '#34C759'; // Green - ready to use
+    case 'In-Use':
+      return '#007AFF'; // Blue - currently being used
+    case 'Used':
+      return '#8E8E93'; // Gray - already used
+    case 'Revoked':
+      return '#FF3B30'; // Red - revoked
+    case 'Expired':
+      return '#8E8E93'; // Gray - expired
     default:
       return '#8E8E93';
   }

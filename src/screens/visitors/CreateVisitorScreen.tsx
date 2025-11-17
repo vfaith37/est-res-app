@@ -34,6 +34,7 @@ export default function CreateVisitorScreen({ navigation }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId || '';
 
+  const [type, setType] = useState<'guest' | 'visitor'>('visitor');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -41,7 +42,9 @@ export default function CreateVisitorScreen({ navigation }: Props) {
   const [purpose, setPurpose] = useState('');
   const [visitorNum, setVisitorNum] = useState('1');
   const [visitDate, setVisitDate] = useState(new Date());
+  const [departureDate, setDepartureDate] = useState(new Date(Date.now() + 86400000)); // Tomorrow
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
+  const [showDepartureDatePicker, setShowDepartureDatePicker] = useState(false);
 
   const [createVisitor, { isLoading }] = useCreateVisitorMutation();
 
@@ -69,6 +72,13 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       return;
     }
 
+    // Validate departure date for guests
+    if (type === 'guest' && departureDate <= visitDate) {
+      haptics.error();
+      Alert.alert('Error', 'Departure date must be after arrival date');
+      return;
+    }
+
     if (!residentId) {
       haptics.error();
       Alert.alert('Error', 'Unable to identify resident. Please log in again.');
@@ -78,8 +88,11 @@ export default function CreateVisitorScreen({ navigation }: Props) {
     try {
       haptics.light();
 
-      // Format date as YYYY-MM-DD for backend
-      const formattedDate = visitDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD for backend
+      const formattedArriveDate = visitDate.toISOString().split('T')[0];
+      const formattedDepartureDate = type === 'guest'
+        ? departureDate.toISOString().split('T')[0]
+        : undefined;
 
       const visitor = await createVisitor({
         residentId,
@@ -87,13 +100,18 @@ export default function CreateVisitorScreen({ navigation }: Props) {
         lastName,
         email,
         phone,
-        arriveDate: formattedDate,
+        arriveDate: formattedArriveDate,
+        departureDate: formattedDepartureDate,
         visitorNum: visitorCount,
         purpose,
+        type,
       }).unwrap();
 
       haptics.success();
-      Alert.alert('Success', 'Visitor pass created successfully', [
+      const message = type === 'guest'
+        ? 'Guest pass created successfully'
+        : 'Visitor pass created successfully';
+      Alert.alert('Success', message, [
         {
           text: 'OK',
           onPress: () => navigation.navigate('VisitorQR', { visitorId: visitor.id }),
@@ -116,6 +134,82 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.form}>
+            {/* Guest/Visitor Type Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Type <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.typeContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    type === 'visitor' && styles.typeButtonActive,
+                  ]}
+                  onPress={() => {
+                    haptics.light();
+                    setType('visitor');
+                  }}
+                  disabled={isLoading}
+                >
+                  <Ionicons
+                    name="person-outline"
+                    size={24}
+                    color={type === 'visitor' ? '#fff' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.typeText,
+                      type === 'visitor' && styles.typeTextActive,
+                    ]}
+                  >
+                    Visitor
+                  </Text>
+                  <Text
+                    style={[
+                      styles.typeSubtext,
+                      type === 'visitor' && styles.typeSubtextActive,
+                    ]}
+                  >
+                    Day Visit Only
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    type === 'guest' && styles.typeButtonActive,
+                  ]}
+                  onPress={() => {
+                    haptics.light();
+                    setType('guest');
+                  }}
+                  disabled={isLoading}
+                >
+                  <Ionicons
+                    name="bed-outline"
+                    size={24}
+                    color={type === 'guest' ? '#fff' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.typeText,
+                      type === 'guest' && styles.typeTextActive,
+                    ]}
+                  >
+                    Guest
+                  </Text>
+                  <Text
+                    style={[
+                      styles.typeSubtext,
+                      type === 'guest' && styles.typeSubtextActive,
+                    ]}
+                  >
+                    Overnight Stay
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* First Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
@@ -236,11 +330,62 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                     setShowVisitDatePicker(false);
                     if (selectedDate) {
                       setVisitDate(selectedDate);
+                      // Adjust departure date if it's before new arrival date
+                      if (type === 'guest' && departureDate <= selectedDate) {
+                        setDepartureDate(
+                          new Date(selectedDate.getTime() + 86400000)
+                        );
+                      }
                     }
                   }}
                 />
               )}
             </View>
+
+            {/* Departure Date (Only for Guests) */}
+            {type === 'guest' && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Departure Date <Text style={styles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowDepartureDatePicker(true)}
+                  disabled={isLoading}
+                >
+                  <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
+                  <Text style={styles.dateText}>
+                    {departureDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+                {showDepartureDatePicker && (
+                  <DateTimePicker
+                    value={departureDate}
+                    mode="date"
+                    minimumDate={
+                      new Date(visitDate.getTime() + 86400000)
+                    }
+                    onChange={(event, selectedDate) => {
+                      setShowDepartureDatePicker(false);
+                      if (selectedDate) {
+                        setDepartureDate(selectedDate);
+                      }
+                    }}
+                  />
+                )}
+                <Text style={styles.helperText}>
+                  Duration:{' '}
+                  {Math.ceil(
+                    (departureDate.getTime() - visitDate.getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )}{' '}
+                  {Math.ceil(
+                    (departureDate.getTime() - visitDate.getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  ) === 1 ? 'night' : 'nights'}
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -253,7 +398,9 @@ export default function CreateVisitorScreen({ navigation }: Props) {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Create Visitor Pass</Text>
+              <Text style={styles.buttonText}>
+                {type === 'guest' ? 'Create Guest Pass' : 'Create Visitor Pass'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>

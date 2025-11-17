@@ -14,6 +14,7 @@ export interface VisitorTokenData {
   email: string;
   visitReason: string;
   arriveDate: string; // ISO date string
+  departureDate?: string; // ISO date string - Only for guests
   visitorNum: number;
   qr: string; // Base64 QR code image data
   status?: "Active" | "Revoked" | "Expired"; // Status from getresidenttoken
@@ -28,17 +29,18 @@ export interface Visitor {
   address?: string;
   email: string;
   visitDate: string; // arriveDate
+  departureDate?: string; // departureDate - Only for guests
   visitorNum: number; // Number of visitors
   qrCode: string; // qr base64 data
   status: "Active" | "Revoked" | "Expired";
   residentId: string;
+  type: "guest" | "visitor"; // guest = has departure date, visitor = day visit only
 
   // Legacy fields for backward compatibility (can be removed later)
   vehicleNumber?: string;
   checkOutDate?: string;
   timeSlot?: string;
   entryToken?: string;
-  type?: "guest" | "visitor";
   createdAt?: string;
   residentName?: string;
   createdBy?: string;
@@ -52,6 +54,7 @@ export interface CreateVisitorTokenRequest {
   email: string;
   phoneno: string;
   arrivedate: string; // Format: "2025-11-25"
+  departuredate?: string; // Format: "2025-11-27" - Only for guests (overnight stays)
   visitorNum: number;
   visitReason: string;
 }
@@ -64,8 +67,10 @@ export interface CreateVisitorRequest {
   email: string;
   phone: string;
   arriveDate: string;
+  departureDate?: string; // Only for guests (type: "guest")
   visitorNum: number;
   purpose: string;
+  type: "guest" | "visitor"; // guest = has departure date, visitor = day visit only
 }
 
 export interface ValidateVisitorRequest {
@@ -80,6 +85,9 @@ function transformVisitorToken(
   tokenData: VisitorTokenData,
   residentId: string
 ): Visitor {
+  // Determine type based on whether departure date exists
+  const type = tokenData.departureDate ? "guest" : "visitor";
+
   return {
     id: tokenData.tok,
     name: tokenData.fullName,
@@ -88,10 +96,12 @@ function transformVisitorToken(
     purpose: tokenData.visitReason,
     address: tokenData.address,
     visitDate: tokenData.arriveDate,
+    departureDate: tokenData.departureDate,
     visitorNum: tokenData.visitorNum,
     qrCode: tokenData.qr,
     status: tokenData.status || "Active",
     residentId: residentId,
+    type: type,
   };
 }
 
@@ -101,7 +111,7 @@ function transformVisitorToken(
 function transformCreateVisitorRequest(
   request: CreateVisitorRequest
 ): CreateVisitorTokenRequest {
-  return {
+  const baseRequest = {
     residentid: request.residentId,
     visitFirstname: request.firstName,
     visitLastname: request.lastName,
@@ -111,6 +121,16 @@ function transformCreateVisitorRequest(
     visitorNum: request.visitorNum,
     visitReason: request.purpose,
   };
+
+  // Add departuredate only for guests (overnight stays)
+  if (request.type === "guest" && request.departureDate) {
+    return {
+      ...baseRequest,
+      departuredate: request.departureDate,
+    };
+  }
+
+  return baseRequest;
 }
 
 export const visitorsApi = api.injectEndpoints({

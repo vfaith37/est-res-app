@@ -40,29 +40,57 @@ export default function VisitorsListScreen({ navigation }: Props) {
     navigation.navigate('VisitorQR', { visitorId });
   };
 
-  const renderVisitor = ({ item }: any) => (
-    <TouchableOpacity
-      style={styles.visitorCard}
-      onPress={() => handleVisitorPress(item.id)}
-    >
-      <View style={styles.visitorIcon}>
-        <Ionicons name="person" size={24} color="#007AFF" />
-      </View>
-      
-      <View style={styles.visitorContent}>
-        <Text style={styles.visitorName}>{item.name}</Text>
-        <Text style={styles.visitorDetails}>
-          {new Date(item.visitDate).toLocaleDateString()}
-          {item.visitorNum > 0 && ` • ${item.visitorNum} ${item.visitorNum === 1 ? 'visitor' : 'visitors'}`}
-        </Text>
-        <Text style={styles.visitorPurpose}>{item.purpose}</Text>
-      </View>
-      
-      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-        <Text style={styles.statusText}>{item.status}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderVisitor = ({ item }: any) => {
+    const isGuest = item.type === 'guest';
+    const iconName = isGuest ? 'bed' : 'person';
+    const iconColor = isGuest ? '#FF9500' : '#007AFF';
+    const iconBgColor = isGuest ? '#FF950020' : '#007AFF20';
+
+    // Calculate duration for guests
+    const duration = isGuest && item.departureDate
+      ? Math.ceil(
+          (new Date(item.departureDate).getTime() - new Date(item.visitDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : null;
+
+    return (
+      <TouchableOpacity
+        style={styles.visitorCard}
+        onPress={() => handleVisitorPress(item.id)}
+      >
+        <View style={[styles.visitorIcon, { backgroundColor: iconBgColor }]}>
+          <Ionicons name={iconName} size={24} color={iconColor} />
+        </View>
+
+        <View style={styles.visitorContent}>
+          <View style={styles.visitorNameRow}>
+            <Text style={styles.visitorName}>{item.name}</Text>
+            <Text style={styles.visitorType}>
+              {isGuest ? '🛏️ Guest' : '👤 Visitor'}
+            </Text>
+          </View>
+          <Text style={styles.visitorDetails}>
+            {new Date(item.visitDate).toLocaleDateString()}
+            {isGuest && item.departureDate && (
+              <> → {new Date(item.departureDate).toLocaleDateString()}</>
+            )}
+            {duration && <> ({duration} {duration === 1 ? 'night' : 'nights'})</>}
+          </Text>
+          {item.visitorNum > 0 && (
+            <Text style={styles.visitorDetails}>
+              {item.visitorNum} {item.visitorNum === 1 ? 'person' : 'people'}
+            </Text>
+          )}
+          <Text style={styles.visitorPurpose}>{item.purpose}</Text>
+        </View>
+
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+          <Text style={styles.statusText}>{item.status}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -146,9 +174,21 @@ const styles = StyleSheet.create({
   visitorContent: {
     flex: 1,
   },
+  visitorNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   visitorName: {
     fontSize: 16,
     fontWeight: '600',
+    flex: 1,
+  },
+  visitorType: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '500',
   },
   visitorDetails: {
     fontSize: 14,

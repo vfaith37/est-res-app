@@ -32,11 +32,11 @@ export interface CreateFamilyMemberRequest {
   firstName: string;
   lastName: string;
   gender: 'Male' | 'Female';
-  dateOfBirth: string;
+  dateOfBirth?: string; // Optional to handle null dates
   phone: string;
   email: string;
   relationship: string;
-  photo?: string; // URI or base64
+  photo?: string | null; // URI or base64, can be null
   // Employment Information
   employmentStatus: 'Employed' | 'Unemployed' | 'Self-employed' | 'Student';
   jobTitle?: string;
@@ -47,15 +47,15 @@ export interface CreateDomesticStaffRequest {
   firstName: string;
   lastName: string;
   gender: 'Male' | 'Female';
-  dateOfBirth: string;
+  dateOfBirth?: string; // Optional to handle null dates
   phone: string;
   email: string;
-  photo?: string; // URI or base64
+  photo?: string | null; // URI or base64, can be null
   // Employment Information
   role: string;
   employmentType: 'Full-time' | 'Part-time' | 'Contract';
   workDays?: string[]; // Array of day names
-  startDate: string;
+  startDate?: string; // Optional to handle null dates
 }
 
 export const householdApi = api.injectEndpoints({

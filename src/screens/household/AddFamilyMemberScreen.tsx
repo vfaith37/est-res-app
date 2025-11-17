@@ -173,16 +173,17 @@ export default function AddFamilyMemberScreen() {
 
     try {
       haptics.light();
+      // After validation, we know these values are not empty strings
       await createMember({
         firstName,
         lastName,
-        gender,
+        gender: gender as 'Male' | 'Female', // Validated to not be empty
         dateOfBirth: dob?.toISOString(),
         phone,
         email,
         relationship,
-        photo, // URI to upload
-        employmentStatus,
+        photo: photo || undefined, // Convert null to undefined
+        employmentStatus: employmentStatus as 'Employed' | 'Unemployed' | 'Self-employed' | 'Student', // Validated
         jobTitle: jobTitle.trim() || undefined,
         employerName: employerName.trim() || undefined,
       }).unwrap();

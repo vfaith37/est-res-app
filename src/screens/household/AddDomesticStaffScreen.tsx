@@ -186,13 +186,13 @@ export default function AddDomesticStaffScreen({ navigation }: any) {
       await createStaff({
         firstName,
         lastName,
-        gender,
+        gender: gender as 'Male' | 'Female', // Type assertion - validated by validateSection1
         dateOfBirth: dob?.toISOString(),
         phone,
         email,
-        photo, // URI to upload
+        photo: photo || undefined, // Convert null to undefined
         role,
-        employmentType,
+        employmentType: employmentType as 'Full-time' | 'Part-time' | 'Contract', // Type assertion - validated by validateSection2
         workDays: workDays.length > 0 ? workDays : undefined,
         startDate: startDate?.toISOString(),
       }).unwrap();

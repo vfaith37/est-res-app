@@ -139,6 +139,7 @@ function transformLoginResponse(apiData: LoginResponseData): LoginResponse {
 // ==================== API ENDPOINTS ====================
 
 export const authApi = api.injectEndpoints({
+  overrideExisting: true, // Allow HMR to override endpoints in development
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({

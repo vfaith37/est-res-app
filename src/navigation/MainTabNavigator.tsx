@@ -13,6 +13,7 @@ import ReportIssueScreen from "@/screens/maintenance/ReportIssueScreen";
 import PaymentsListScreen from "@/screens/payments/PaymentsListScreen";
 import PaymentDetailsScreen from "@/screens/payments/PaymentDetailsScreen";
 import ProfileScreen from "@/screens/profile/ProfileScreen";
+import EditProfileScreen from "@/screens/profile/EditProfileScreen";
 import HouseholdMainScreen from "@/screens/household/HouseholdMainScreen";
 import QRScannerScreen from "@/screens/security/QRScannerScreen";
 import CheckedInVisitorsScreen from "@/screens/security/CheckedInVisitorsScreen";
@@ -181,6 +182,11 @@ function ProfileNavigator() {
         name="ProfileMain"
         component={ProfileScreen}
         options={{ title: "Profile" }}
+      />
+      <ProfileStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: "Edit Profile" }}
       />
       <ProfileStack.Screen
         name="Notifications"

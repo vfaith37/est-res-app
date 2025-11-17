@@ -38,7 +38,7 @@ export default function ProfileScreen() {
 
   const handleEditProfile = () => {
     haptics.light();
-    Alert.alert('Edit Profile', 'Profile editing feature coming soon!');
+    navigation.navigate('EditProfile');
   };
 
   const handleChangePassword = () => {

@@ -78,6 +78,7 @@ export type AmenitiesStackParamList = {
 // Profile Stack
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+  EditProfile: undefined;
   Notifications: undefined;
   // Household & Vendors
   FamilyMembersList: undefined;

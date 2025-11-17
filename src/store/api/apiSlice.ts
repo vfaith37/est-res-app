@@ -262,6 +262,7 @@ export const api = createApi({
     "FamilyMembers",
     "DomesticStaff",
     "Emergencies",
+    "Resident",
   ],
   endpoints: () => ({}),
 });

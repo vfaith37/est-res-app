@@ -241,7 +241,7 @@ export default function EnhancedNotificationsScreen({ navigation }: any) {
     </View>
   );
 
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const unreadCount = Array.isArray(notifications) ? notifications.filter(n => !n.read).length : 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

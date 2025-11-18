@@ -18,23 +18,24 @@ import {
 import { useGetVisitorsQuery } from "@/store/api/visitorsApi";
 import { useGetMaintenanceRequestsQuery } from "@/store/api/maintenanceApi";
 import { useGetNotificationsQuery } from "@/store/api/notificationsApi";
+import { useGetEmergenciesQuery } from "@/store/api/emergencyApi";
 import { haptics } from "@/utils/haptics";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function HomeScreen({ navigation }: any) {
   const user = useAppSelector((state) => state.auth.user);
+  const isHomeHead = user?.role === "home_head";
 
-  console.log(user);
-
+  // Payment queries - only for home_head
   const {
     data: pendingPayments,
     refetch: refetchPayments,
     isFetching: isFetchingPayments,
-  } = useGetPendingPaymentsQuery();
+  } = useGetPendingPaymentsQuery(undefined, { skip: !isHomeHead });
 
   const { data: allPayments, refetch: refetchAllPayments } =
-    useGetPaymentsQuery({ limit: 100 });
+    useGetPaymentsQuery({ limit: 100 }, { skip: !isHomeHead });
 
   const {
     data: allVisitors,
@@ -50,6 +51,17 @@ export default function HomeScreen({ navigation }: any) {
 
   const { data: unreadCount } = useGetNotificationsQuery({ unreadOnly: true });
 
+  const {
+    data: emergencies,
+    refetch: refetchEmergencies,
+    isFetching: isFetchingEmergencies,
+  } = useGetEmergenciesQuery({});
+
+  // Count active emergencies
+  const activeEmergencies = Array.isArray(emergencies)
+    ? emergencies.filter((e) => e.status === "active").length
+    : 0;
+
   // Filter upcoming visitors (Un-Used status and future dates)
   const upcomingVisitors = allVisitors
     ? allVisitors
@@ -64,15 +76,17 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleRefresh = () => {
     haptics.light();
-    refetchPayments();
-    refetchAllPayments();
+    if (isHomeHead) {
+      refetchPayments();
+      refetchAllPayments();
+    }
     refetchVisitors();
     refetchMaintenance();
+    refetchEmergencies();
   };
 
   const isRefreshing =
-    isFetchingPayments || isFetchingVisitors || isFetchingMaintenance;
-  console.log(allPayments);
+    isFetchingPayments || isFetchingVisitors || isFetchingMaintenance || isFetchingEmergencies;
 
   // Calculate payment trends for last 6 months
   const getPaymentTrends = () => {
@@ -163,13 +177,21 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={styles.statLabel}>Pending Issues</Text>
           </View>
 
-          <View style={styles.statCard}>
-            <Ionicons name="card-outline" size={24} color="#FF3B30" />
-            <Text style={styles.statNumber}>
-              {pendingPayments?.length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Due Payments</Text>
-          </View>
+          {isHomeHead ? (
+            <View style={styles.statCard}>
+              <Ionicons name="card-outline" size={24} color="#FF3B30" />
+              <Text style={styles.statNumber}>
+                {pendingPayments?.length || 0}
+              </Text>
+              <Text style={styles.statLabel}>Due Payments</Text>
+            </View>
+          ) : (
+            <View style={styles.statCard}>
+              <Ionicons name="alert-circle-outline" size={24} color="#FF3B30" />
+              <Text style={styles.statNumber}>{activeEmergencies}</Text>
+              <Text style={styles.statLabel}>Active Alerts</Text>
+            </View>
+          )}
         </View>
 
         {/* Quick Actions */}
@@ -268,8 +290,8 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Payment Trends Chart */}
-        {user?.role !== "security" && paymentTrends.data.length > 0 && (
+        {/* Payment Trends Chart - Only for home_head */}
+        {isHomeHead && paymentTrends.data.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Payment Trends</Text>
@@ -342,8 +364,8 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         )}
 
-        {/* Recent Payments */}
-        {user?.role !== "security" && recentPayments.length > 0 && (
+        {/* Recent Payments - Only for home_head */}
+        {isHomeHead && recentPayments.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Payments</Text>

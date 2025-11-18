@@ -345,12 +345,12 @@ function HomeHeadTabNavigator() {
         name="Payments"
         component={PaymentsNavigator}
         options={{
-          tabBarIcon: ({ color, size}) => (
+          tabBarIcon: ({ color, size }) => (
             <Ionicons name="card-outline" size={size} color={color} />
           ),
         }}
       />
-      <HomeHeadTab.Screen
+      {/* <HomeHeadTab.Screen
         name="Amenities"
         component={AmenitiesScreen}
         options={{
@@ -358,7 +358,7 @@ function HomeHeadTabNavigator() {
             <Ionicons name="fitness-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <HomeHeadTab.Screen
         name="Profile"
         component={ProfileNavigator}

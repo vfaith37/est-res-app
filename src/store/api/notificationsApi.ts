@@ -5,8 +5,10 @@ export interface Notification {
   type: 'visitor' | 'maintenance' | 'payment' | 'amenity' | 'emergency' | 'announcement';
   title: string;
   message: string;
+  attachment?: string; // URL to attachment file
   data?: any;
   read: boolean;
+  status: 'new' | 'opened'; // Status based on read field
   createdAt: string;
 }
 

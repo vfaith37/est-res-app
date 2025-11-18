@@ -22,10 +22,16 @@ export type AuthStackParamList = {
 
 // Main Tab - Different for each user role
 export type SecurityTabParamList = {
-  Dashboard: undefined;
-  Visitors: undefined;
-  Incidents: undefined;
-  Profile: undefined;
+  Home: undefined;
+  ActiveTokens: undefined;
+  Emergencies: undefined;
+  Settings: undefined;
+};
+
+// Security Home Top Tab
+export type SecurityHomeTabParamList = {
+  ManualInput: undefined;
+  QRScanner: undefined;
 };
 
 export type HomeHeadTabParamList = {

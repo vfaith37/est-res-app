@@ -277,45 +277,56 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ❌ NOT YET IMPLEMENTED IN BACKEND - Keeping for future use
-    // Uncomment when backend team implements these endpoints
+    // ✅ Validate visitor token (for security check-in)
+    validateVisitorToken: builder.mutation<Visitor, { token: string }>({
+      query: ({ token }) => ({
+        url: "estatemgt/validatetoken",
+        method: "POST",
+        body: { tok: token },
+      }),
+      transformResponse: (response: ApiResponse<VisitorTokenData>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Invalid visitor token");
+        }
+        return transformVisitorToken(response.data);
+      },
+    }),
 
-    // getVisitor: builder.query<Visitor, string>({
-    //   query: (id) => `/visitors/${id}`,
-    //   providesTags: (result, error, id) => [{ type: "Visitors", id }],
-    // }),
+    // ✅ Check in visitor (change status to "In-Use")
+    checkInVisitor: builder.mutation<void, { tokenId: string }>({
+      query: ({ tokenId }) => ({
+        url: "resident/statustokenchange",
+        method: "POST",
+        body: {
+          tok: tokenId,
+          status: "In-Use",
+        },
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to check in visitor");
+        }
+      },
+      invalidatesTags: ["Visitors"],
+    }),
 
-    // updateVisitorStatus: builder.mutation<
-    //   Visitor,
-    //   { id: string; status: Visitor["status"] }
-    // >({
-    //   query: ({ id, status }) => ({
-    //     url: `/visitors/${id}/status`,
-    //     method: "PATCH",
-    //     body: { status },
-    //   }),
-    //   invalidatesTags: (result, error, { id }) => [
-    //     "Visitors",
-    //     { type: "Visitors", id },
-    //   ],
-    // }),
-
-    // checkInVisitor: builder.mutation<Visitor, ValidateVisitorRequest>({
-    //   query: (data) => ({
-    //     url: "/visitors/check-in",
-    //     method: "POST",
-    //     body: data,
-    //   }),
-    //   invalidatesTags: ["Visitors"],
-    // }),
-
-    // checkOutVisitor: builder.mutation<Visitor, string>({
-    //   query: (id) => ({
-    //     url: `/visitors/${id}/check-out`,
-    //     method: "POST",
-    //   }),
-    //   invalidatesTags: ["Visitors"],
-    // }),
+    // ✅ Check out visitor (change status to "Used")
+    checkOutVisitor: builder.mutation<void, { tokenId: string }>({
+      query: ({ tokenId }) => ({
+        url: "resident/statustokenchange",
+        method: "POST",
+        body: {
+          tok: tokenId,
+          status: "Used",
+        },
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(response.message || "Failed to check out visitor");
+        }
+      },
+      invalidatesTags: ["Visitors"],
+    }),
 
     // shareVisitorPass: builder.mutation<{ shareUrl: string }, string>({
     //   query: (id) => ({
@@ -332,9 +343,7 @@ export const {
   useChangeVisitorStatusMutation,
   useRevokeVisitorMutation,
   useEditVisitorMutation,
-  // ❌ Not yet available - backend endpoints not implemented
-  // useGetVisitorQuery,
-  // useCheckInVisitorMutation,
-  // useCheckOutVisitorMutation,
-  // useShareVisitorPassMutation,
+  useValidateVisitorTokenMutation,
+  useCheckInVisitorMutation,
+  useCheckOutVisitorMutation,
 } = visitorsApi;

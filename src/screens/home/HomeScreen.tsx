@@ -436,8 +436,8 @@ export default function HomeScreen({ navigation }: any) {
                   <View style={styles.activityContent}>
                     <Text style={styles.activityTitle}>{visitor.name}</Text>
                     <Text style={styles.activitySubtitle}>
-                      {new Date(visitor.visitDate).toLocaleDateString()} •{" "}
-                      {visitor.timeSlot}
+                      {new Date(visitor.visitDate).toLocaleDateString()}
+                      {visitor.departureDate && ` - ${new Date(visitor.departureDate).toLocaleDateString()}`}
                     </Text>
                     <Text style={styles.activityType}>
                       {visitor.type === "guest" ? "Guest" : "Visitor"}

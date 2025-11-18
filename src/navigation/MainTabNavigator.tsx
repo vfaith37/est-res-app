@@ -21,6 +21,7 @@ import SecurityHomeScreen from "@/screens/security/SecurityHomeScreen";
 import ActiveTokensScreen from "@/screens/security/ActiveTokensScreen";
 import SecurityEmergenciesScreen from "@/screens/security/SecurityEmergenciesScreen";
 import SecuritySettingsScreen from "@/screens/security/SecuritySettingsScreen";
+import SecurityEditProfileScreen from "@/screens/security/SecurityEditProfileScreen";
 import EmergencyListScreen from "@/screens/emergency/EmergencyListScreen";
 import ReportEmergencyScreen from "@/screens/emergency/ReportEmergencyScreen";
 import FamilyMembersListScreen from "@/screens/household/FamilyMembersListScreen";
@@ -53,6 +54,7 @@ const MaintenanceStack =
 const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const SecurityCheckInStack = createNativeStackNavigator();
+const SecuritySettingsStack = createNativeStackNavigator();
 const HouseholdStack = createNativeStackNavigator();
 const EmergencyStack = createNativeStackNavigator();
 
@@ -264,6 +266,24 @@ function AmenitiesScreen() {
   return <HomeScreen />;
 }
 
+// Security Settings Stack Navigator
+function SecuritySettingsNavigator() {
+  return (
+    <SecuritySettingsStack.Navigator>
+      <SecuritySettingsStack.Screen
+        name="SecuritySettings"
+        component={SecuritySettingsScreen}
+        options={{ title: "Settings" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="SecurityEditProfile"
+        component={SecurityEditProfileScreen}
+        options={{ title: "Edit Profile" }}
+      />
+    </SecuritySettingsStack.Navigator>
+  );
+}
+
 // Security Tab Navigator
 function SecurityTabNavigator() {
   return (
@@ -307,7 +327,7 @@ function SecurityTabNavigator() {
       />
       <SecurityTab.Screen
         name="Settings"
-        component={SecuritySettingsScreen}
+        component={SecuritySettingsNavigator}
         options={{
           title: "Settings",
           tabBarIcon: ({ color, size }) => (

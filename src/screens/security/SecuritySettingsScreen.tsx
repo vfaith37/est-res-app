@@ -47,9 +47,7 @@ export default function SecuritySettingsScreen({ navigation }: any) {
 
   const handleEditProfile = () => {
     haptics.light();
-    Alert.alert('Edit Profile', 'Profile editing coming soon!');
-    // TODO: Navigate to edit profile screen when created
-    // navigation.navigate('EditProfile');
+    navigation.navigate('SecurityEditProfile');
   };
 
   const handleChangePassword = () => {

@@ -35,7 +35,7 @@ export default function SecurityEmergenciesScreen({ navigation }: any) {
   const { data: emergencies, isLoading, refetch } = useGetEmergenciesQuery({});
 
   const filteredEmergencies = useMemo(() => {
-    if (!emergencies) return [];
+    if (!emergencies || !Array.isArray(emergencies)) return [];
 
     let filtered = [...emergencies];
 

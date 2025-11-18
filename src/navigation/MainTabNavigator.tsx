@@ -17,6 +17,10 @@ import EditProfileScreen from "@/screens/profile/EditProfileScreen";
 import HouseholdMainScreen from "@/screens/household/HouseholdMainScreen";
 import QRScannerScreen from "@/screens/security/QRScannerScreen";
 import CheckedInVisitorsScreen from "@/screens/security/CheckedInVisitorsScreen";
+import SecurityHomeScreen from "@/screens/security/SecurityHomeScreen";
+import ActiveTokensScreen from "@/screens/security/ActiveTokensScreen";
+import SecurityEmergenciesScreen from "@/screens/security/SecurityEmergenciesScreen";
+import SecuritySettingsScreen from "@/screens/security/SecuritySettingsScreen";
 import EmergencyListScreen from "@/screens/emergency/EmergencyListScreen";
 import ReportEmergencyScreen from "@/screens/emergency/ReportEmergencyScreen";
 import FamilyMembersListScreen from "@/screens/household/FamilyMembersListScreen";
@@ -268,43 +272,46 @@ function SecurityTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
+        tabBarStyle: { height: 60, paddingBottom: 8 },
       }}
     >
       <SecurityTab.Screen
-        name="Dashboard"
-        component={CheckedInVisitorsScreen}
+        name="Home"
+        component={SecurityHomeScreen}
         options={{
-          title: "Dashboard",
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid-outline" size={size} color={color} />
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
       <SecurityTab.Screen
-        name="Visitors"
-        component={SecurityCheckInNavigator}
+        name="ActiveTokens"
+        component={ActiveTokensScreen}
         options={{
-          title: "Check-In",
+          title: "Active Tokens",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="qr-code-outline" size={size} color={color} />
+            <Ionicons name="checkmark-done-outline" size={size} color={color} />
           ),
         }}
       />
       <SecurityTab.Screen
-        name="Incidents"
-        component={EmergencyNavigator}
+        name="Emergencies"
+        component={SecurityEmergenciesScreen}
         options={{
+          title: "Emergencies",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="alert-circle-outline" size={size} color={color} />
           ),
         }}
       />
       <SecurityTab.Screen
-        name="Profile"
-        component={ProfileNavigator}
+        name="Settings"
+        component={SecuritySettingsScreen}
         options={{
+          title: "Settings",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />

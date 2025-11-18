@@ -37,10 +37,10 @@ export default function HomeScreen({ navigation }: any) {
     useGetPaymentsQuery({ limit: 100 });
 
   const {
-    data: upcomingVisitors,
+    data: allVisitors,
     refetch: refetchVisitors,
     isFetching: isFetchingVisitors,
-  } = useGetVisitorsQuery({ status: "approved", limit: 5 });
+  } = useGetVisitorsQuery(user?.residentId || "");
 
   const {
     data: maintenanceRequests,
@@ -49,6 +49,18 @@ export default function HomeScreen({ navigation }: any) {
   } = useGetMaintenanceRequestsQuery({ status: "pending" });
 
   const { data: unreadCount } = useGetNotificationsQuery({ unreadOnly: true });
+
+  // Filter upcoming visitors (Un-Used status and future dates)
+  const upcomingVisitors = allVisitors
+    ? allVisitors
+        .filter((visitor) => {
+          const visitDate = new Date(visitor.visitDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return visitor.status === "Un-Used" && visitDate >= today;
+        })
+        .slice(0, 5)
+    : [];
 
   const handleRefresh = () => {
     haptics.light();

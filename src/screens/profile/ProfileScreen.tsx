@@ -107,7 +107,7 @@ export default function ProfileScreen() {
 
   const handleComplaints = () => {
     haptics.light();
-    Alert.alert('Complaints', 'Complaint system coming soon!');
+    navigation.navigate('Complaints');
   };
 
   const handleNotifications = () => {
@@ -122,12 +122,12 @@ export default function ProfileScreen() {
 
   const handleTerms = () => {
     haptics.light();
-    Alert.alert('Terms & Conditions', 'Terms and conditions coming soon!');
+    navigation.navigate('Terms');
   };
 
   const handlePrivacy = () => {
     haptics.light();
-    Alert.alert('Privacy Policy', 'Privacy policy coming soon!');
+    navigation.navigate('Privacy');
   };
 
   const getRoleName = (role: string) => {

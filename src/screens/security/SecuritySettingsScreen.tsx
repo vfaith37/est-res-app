@@ -94,28 +94,27 @@ export default function SecuritySettingsScreen({ navigation }: any) {
 
   const handleEstateVendors = () => {
     haptics.light();
-    Alert.alert('Estate Vendors', 'Estate vendors list coming soon!');
-    // TODO: Navigate to estate vendors when ready
+    navigation.navigate('EstateVendors');
   };
 
   const handleComplaints = () => {
     haptics.light();
-    Alert.alert('Complaints', 'Complaint system coming soon!');
+    navigation.navigate('Complaints');
   };
 
   const handleNotifications = () => {
     haptics.light();
-    Alert.alert('Notifications', 'Notifications coming soon!');
+    navigation.navigate('Notifications');
   };
 
   const handleTerms = () => {
     haptics.light();
-    Alert.alert('Terms & Conditions', 'Terms and conditions coming soon!');
+    navigation.navigate('Terms');
   };
 
   const handlePrivacy = () => {
     haptics.light();
-    Alert.alert('Privacy Policy', 'Privacy policy coming soon!');
+    navigation.navigate('Privacy');
   };
 
   // Menu sections for security personnel

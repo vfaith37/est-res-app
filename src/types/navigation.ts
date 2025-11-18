@@ -5,6 +5,7 @@ import type {
   RouteProp,
 } from "@react-navigation/native";
 import type { Visitor } from "@/store/api/visitorsApi";
+import type { Notification } from "@/store/api/notificationsApi";
 
 // Root Stack (from AppNavigator)
 export type RootStackParamList = {
@@ -86,6 +87,7 @@ export type ProfileStackParamList = {
   ProfileMain: undefined;
   EditProfile: undefined;
   Notifications: undefined;
+  NotificationDetails: { notification: Notification };
   // Household & Vendors
   FamilyMembersList: undefined;
   AddFamilyMember: undefined;
@@ -102,9 +104,25 @@ export type ProfileStackParamList = {
   MaintenanceList: undefined;
   ReportIssue: undefined;
   Complaints: undefined;
+  ComplaintDetails: { complaint: any };
+  SubmitComplaint: undefined;
   // Reports
   GenerateReport: undefined;
   // About
+  Terms: undefined;
+  Privacy: undefined;
+};
+
+// Security Settings Stack
+export type SecuritySettingsStackParamList = {
+  SecuritySettings: undefined;
+  SecurityEditProfile: undefined;
+  Notifications: undefined;
+  NotificationDetails: { notification: Notification };
+  EstateVendors: undefined;
+  Complaints: undefined;
+  ComplaintDetails: { complaint: any };
+  SubmitComplaint: undefined;
   Terms: undefined;
   Privacy: undefined;
 };

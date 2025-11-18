@@ -29,7 +29,12 @@ import AddFamilyMemberScreen from "@/screens/household/AddFamilyMemberScreen";
 import DomesticStaffListScreen from "@/screens/household/DomesticStaffListScreen";
 import AddDomesticStaffScreen from "@/screens/household/AddDomesticStaffScreen";
 import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
+import NotificationDetailsScreen from "@/screens/notifications/NotificationDetailsScreen";
+import EnhancedNotificationsScreen from "@/screens/notifications/EnhancedNotificationsScreen";
 import EstateVendorsScreen from "@/screens/estate/EstateVendorsScreen";
+import ComplaintsScreen from "@/screens/complaints/ComplaintsScreen";
+import TermsAndConditionsScreen from "@/screens/legal/TermsAndConditionsScreen";
+import PrivacyPolicyScreen from "@/screens/legal/PrivacyPolicyScreen";
 // import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
 
 import type {
@@ -41,6 +46,7 @@ import type {
   MaintenanceStackParamList,
   PaymentsStackParamList,
   ProfileStackParamList,
+  SecuritySettingsStackParamList,
 } from "@/types/navigation";
 
 const SecurityTab = createBottomTabNavigator<SecurityTabParamList>();
@@ -54,7 +60,7 @@ const MaintenanceStack =
 const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const SecurityCheckInStack = createNativeStackNavigator();
-const SecuritySettingsStack = createNativeStackNavigator();
+const SecuritySettingsStack = createNativeStackNavigator<SecuritySettingsStackParamList>();
 const HouseholdStack = createNativeStackNavigator();
 const EmergencyStack = createNativeStackNavigator();
 
@@ -197,8 +203,13 @@ function ProfileNavigator() {
       />
       <ProfileStack.Screen
         name="Notifications"
-        component={NotificationsScreen}
-        options={{ headerShown: false }}
+        component={EnhancedNotificationsScreen}
+        options={{ title: "Notifications" }}
+      />
+      <ProfileStack.Screen
+        name="NotificationDetails"
+        component={NotificationDetailsScreen}
+        options={{ title: "Notification Details" }}
       />
       {/* Household & Vendors */}
       <ProfileStack.Screen
@@ -247,6 +258,22 @@ function ProfileNavigator() {
         component={ReportIssueScreen}
         options={{ title: "Report Issue" }}
       />
+      <ProfileStack.Screen
+        name="Complaints"
+        component={ComplaintsScreen}
+        options={{ title: "Complaints" }}
+      />
+      {/* About */}
+      <ProfileStack.Screen
+        name="Terms"
+        component={TermsAndConditionsScreen}
+        options={{ title: "Terms & Conditions" }}
+      />
+      <ProfileStack.Screen
+        name="Privacy"
+        component={PrivacyPolicyScreen}
+        options={{ title: "Privacy Policy" }}
+      />
     </ProfileStack.Navigator>
   );
 }
@@ -279,6 +306,36 @@ function SecuritySettingsNavigator() {
         name="SecurityEditProfile"
         component={SecurityEditProfileScreen}
         options={{ title: "Edit Profile" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="Notifications"
+        component={EnhancedNotificationsScreen}
+        options={{ title: "Notifications" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="NotificationDetails"
+        component={NotificationDetailsScreen}
+        options={{ title: "Notification Details" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="EstateVendors"
+        component={EstateVendorsScreen}
+        options={{ title: "Estate Vendors" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="Complaints"
+        component={ComplaintsScreen}
+        options={{ title: "Complaints" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="Terms"
+        component={TermsAndConditionsScreen}
+        options={{ title: "Terms & Conditions" }}
+      />
+      <SecuritySettingsStack.Screen
+        name="Privacy"
+        component={PrivacyPolicyScreen}
+        options={{ title: "Privacy Policy" }}
       />
     </SecuritySettingsStack.Navigator>
   );

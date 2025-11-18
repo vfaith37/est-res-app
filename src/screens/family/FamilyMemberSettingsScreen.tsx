@@ -103,6 +103,11 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
     navigation.navigate('Notifications');
   };
 
+  const handleEstateDrivers = () => {
+    haptics.light();
+    navigation.navigate('EstateDrivers');
+  };
+
   const handleTerms = () => {
     haptics.light();
     navigation.navigate('Terms');
@@ -135,6 +140,12 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
     {
       title: 'Estate Services',
       items: [
+        {
+          icon: 'car-outline',
+          title: 'Estate Drivers',
+          subtitle: 'View estate drivers',
+          onPress: handleEstateDrivers,
+        },
         {
           icon: 'chatbubble-ellipses-outline',
           title: 'Complaints',

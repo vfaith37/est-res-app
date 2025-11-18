@@ -57,6 +57,7 @@ export type FamilyMemberSettingsStackParamList = {
   FamilyMemberEditProfile: undefined;
   Notifications: undefined;
   NotificationDetails: { notification: Notification };
+  EstateDrivers: undefined;
   Complaints: undefined;
   ComplaintDetails: { complaint: any };
   SubmitComplaint: undefined;

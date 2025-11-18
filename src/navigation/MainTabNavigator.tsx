@@ -32,6 +32,7 @@ import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
 import NotificationDetailsScreen from "@/screens/notifications/NotificationDetailsScreen";
 import EnhancedNotificationsScreen from "@/screens/notifications/EnhancedNotificationsScreen";
 import EstateVendorsScreen from "@/screens/estate/EstateVendorsScreen";
+import EstateDriversScreen from "@/screens/estate/EstateDriversScreen";
 import ComplaintsScreen from "@/screens/complaints/ComplaintsScreen";
 import TermsAndConditionsScreen from "@/screens/legal/TermsAndConditionsScreen";
 import PrivacyPolicyScreen from "@/screens/legal/PrivacyPolicyScreen";
@@ -368,6 +369,11 @@ function FamilyMemberSettingsNavigator() {
         name="NotificationDetails"
         component={NotificationDetailsScreen}
         options={{ title: "Notification Details" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="EstateDrivers"
+        component={EstateDriversScreen}
+        options={{ title: "Estate Drivers" }}
       />
       <FamilyMemberSettingsStack.Screen
         name="Complaints"

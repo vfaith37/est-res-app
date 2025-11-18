@@ -49,6 +49,11 @@ export default function FamilyMemberEditProfileScreen() {
   const [maritalStatus, setMaritalStatus] = useState<'Single' | 'Married' | 'Divorced' | 'Widowed'>('Single');
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
+  // Form state - Work Information
+  const [workplacename, setWorkplacename] = useState('');
+  const [workplacepost, setWorkplacepost] = useState('');
+  const [workplaceaddr, setWorkplaceaddr] = useState('');
+
   // Initialize form with resident data
   useEffect(() => {
     if (resident) {
@@ -61,6 +66,9 @@ export default function FamilyMemberEditProfileScreen() {
       setDob(resident.dob ? new Date(resident.dob) : null);
       setGender(resident.gender || 'Male');
       setMaritalStatus(resident.maritalstatus || 'Single');
+      setWorkplacename(resident.workplacename || '');
+      setWorkplacepost(resident.workplacepost || '');
+      setWorkplaceaddr(resident.workplaceaddr || '');
     }
   }, [resident]);
 
@@ -85,6 +93,9 @@ export default function FamilyMemberEditProfileScreen() {
         dob: dob?.toISOString(),
         gender,
         maritalstatus: maritalStatus,
+        workplacename,
+        workplacepost,
+        workplaceaddr,
       };
 
       // Include photo if a new one was selected
@@ -441,8 +452,49 @@ export default function FamilyMemberEditProfileScreen() {
             <Text style={styles.sectionTitle}>ADDITIONAL INFORMATION</Text>
             <View style={styles.sectionContent}>
               <View style={styles.readOnlyField}>
-                <Text style={styles.readOnlyLabel}>Security ID</Text>
+                <Text style={styles.readOnlyLabel}>Residence ID</Text>
                 <Text style={styles.readOnlyValue}>{resident.residentid}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Work Information Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>WORK INFORMATION</Text>
+            <View style={styles.sectionContent}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Name of Workplace</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter workplace name"
+                  value={workplacename}
+                  onChangeText={setWorkplacename}
+                  editable={!isSaving}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Post at Place of Work</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your position"
+                  value={workplacepost}
+                  onChangeText={setWorkplacepost}
+                  editable={!isSaving}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Workplace Address</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter workplace address"
+                  value={workplaceaddr}
+                  onChangeText={setWorkplaceaddr}
+                  multiline
+                  numberOfLines={3}
+                  editable={!isSaving}
+                />
               </View>
             </View>
           </View>

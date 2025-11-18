@@ -199,7 +199,8 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
           <View style={styles.actionsGrid}>
-            {user?.role !== "security" && (
+            {/* Home Head Quick Actions */}
+            {isHomeHead && (
               <>
                 <QuickActionCard
                   icon="person-add-outline"
@@ -218,29 +219,27 @@ export default function HomeScreen({ navigation }: any) {
                   color="#FF9500"
                   onPress={() => {
                     haptics.medium();
-                    navigation.navigate("Maintenance", {
+                    navigation.navigate("Profile", {
                       screen: "ReportIssue",
                     });
                   }}
                 />
-                {isHomeHead && (
-                  <QuickActionCard
-                    icon="card-outline"
-                    title="Pay Bills"
-                    color="#34C759"
-                    onPress={() => {
-                      haptics.medium();
-                      navigation.navigate("Payments");
-                    }}
-                  />
-                )}
+                <QuickActionCard
+                  icon="card-outline"
+                  title="Pay Bills"
+                  color="#34C759"
+                  onPress={() => {
+                    haptics.medium();
+                    navigation.navigate("Payments");
+                  }}
+                />
                 <QuickActionCard
                   icon="alert-circle-outline"
                   title="Emergency"
                   color="#FF3B30"
                   onPress={() => {
                     haptics.heavy();
-                    navigation.navigate("Emergency", {
+                    navigation.navigate("Profile", {
                       screen: "ReportEmergency",
                     });
                   }}
@@ -248,37 +247,27 @@ export default function HomeScreen({ navigation }: any) {
               </>
             )}
 
-            {user?.role === "security" && (
+            {/* Family Member Quick Actions */}
+            {user?.role === "family_member" && (
               <>
                 <QuickActionCard
-                  icon="qr-code-outline"
-                  title="Scan QR"
+                  icon="person-add-outline"
+                  title="New Visitor"
                   color="#007AFF"
                   onPress={() => {
                     haptics.medium();
-                    navigation.navigate("Visitors", {
-                      screen: "QRScanner",
-                    });
-                  }}
-                />
-                <QuickActionCard
-                  icon="keypad-outline"
-                  title="Manual Entry"
-                  color="#5856D6"
-                  onPress={() => {
-                    haptics.medium();
-                    navigation.navigate("Visitors", {
-                      screen: "QRScanner",
+                    navigation.navigate("Tokens", {
+                      screen: "CreateVisitor",
                     });
                   }}
                 />
                 <QuickActionCard
                   icon="alert-circle-outline"
-                  title="Report Incident"
+                  title="Emergency"
                   color="#FF3B30"
                   onPress={() => {
                     haptics.heavy();
-                    navigation.navigate("Incidents", {
+                    navigation.navigate("Emergencies", {
                       screen: "ReportEmergency",
                     });
                   }}

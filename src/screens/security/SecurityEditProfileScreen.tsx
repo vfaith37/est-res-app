@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +21,7 @@ import { RootState } from '@/store';
 import { useGetResidentQuery, useEditResidentMutation } from '@/store/api/residentApi';
 import { haptics } from '@/utils/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function SecurityEditProfileScreen() {
   const navigation = useNavigation<any>();
@@ -45,6 +47,7 @@ export default function SecurityEditProfileScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [maritalStatus, setMaritalStatus] = useState<'Single' | 'Married' | 'Divorced' | 'Widowed'>('Single');
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Initialize form with resident data
   useEffect(() => {
@@ -70,19 +73,37 @@ export default function SecurityEditProfileScreen() {
 
     try {
       haptics.light();
+
+      // Prepare update data
+      const updateData: any = {
+        firstname,
+        lastname,
+        middlename,
+        phone,
+        email,
+        whatsappfone,
+        dob: dob?.toISOString(),
+        gender,
+        maritalstatus: maritalStatus,
+      };
+
+      // Include photo if a new one was selected
+      if (selectedPhoto) {
+        try {
+          const filename = selectedPhoto.split('/').pop() || 'photo.jpg';
+          const mimeType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+          updateData.photofilename = filename;
+          updateData.photomimetype = mimeType;
+        } catch (photoError) {
+          console.error('Error processing photo:', photoError);
+          Alert.alert('Warning', 'Photo upload may have failed, but other changes will be saved.');
+        }
+      }
+
       await editResident({
         residentId: residentId!,
-        data: {
-          firstname,
-          lastname,
-          middlename,
-          phone,
-          email,
-          whatsappfone,
-          dob: dob?.toISOString(),
-          gender,
-          maritalstatus: maritalStatus,
-        },
+        data: updateData,
       }).unwrap();
 
       haptics.success();
@@ -109,6 +130,76 @@ export default function SecurityEditProfileScreen() {
       month: 'short',
       year: 'numeric',
     });
+  };
+
+  const handleChangePhoto = async () => {
+    haptics.light();
+
+    const showOptions = () => {
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ['Cancel', 'Take Photo', 'Choose from Library'],
+            cancelButtonIndex: 0,
+          },
+          async (buttonIndex) => {
+            if (buttonIndex === 1) {
+              await openCamera();
+            } else if (buttonIndex === 2) {
+              await openImageLibrary();
+            }
+          }
+        );
+      } else {
+        Alert.alert('Change Photo', 'Choose an option', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Take Photo', onPress: openCamera },
+          { text: 'Choose from Library', onPress: openImageLibrary },
+        ]);
+      }
+    };
+
+    showOptions();
+  };
+
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Camera permission is required to take photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedPhoto(result.assets[0].uri);
+      haptics.success();
+    }
+  };
+
+  const openImageLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Photo library permission is required to select photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedPhoto(result.assets[0].uri);
+      haptics.success();
+    }
   };
 
   if (isLoading) {
@@ -146,18 +237,15 @@ export default function SecurityEditProfileScreen() {
           {/* Profile Photo */}
           <View style={styles.photoSection}>
             <View style={styles.photoContainer}>
-              {resident.signedUrl ? (
-                <Image source={{ uri: resident.signedUrl }} style={styles.photo} />
+              {selectedPhoto || resident.signedUrl ? (
+                <Image source={{ uri: selectedPhoto || resident.signedUrl }} style={styles.photo} />
               ) : (
                 <View style={styles.photoPlaceholder}>
                   <Ionicons name="shield-checkmark" size={60} color="#007AFF" />
                 </View>
               )}
             </View>
-            <TouchableOpacity style={styles.changePhotoButton} onPress={() => {
-              haptics.light();
-              Alert.alert('Change Photo', 'Photo upload feature coming soon!');
-            }}>
+            <TouchableOpacity style={styles.changePhotoButton} onPress={handleChangePhoto}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>

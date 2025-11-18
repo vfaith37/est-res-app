@@ -31,10 +31,12 @@ export default function PaymentsListScreen({ navigation }: Props) {
     navigation.navigate('PaymentDetails', { paymentId });
   };
 
-  const filteredPayments = payments?.filter((payment) => {
-    if (filter === 'all') return true;
-    return payment.status === filter;
-  });
+  const filteredPayments = Array.isArray(payments)
+    ? payments.filter((payment) => {
+        if (filter === 'all') return true;
+        return payment.status === filter;
+      })
+    : [];
 
   const renderPayment = ({ item }: any) => (
     <TouchableOpacity style={styles.paymentCard} onPress={() => handlePaymentPress(item.id)}>

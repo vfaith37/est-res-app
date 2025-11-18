@@ -74,18 +74,18 @@ export default function PaymentsListScreen({ navigation }: Props) {
         <View style={styles.summaryContainer}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total Due</Text>
-            <Text style={styles.summaryAmount}>₦{summary.pending.toLocaleString()}</Text>
+            <Text style={styles.summaryAmount}>₦{(summary.pending || 0).toLocaleString()}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Paid</Text>
             <Text style={[styles.summaryAmount, { color: '#34C759' }]}>
-              ₦{summary.paid.toLocaleString()}
+              ₦{(summary.paid || 0).toLocaleString()}
             </Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Overdue</Text>
             <Text style={[styles.summaryAmount, { color: '#FF3B30' }]}>
-              ₦{summary.overdue.toLocaleString()}
+              ₦{(summary.overdue || 0).toLocaleString()}
             </Text>
           </View>
         </View>

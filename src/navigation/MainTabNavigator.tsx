@@ -35,6 +35,8 @@ import EstateVendorsScreen from "@/screens/estate/EstateVendorsScreen";
 import ComplaintsScreen from "@/screens/complaints/ComplaintsScreen";
 import TermsAndConditionsScreen from "@/screens/legal/TermsAndConditionsScreen";
 import PrivacyPolicyScreen from "@/screens/legal/PrivacyPolicyScreen";
+import FamilyMemberSettingsScreen from "@/screens/family/FamilyMemberSettingsScreen";
+import FamilyMemberEditProfileScreen from "@/screens/family/FamilyMemberEditProfileScreen";
 // import HouseholdMainScreen from '@/screens/household/HouseholdMainScreen';
 
 import type {
@@ -47,6 +49,7 @@ import type {
   PaymentsStackParamList,
   ProfileStackParamList,
   SecuritySettingsStackParamList,
+  FamilyMemberSettingsStackParamList,
 } from "@/types/navigation";
 
 const SecurityTab = createBottomTabNavigator<SecurityTabParamList>();
@@ -61,6 +64,7 @@ const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const SecurityCheckInStack = createNativeStackNavigator();
 const SecuritySettingsStack = createNativeStackNavigator<SecuritySettingsStackParamList>();
+const FamilyMemberSettingsStack = createNativeStackNavigator<FamilyMemberSettingsStackParamList>();
 const HouseholdStack = createNativeStackNavigator();
 const EmergencyStack = createNativeStackNavigator();
 
@@ -341,6 +345,49 @@ function SecuritySettingsNavigator() {
   );
 }
 
+// Family Member Settings Stack Navigator
+function FamilyMemberSettingsNavigator() {
+  return (
+    <FamilyMemberSettingsStack.Navigator>
+      <FamilyMemberSettingsStack.Screen
+        name="FamilyMemberSettings"
+        component={FamilyMemberSettingsScreen}
+        options={{ title: "Settings" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="FamilyMemberEditProfile"
+        component={FamilyMemberEditProfileScreen}
+        options={{ title: "Edit Profile" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="Notifications"
+        component={EnhancedNotificationsScreen}
+        options={{ title: "Notifications" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="NotificationDetails"
+        component={NotificationDetailsScreen}
+        options={{ title: "Notification Details" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="Complaints"
+        component={ComplaintsScreen}
+        options={{ title: "Complaints" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="Terms"
+        component={TermsAndConditionsScreen}
+        options={{ title: "Terms & Conditions" }}
+      />
+      <FamilyMemberSettingsStack.Screen
+        name="Privacy"
+        component={PrivacyPolicyScreen}
+        options={{ title: "Privacy Policy" }}
+      />
+    </FamilyMemberSettingsStack.Navigator>
+  );
+}
+
 // Security Tab Navigator
 function SecurityTabNavigator() {
   return (
@@ -464,6 +511,7 @@ function FamilyMemberTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
+        tabBarStyle: { height: 60, paddingBottom: 8 },
       }}
     >
       <FamilyMemberTab.Screen
@@ -476,25 +524,27 @@ function FamilyMemberTabNavigator() {
         }}
       />
       <FamilyMemberTab.Screen
-        name="Visitors"
+        name="Tokens"
         component={VisitorsNavigator}
         options={{
+          title: "Tokens",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+            <Ionicons name="qr-code-outline" size={size} color={color} />
           ),
         }}
       />
       <FamilyMemberTab.Screen
-        name="Amenities"
-        component={AmenitiesScreen}
+        name="Vendors"
+        component={EstateVendorsScreen}
         options={{
+          title: "Vendors",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="fitness-outline" size={size} color={color} />
+            <Ionicons name="storefront-outline" size={size} color={color} />
           ),
         }}
       />
       <FamilyMemberTab.Screen
-        name="Emergency"
+        name="Emergencies"
         component={EmergencyNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -503,11 +553,11 @@ function FamilyMemberTabNavigator() {
         }}
       />
       <FamilyMemberTab.Screen
-        name="Profile"
-        component={ProfileNavigator}
+        name="Settings"
+        component={FamilyMemberSettingsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />

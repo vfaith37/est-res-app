@@ -45,10 +45,23 @@ export type HomeHeadTabParamList = {
 
 export type FamilyMemberTabParamList = {
   Home: undefined;
-  Visitors: undefined;
-  Amenities: undefined;
-  Emergency: undefined;
-  Profile: undefined;
+  Tokens: undefined;
+  Vendors: undefined;
+  Emergencies: undefined;
+  Settings: undefined;
+};
+
+// Family Member Settings Stack
+export type FamilyMemberSettingsStackParamList = {
+  FamilyMemberSettings: undefined;
+  FamilyMemberEditProfile: undefined;
+  Notifications: undefined;
+  NotificationDetails: { notification: Notification };
+  Complaints: undefined;
+  ComplaintDetails: { complaint: any };
+  SubmitComplaint: undefined;
+  Terms: undefined;
+  Privacy: undefined;
 };
 
 // Home Stack

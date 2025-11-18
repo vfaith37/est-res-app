@@ -212,29 +212,27 @@ export default function HomeScreen({ navigation }: any) {
                     });
                   }}
                 />
-                {user?.role === "home_head" && (
-                  <>
-                    <QuickActionCard
-                      icon="build-outline"
-                      title="Report Issue"
-                      color="#FF9500"
-                      onPress={() => {
-                        haptics.medium();
-                        navigation.navigate("Maintenance", {
-                          screen: "ReportIssue",
-                        });
-                      }}
-                    />
-                    <QuickActionCard
-                      icon="card-outline"
-                      title="Pay Bills"
-                      color="#34C759"
-                      onPress={() => {
-                        haptics.medium();
-                        navigation.navigate("Payments");
-                      }}
-                    />
-                  </>
+                <QuickActionCard
+                  icon="build-outline"
+                  title="Report Issue"
+                  color="#FF9500"
+                  onPress={() => {
+                    haptics.medium();
+                    navigation.navigate("Maintenance", {
+                      screen: "ReportIssue",
+                    });
+                  }}
+                />
+                {isHomeHead && (
+                  <QuickActionCard
+                    icon="card-outline"
+                    title="Pay Bills"
+                    color="#34C759"
+                    onPress={() => {
+                      haptics.medium();
+                      navigation.navigate("Payments");
+                    }}
+                  />
                 )}
                 <QuickActionCard
                   icon="alert-circle-outline"

@@ -26,6 +26,7 @@ import EmergencyListScreen from "@/screens/emergency/EmergencyListScreen";
 import ReportEmergencyScreen from "@/screens/emergency/ReportEmergencyScreen";
 import FamilyMembersListScreen from "@/screens/household/FamilyMembersListScreen";
 import AddFamilyMemberScreen from "@/screens/household/AddFamilyMemberScreen";
+import EditFamilyMemberScreen from "@/screens/household/EditFamilyMemberScreen";
 import DomesticStaffListScreen from "@/screens/household/DomesticStaffListScreen";
 import AddDomesticStaffScreen from "@/screens/household/AddDomesticStaffScreen";
 import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
@@ -64,8 +65,10 @@ const MaintenanceStack =
 const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const SecurityCheckInStack = createNativeStackNavigator();
-const SecuritySettingsStack = createNativeStackNavigator<SecuritySettingsStackParamList>();
-const FamilyMemberSettingsStack = createNativeStackNavigator<FamilyMemberSettingsStackParamList>();
+const SecuritySettingsStack =
+  createNativeStackNavigator<SecuritySettingsStackParamList>();
+const FamilyMemberSettingsStack =
+  createNativeStackNavigator<FamilyMemberSettingsStackParamList>();
 const HouseholdStack = createNativeStackNavigator();
 const EmergencyStack = createNativeStackNavigator();
 
@@ -123,7 +126,11 @@ function MaintenanceNavigator() {
 
 function PaymentsNavigator() {
   return (
-    <PaymentsStack.Navigator>
+    <PaymentsStack.Navigator
+      screenOptions={{
+        headerShown: true,
+      }}
+    >
       <PaymentsStack.Screen
         name="PaymentsList"
         component={PaymentsListScreen}
@@ -150,6 +157,11 @@ function HouseholdNavigator() {
         name="AddFamilyMember"
         component={AddFamilyMemberScreen}
         options={{ title: "Add Family Member" }}
+      />
+      <HouseholdStack.Screen
+        name="EditFamilyMember"
+        component={EditFamilyMemberScreen}
+        options={{ title: "Edit Family Member" }}
       />
       <HouseholdStack.Screen
         name="AddDomesticStaff"
@@ -195,7 +207,11 @@ function SecurityCheckInNavigator() {
 
 function ProfileNavigator() {
   return (
-    <ProfileStack.Navigator>
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
       <ProfileStack.Screen
         name="ProfileMain"
         component={ProfileScreen}
@@ -226,6 +242,11 @@ function ProfileNavigator() {
         name="AddFamilyMember"
         component={AddFamilyMemberScreen}
         options={{ title: "Add Family Member" }}
+      />
+      <ProfileStack.Screen
+        name="EditFamilyMember"
+        component={EditFamilyMemberScreen}
+        options={{ title: "Edit Family Member" }}
       />
       <ProfileStack.Screen
         name="DomesticStaffList"
@@ -301,7 +322,11 @@ function AmenitiesScreen() {
 // Security Settings Stack Navigator
 function SecuritySettingsNavigator() {
   return (
-    <SecuritySettingsStack.Navigator>
+    <SecuritySettingsStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
       <SecuritySettingsStack.Screen
         name="SecuritySettings"
         component={SecuritySettingsScreen}
@@ -578,7 +603,7 @@ export default function MainTabNavigator() {
   if (user?.role === "security") {
     return <SecurityTabNavigator />;
   }
-
+  
   if (user?.role === "home_head") {
     return <HomeHeadTabNavigator />;
   }

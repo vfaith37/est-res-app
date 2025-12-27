@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,25 +6,27 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { CameraView, Camera } from 'expo-camera';
-import { Ionicons } from '@expo/vector-icons';
-import { useValidateVisitorTokenMutation } from '@/store/api/visitorsApi';
-import { Visitor } from '@/store/api/visitorsApi';
-import ValidatedVisitorBottomSheet from '@/components/ValidatedVisitorBottomSheet';
-import { haptics } from '@/utils/haptics';
+} from "react-native";
+import { CameraView, Camera } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
+import { useValidateVisitorTokenMutation } from "@/store/api/visitorsApi";
+import { Visitor } from "@/store/api/visitorsApi";
+import ValidatedVisitorBottomSheet from "@/components/ValidatedVisitorBottomSheet";
+import { haptics } from "@/utils/haptics";
 
 export default function QRTokenScannerScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
-  const [validatedVisitor, setValidatedVisitor] = useState<Visitor | null>(null);
+  const [validatedVisitor, setValidatedVisitor] = useState<Visitor | null>(
+    null
+  );
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [validateToken, { isLoading }] = useValidateVisitorTokenMutation();
 
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
+      setHasPermission(status === "granted");
     })();
   }, []);
 
@@ -54,11 +56,11 @@ export default function QRTokenScannerScreen() {
     } catch (error: any) {
       haptics.error();
       Alert.alert(
-        'Validation Failed',
-        error?.data?.message || 'Invalid QR code or token has expired',
+        "Validation Failed",
+        error?.data?.message || "Invalid QR code or token has expired",
         [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
               setScanned(false);
             },
@@ -76,11 +78,11 @@ export default function QRTokenScannerScreen() {
 
   const handleSuccess = () => {
     Alert.alert(
-      'Success',
-      `Visitor ${validatedVisitor?.status === 'In-Use' ? 'checked out' : 'checked in'} successfully`,
+      "Success",
+      `Visitor ${validatedVisitor?.status === "In-Use" ? "checked out" : "checked in"} successfully`,
       [
         {
-          text: 'OK',
+          text: "OK",
           onPress: handleCloseBottomSheet,
         },
       ]
@@ -124,7 +126,7 @@ export default function QRTokenScannerScreen() {
           style={styles.camera}
           onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
           barcodeScannerSettings={{
-            barcodeTypes: ['qr'],
+            barcodeTypes: ["qr"],
           }}
         >
           <View style={styles.overlay}>
@@ -186,53 +188,53 @@ export default function QRTokenScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 16,
     padding: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   header: {
     padding: 20,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   cameraContainer: {
     flex: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   camera: {
     flex: 1,
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
   },
   scanFrame: {
     width: 250,
     height: 250,
-    position: 'relative',
+    position: "relative",
   },
   corner: {
-    position: 'absolute',
+    position: "absolute",
     width: 40,
     height: 40,
-    borderColor: '#007AFF',
+    borderColor: "#007AFF",
     borderWidth: 4,
   },
   topLeft: {
@@ -260,56 +262,56 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0,
   },
   scanStatus: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -60,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: 'rgba(52, 199, 89, 0.9)',
+    backgroundColor: "rgba(52, 199, 89, 0.9)",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,
   },
   scanStatusText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
     padding: 20,
   },
   rescanButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 16,
     borderRadius: 10,
   },
   rescanButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   instructionsContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
   },
   instructionsText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   messageText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#000",
+    textAlign: "center",
   },
   subMessageText: {
     fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
 });

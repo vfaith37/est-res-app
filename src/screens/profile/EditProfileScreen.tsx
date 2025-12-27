@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,16 +12,18 @@ import {
   ActivityIndicator,
   Image,
   ActionSheetIOS,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { useGetResidentQuery, useEditResidentMutation } from '@/store/api/residentApi';
-import { haptics } from '@/utils/haptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  useGetResidentQuery,
+  useEditResidentMutation,
+} from "@/store/api/residentApi";
+import { haptics } from "@/utils/haptics";
+import * as ImagePicker from "expo-image-picker";
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<any>();
@@ -29,22 +31,27 @@ export default function EditProfileScreen() {
   const residentId = user?.residentId;
 
   if (__DEV__) {
-    console.log('EditProfileScreen - user:', user);
-    console.log('EditProfileScreen - residentId:', residentId);
+    console.log("EditProfileScreen - user:", user);
+    console.log("EditProfileScreen - residentId:", residentId);
   }
 
   // Fetch resident data
-  const { data: resident, isLoading, isError, error } = useGetResidentQuery(residentId!, {
+  const {
+    data: resident,
+    isLoading,
+    isError,
+    error,
+  } = useGetResidentQuery(residentId!, {
     skip: !residentId,
   });
 
   if (__DEV__) {
-    console.log('useGetResidentQuery result:', {
+    console.log("useGetResidentQuery result:", {
       resident,
       isLoading,
       isError,
       error,
-      hasData: !!resident
+      hasData: !!resident,
     });
   }
 
@@ -52,45 +59,57 @@ export default function EditProfileScreen() {
   const [editResident, { isLoading: isSaving }] = useEditResidentMutation();
 
   // Form state - Personal Information
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
-  const [middlename, setMiddlename] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [whatsappfone, setWhatsappfone] = useState('');
-  const [dob, setDob] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
-  const [maritalStatus, setMaritalStatus] = useState<'Single' | 'Married' | 'Divorced' | 'Widowed'>('Single');
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [whatsappfone, setWhatsappfone] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
+  const [gender, setGender] = useState<"Male" | "Female">("Male");
+  const [maritalStatus, setMaritalStatus] = useState<
+    "Single" | "Married" | "Divorced" | "Widowed"
+  >("Single");
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Form state - Work Information
-  const [workplacename, setWorkplacename] = useState('');
-  const [workplacepost, setWorkplacepost] = useState('');
-  const [workplaceaddr, setWorkplaceaddr] = useState('');
+  const [workplacename, setWorkplacename] = useState("");
+  const [workplacepost, setWorkplacepost] = useState("");
+  const [workplaceaddr, setWorkplaceaddr] = useState("");
 
   // Initialize form with resident data
   useEffect(() => {
     if (resident) {
-      setFirstname(resident.firstname || '');
-      setLastname(resident.lastname || '');
-      setMiddlename(resident.middlename || '');
-      setPhone(resident.phone || '');
-      setEmail(resident.email || '');
-      setWhatsappfone(resident.whatsappfone || '');
-      setDob(resident.dob ? new Date(resident.dob) : null);
-      setGender(resident.gender || 'Male');
-      setMaritalStatus(resident.maritalstatus || 'Single');
-      setWorkplacename(resident.workplacename || '');
-      setWorkplacepost(resident.workplacepost || '');
-      setWorkplaceaddr(resident.workplaceaddr || '');
+      setFirstname(resident.firstname || "");
+      setLastname(resident.lastname || "");
+      setPhone(resident.phone || "");
+      setEmail(resident.email || "");
+      setWhatsappfone(resident.whatsappfone || "");
+
+      // Parse date of birth
+      if (resident.dob) {
+        const date = new Date(resident.dob);
+        setDobDay(String(date.getDate()).padStart(2, "0"));
+        setDobMonth(String(date.getMonth() + 1).padStart(2, "0"));
+        setDobYear(String(date.getFullYear()));
+      }
+
+      setGender(resident.gender || "Male");
+      setMaritalStatus(resident.maritalstatus || "Single");
+      setWorkplacename(resident.workplacename || "");
+      setWorkplacepost(resident.workplacepost || "");
+      setWorkplaceaddr(resident.workplaceaddr || "");
     }
   }, [resident]);
 
   const handleSave = async () => {
     if (!firstname || !lastname || !phone || !email) {
       haptics.error();
-      Alert.alert('Error', 'Please fill in all required fields (First Name, Last Name, Phone, Email)');
+      Alert.alert(
+        "Error",
+        "Please fill in all required fields (First Name, Last Name, Phone, Email)"
+      );
       return;
     }
 
@@ -101,11 +120,9 @@ export default function EditProfileScreen() {
       const updateData: any = {
         firstname,
         lastname,
-        middlename,
         phone,
         email,
         whatsappfone,
-        dob: dob?.toISOString(),
         gender,
         maritalstatus: maritalStatus,
         workplacename,
@@ -113,21 +130,32 @@ export default function EditProfileScreen() {
         workplaceaddr,
       };
 
+      // Construct date of birth if all parts are provided
+      if (dobDay && dobMonth && dobYear) {
+        const dob = new Date(
+          parseInt(dobYear),
+          parseInt(dobMonth) - 1,
+          parseInt(dobDay)
+        );
+        updateData.dob = dob.toISOString();
+      }
+
       // Include photo if a new one was selected
       if (selectedPhoto) {
         try {
-          // For now, we'll just include the URI
-          // TODO: Convert to base64 or upload separately based on API requirements
-          const filename = selectedPhoto.split('/').pop() || 'photo.jpg';
-          const mimeType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
+          const filename = selectedPhoto.split("/").pop() || "photo.jpg";
+          const mimeType = filename.endsWith(".png")
+            ? "image/png"
+            : "image/jpeg";
 
           updateData.photofilename = filename;
           updateData.photomimetype = mimeType;
-          // Note: The actual photo data would need to be sent as base64 or via multipart/form-data
-          // This depends on the backend API implementation
         } catch (photoError) {
-          console.error('Error processing photo:', photoError);
-          Alert.alert('Warning', 'Photo upload may have failed, but other changes will be saved.');
+          console.error("Error processing photo:", photoError);
+          Alert.alert(
+            "Warning",
+            "Photo upload may have failed, but other changes will be saved."
+          );
         }
       }
 
@@ -137,39 +165,23 @@ export default function EditProfileScreen() {
       }).unwrap();
 
       haptics.success();
-      Alert.alert('Success', 'Profile updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert("Success", "Profile updated successfully", [
+        { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
       haptics.error();
-      Alert.alert('Error', error?.data?.message || 'Failed to update profile');
+      Alert.alert("Error", error?.data?.message || "Failed to update profile");
     }
-  };
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setDob(selectedDate);
-    }
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return 'Select Date of Birth';
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
   };
 
   const handleChangePhoto = async () => {
     haptics.light();
 
     const showOptions = () => {
-      if (Platform.OS === 'ios') {
+      if (Platform.OS === "ios") {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            options: ['Cancel', 'Take Photo', 'Choose from Library'],
+            options: ["Cancel", "Take Photo", "Choose from Library"],
             cancelButtonIndex: 0,
           },
           async (buttonIndex) => {
@@ -181,10 +193,10 @@ export default function EditProfileScreen() {
           }
         );
       } else {
-        Alert.alert('Change Photo', 'Choose an option', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Take Photo', onPress: openCamera },
-          { text: 'Choose from Library', onPress: openImageLibrary },
+        Alert.alert("Change Photo", "Choose an option", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Take Photo", onPress: openCamera },
+          { text: "Choose from Library", onPress: openImageLibrary },
         ]);
       }
     };
@@ -194,8 +206,11 @@ export default function EditProfileScreen() {
 
   const openCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Camera permission is required to take photos.');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Camera permission is required to take photos."
+      );
       return;
     }
 
@@ -214,8 +229,11 @@ export default function EditProfileScreen() {
 
   const openImageLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Photo library permission is required to select photos.');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Photo library permission is required to select photos."
+      );
       return;
     }
 
@@ -232,9 +250,61 @@ export default function EditProfileScreen() {
     }
   };
 
+  const showGenderPicker = () => {
+    haptics.light();
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Cancel", "Male", "Female"],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            setGender("Male");
+          } else if (buttonIndex === 2) {
+            setGender("Female");
+          }
+        }
+      );
+    } else {
+      Alert.alert("Select Gender", "", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Male", onPress: () => setGender("Male") },
+        { text: "Female", onPress: () => setGender("Female") },
+      ]);
+    }
+  };
+
+  const showMaritalStatusPicker = () => {
+    haptics.light();
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Cancel", "Single", "Married", "Divorced", "Widowed"],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          const statuses: Array<"Single" | "Married" | "Divorced" | "Widowed"> =
+            ["Single", "Married", "Divorced", "Widowed"];
+          if (buttonIndex > 0 && buttonIndex <= statuses.length) {
+            setMaritalStatus(statuses[buttonIndex - 1]);
+          }
+        }
+      );
+    } else {
+      Alert.alert("Select Marital Status", "", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Single", onPress: () => setMaritalStatus("Single") },
+        { text: "Married", onPress: () => setMaritalStatus("Married") },
+        { text: "Divorced", onPress: () => setMaritalStatus("Divorced") },
+        { text: "Widowed", onPress: () => setMaritalStatus("Widowed") },
+      ]);
+    }
+  };
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Loading profile...</Text>
@@ -245,11 +315,14 @@ export default function EditProfileScreen() {
 
   if (isError || !resident) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={48} color="#FF3B30" />
           <Text style={styles.errorText}>Failed to load profile data</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => navigation.goBack()}
+          >
             <Text style={styles.retryButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -258,9 +331,9 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -268,14 +341,20 @@ export default function EditProfileScreen() {
           <View style={styles.photoSection}>
             <View style={styles.photoContainer}>
               {selectedPhoto || resident.signedUrl ? (
-                <Image source={{ uri: selectedPhoto || resident.signedUrl }} style={styles.photo} />
+                <Image
+                  source={{ uri: selectedPhoto || resident.signedUrl }}
+                  style={styles.photo}
+                />
               ) : (
                 <View style={styles.photoPlaceholder}>
                   <Ionicons name="person" size={60} color="#C7C7CC" />
                 </View>
               )}
             </View>
-            <TouchableOpacity style={styles.changePhotoButton} onPress={handleChangePhoto}>
+            <TouchableOpacity
+              style={styles.changePhotoButton}
+              onPress={handleChangePhoto}
+            >
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
           </View>
@@ -284,47 +363,33 @@ export default function EditProfileScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>PERSONAL INFORMATION</Text>
             <View style={styles.sectionContent}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  First Name <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter first name"
-                  value={firstname}
-                  onChangeText={setFirstname}
-                  editable={!isSaving}
-                />
+              {/* First Name and Last Name - Side by side */}
+              <View style={styles.rowContainer}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>First Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter first name"
+                    value={firstname}
+                    onChangeText={setFirstname}
+                    editable={!isSaving}
+                  />
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Last Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter last name"
+                    value={lastname}
+                    onChangeText={setLastname}
+                    editable={!isSaving}
+                  />
+                </View>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Last Name <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter last name"
-                  value={lastname}
-                  onChangeText={setLastname}
-                  editable={!isSaving}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Middle Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter middle name"
-                  value={middlename}
-                  onChangeText={setMiddlename}
-                  editable={!isSaving}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Phone Number <Text style={styles.required}>*</Text>
-                </Text>
+                <Text style={styles.label}>Phone Number</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Enter phone number"
@@ -336,9 +401,7 @@ export default function EditProfileScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Email <Text style={styles.required}>*</Text>
-                </Text>
+                <Text style={styles.label}>Email Address</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email"
@@ -362,106 +425,75 @@ export default function EditProfileScreen() {
                 />
               </View>
 
+              {/* Date of Birth - Day and Month side by side */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Date of Birth</Text>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => {
-                    haptics.light();
-                    setShowDatePicker(true);
-                  }}
-                  disabled={isSaving}
-                >
-                  <Text style={[styles.dateButtonText, !dob && styles.dateButtonPlaceholder]}>
-                    {formatDate(dob)}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
-                </TouchableOpacity>
-              </View>
+                <Text style={styles.label}>
+                  Date of Birth <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={styles.rowContainer}>
+                  <View style={styles.halfWidth}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="09"
+                      value={dobDay}
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/[^0-9]/g, "").slice(0, 2);
+                        const dayNum = parseInt(cleaned);
+                        if (cleaned === "" || (dayNum >= 1 && dayNum <= 31)) {
+                          setDobDay(cleaned);
+                        }
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      editable={!isSaving}
+                    />
+                  </View>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={dob || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                />
-              )}
+                  <View style={styles.halfWidth}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="07"
+                      value={dobMonth}
+                      onChangeText={(text) => {
+                        const cleaned = text.replace(/[^0-9]/g, "").slice(0, 2);
+                        const monthNum = parseInt(cleaned);
+                        if (
+                          cleaned === "" ||
+                          (monthNum >= 1 && monthNum <= 12)
+                        ) {
+                          setDobMonth(cleaned);
+                        }
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                      editable={!isSaving}
+                    />
+                  </View>
+                </View>
+              </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Gender</Text>
-                <View style={styles.buttonGroup}>
-                  <TouchableOpacity
-                    style={[
-                      styles.selectButton,
-                      gender === 'Male' && styles.selectButtonActive,
-                    ]}
-                    onPress={() => {
-                      haptics.light();
-                      setGender('Male');
-                    }}
-                    disabled={isSaving}
-                  >
-                    <Text
-                      style={[
-                        styles.selectButtonText,
-                        gender === 'Male' && styles.selectButtonTextActive,
-                      ]}
-                    >
-                      Male
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.selectButton,
-                      gender === 'Female' && styles.selectButtonActive,
-                    ]}
-                    onPress={() => {
-                      haptics.light();
-                      setGender('Female');
-                    }}
-                    disabled={isSaving}
-                  >
-                    <Text
-                      style={[
-                        styles.selectButtonText,
-                        gender === 'Female' && styles.selectButtonTextActive,
-                      ]}
-                    >
-                      Female
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={showGenderPicker}
+                  disabled={isSaving}
+                >
+                  <Text style={styles.pickerButtonText}>{gender}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Marital Status</Text>
-                <View style={styles.buttonGroup}>
-                  {['Single', 'Married', 'Divorced', 'Widowed'].map((status) => (
-                    <TouchableOpacity
-                      key={status}
-                      style={[
-                        styles.selectButton,
-                        maritalStatus === status && styles.selectButtonActive,
-                      ]}
-                      onPress={() => {
-                        haptics.light();
-                        setMaritalStatus(status as any);
-                      }}
-                      disabled={isSaving}
-                    >
-                      <Text
-                        style={[
-                          styles.selectButtonText,
-                          maritalStatus === status && styles.selectButtonTextActive,
-                        ]}
-                      >
-                        {status}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={showMaritalStatusPicker}
+                  disabled={isSaving}
+                >
+                  <Text style={styles.pickerButtonText}>{maritalStatus}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -476,13 +508,19 @@ export default function EditProfileScreen() {
               </View>
 
               <View style={styles.readOnlyField}>
-                <Text style={styles.readOnlyLabel}>Current Residential Address</Text>
-                <Text style={styles.readOnlyValue}>{resident.estateaddr || 'N/A'}</Text>
+                <Text style={styles.readOnlyLabel}>
+                  Current Residential Address
+                </Text>
+                <Text style={styles.readOnlyValue}>
+                  {resident.estateaddr || "N/A"}
+                </Text>
               </View>
 
               <View style={styles.readOnlyField}>
                 <Text style={styles.readOnlyLabel}>Former Address</Text>
-                <Text style={styles.readOnlyValue}>{resident.formeraddr || 'N/A'}</Text>
+                <Text style={styles.readOnlyValue}>
+                  {resident.formeraddr || "N/A"}
+                </Text>
               </View>
             </View>
           </View>
@@ -516,12 +554,13 @@ export default function EditProfileScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Workplace Address</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.textArea]}
                   placeholder="Enter workplace address"
                   value={workplaceaddr}
                   onChangeText={setWorkplaceaddr}
                   multiline
                   numberOfLines={3}
+                  textAlignVertical="top"
                   editable={!isSaving}
                 />
               </View>
@@ -552,7 +591,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   keyboardView: {
     flex: 1,
@@ -563,169 +602,149 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 12,
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   photoSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   photoContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    overflow: 'hidden',
-    backgroundColor: '#E5E5EA',
+    overflow: "hidden",
+    backgroundColor: "#E5E5EA",
     marginBottom: 12,
   },
   photo: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   photoPlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#E5E5EA',
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E5E5EA",
   },
   changePhotoButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   changePhotoText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '600',
+    color: "#007AFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginBottom: 8,
-    marginLeft: 4,
+    fontWeight: "600",
+    color: "#8E8E93",
+    marginBottom: 12,
     letterSpacing: 0.5,
   },
   sectionContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
   },
+  rowContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  halfWidth: {
+    flex: 1,
+  },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 8,
   },
   required: {
-    color: '#FF3B30',
+    color: "#FF3B30",
   },
   input: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    padding: 16,
     fontSize: 16,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    color: "#000",
   },
-  dateButton: {
-    backgroundColor: '#F2F2F7',
-    borderRadius: 8,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+  textArea: {
+    minHeight: 80,
+    paddingTop: 12,
   },
-  dateButtonText: {
+  pickerButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    padding: 16,
+  },
+  pickerButtonText: {
     fontSize: 16,
-    color: '#000',
-  },
-  dateButtonPlaceholder: {
-    color: '#8E8E93',
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  selectButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#F2F2F7',
-  },
-  selectButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  selectButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-  },
-  selectButtonTextActive: {
-    color: '#fff',
+    color: "#000",
   },
   readOnlyField: {
-    marginBottom: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
   },
   readOnlyLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontSize: 12,
+    color: "#8E8E93",
     marginBottom: 4,
   },
   readOnlyValue: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
+    fontWeight: "500",
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
     marginTop: 8,
   },
@@ -733,8 +752,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

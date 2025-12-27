@@ -14,6 +14,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as XLSX from 'xlsx';
+import { Modal } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VisitorsStackParamList } from '@/types/navigation';
 import { useCreateVisitorMutation } from '@/store/api/visitorsApi';
@@ -29,6 +33,13 @@ type CreateVisitorScreenNavigationProp = NativeStackNavigationProp<
 type Props = {
   navigation: CreateVisitorScreenNavigationProp;
 };
+
+interface EventVisitor {
+  visitorName: string;
+  gender: 'Male' | 'Female';
+  fone: string;
+  email: string;
+}
 
 export default function CreateVisitorScreen({ navigation }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -46,7 +57,91 @@ export default function CreateVisitorScreen({ navigation }: Props) {
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
   const [showDepartureDatePicker, setShowDepartureDatePicker] = useState(false);
 
+  // New fields for extended functionality
+  const [visitorCategory, setVisitorCategory] = useState<'Casual' | 'Event'>('Casual');
+  const [eventTitle, setEventTitle] = useState('');
+  const [visitorRelationship, setVisitorRelationship] = useState('PERSONAL_GUESTS');
+  const [eventVisitors, setEventVisitors] = useState<EventVisitor[]>([]);
+
+  // Modal State
+  const [isAddGuestModalVisible, setIsAddGuestModalVisible] = useState(false);
+  const [newGuestName, setNewGuestName] = useState('');
+  const [newGuestGender, setNewGuestGender] = useState<'Male' | 'Female'>('Male');
+  const [newGuestPhone, setNewGuestPhone] = useState('');
+  const [newGuestEmail, setNewGuestEmail] = useState('');
+
   const [createVisitor, { isLoading }] = useCreateVisitorMutation();
+
+  const handleImport = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'text/csv',
+          'application/vnd.ms-excel'
+        ],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const { uri } = result.assets[0];
+      const fileContent = await FileSystem.readAsStringAsync(uri, {
+        encoding: 'base64',
+      });
+
+      const workbook = XLSX.read(fileContent, { type: 'base64' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const data: any[] = XLSX.utils.sheet_to_json(sheet);
+
+      if (data && data.length > 0) {
+        // Map columns to our structure.
+        // Assuming columns: Name, Gender, Phone, Email
+        // Or closely matching keys.
+        const mappedVisitors: EventVisitor[] = data.map((row) => ({
+          visitorName: row['Name'] || row['name'] || row['Visitor Name'] || row['visitorName'] || '',
+          gender: (row['Gender'] || row['gender'] || 'Male'), // Default to Male if missing
+          fone: (row['Phone'] || row['phone'] || row['fone'] || row['Mobile'] || '').toString(),
+          email: row['Email'] || row['email'] || '',
+        })).filter(v => v.visitorName && v.fone); // Basic validation
+
+        if (mappedVisitors.length > 0) {
+          setEventVisitors((prev) => [...prev, ...mappedVisitors]);
+          haptics.success();
+          Alert.alert('Success', `Imported ${mappedVisitors.length} guests.`);
+        } else {
+          Alert.alert('Error', 'No valid guests found in file. Ensure columns are: Name, Gender, Phone, Email');
+        }
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      Alert.alert('Error', 'Failed to import file');
+    }
+  };
+
+  const handleAddGuest = () => {
+    if (!newGuestName || !newGuestPhone) {
+      Alert.alert('Error', 'Name and Phone are required');
+      return;
+    }
+    setEventVisitors(prev => [...prev, {
+      visitorName: newGuestName,
+      gender: newGuestGender,
+      fone: newGuestPhone,
+      email: newGuestEmail
+    }]);
+    setNewGuestName('');
+    setNewGuestPhone('');
+    setNewGuestEmail('');
+    setNewGuestGender('Male');
+    setIsAddGuestModalVisible(false);
+  };
+
+  const removeGuest = (index: number) => {
+    setEventVisitors(prev => prev.filter((_, i) => i !== index));
+    haptics.light();
+  };
 
   const handleSubmit = async () => {
     // Validate required fields
@@ -69,6 +164,13 @@ export default function CreateVisitorScreen({ navigation }: Props) {
     if (isNaN(visitorCount) || visitorCount < 0) {
       haptics.error();
       Alert.alert('Error', 'Please enter a valid number of visitors');
+      return;
+    }
+
+    // Validate event fields
+    if (visitorCategory === 'Event' && !eventTitle.trim()) {
+      haptics.error();
+      Alert.alert('Error', 'Please enter an event title');
       return;
     }
 
@@ -110,6 +212,10 @@ export default function CreateVisitorScreen({ navigation }: Props) {
         visitorNum: visitorCount,
         purpose,
         type,
+        visitorMainCategory: visitorCategory,
+        visitorRelationship,
+        eventTitle: visitorCategory === 'Event' ? eventTitle : '',
+        eventVisitors: visitorCategory === 'Event' ? eventVisitors : [],
       }).unwrap();
 
       haptics.success();
@@ -215,67 +321,163 @@ export default function CreateVisitorScreen({ navigation }: Props) {
               </View>
             </View>
 
+            {/* Category Selection */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Category</Text>
+              <View style={styles.segmentedControl}>
+                <TouchableOpacity
+                  style={[
+                    styles.segmentButton,
+                    visitorCategory === 'Casual' && styles.segmentButtonActive,
+                  ]}
+                  onPress={() => {
+                    haptics.light();
+                    setVisitorCategory('Casual');
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      visitorCategory === 'Casual' && styles.segmentTextActive,
+                    ]}
+                  >
+                    Casual
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.segmentButton,
+                    visitorCategory === 'Event' && styles.segmentButtonActive,
+                  ]}
+                  onPress={() => {
+                    haptics.light();
+                    setVisitorCategory('Event');
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      visitorCategory === 'Event' && styles.segmentTextActive,
+                    ]}
+                  >
+                    Event
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Event Title (Only for Event) */}
+            {visitorCategory === 'Event' && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Event Title <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Birthday Party, House Warming"
+                  value={eventTitle}
+                  onChangeText={setEventTitle}
+                  editable={!isLoading}
+                />
+              </View>
+            )}
+
+            {/* Event Guests Section */}
+            {visitorCategory === 'Event' && (
+              <View style={styles.inputGroup}>
+                 <View style={styles.sectionHeader}>
+                    <Text style={styles.label}>Guest List ({eventVisitors.length})</Text>
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity onPress={handleImport} style={styles.iconButton}>
+                            <Ionicons name="document-text-outline" size={24} color="#007AFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setIsAddGuestModalVisible(true)} style={styles.iconButton}>
+                            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+                        </TouchableOpacity>
+                    </View>
+                 </View>
+                 
+                 {eventVisitors.length === 0 ? (
+                     <Text style={styles.placeholderText}>No guests added yet. Add manually or import from Excel/CSV.</Text>
+                 ) : (
+                     <View style={styles.guestList}>
+                         {eventVisitors.map((guest, index) => (
+                             <View key={index} style={styles.guestItem}>
+                                 <View style={styles.guestInfo}>
+                                     <Text style={styles.guestName}>{guest.visitorName}</Text>
+                                     <Text style={styles.guestDetails}>{guest.gender} • {guest.fone}</Text>
+                                 </View>
+                                 <TouchableOpacity onPress={() => removeGuest(index)}>
+                                     <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                                 </TouchableOpacity>
+                             </View>
+                         ))}
+                     </View>
+                 )}
+              </View>
+            )}
+
             {/* First Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
                 First Name <Text style={styles.required}>*</Text>
               </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter first name"
-                value={firstName}
-                onChangeText={setFirstName}
-                editable={!isLoading}
-                autoCapitalize="words"
-              />
-            </View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter first name"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    editable={!isLoading}
+                    autoCapitalize="words"
+                  />
+                </View>
 
-            {/* Last Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Last Name <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter last name"
-                value={lastName}
-                onChangeText={setLastName}
-                editable={!isLoading}
-                autoCapitalize="words"
-              />
-            </View>
+                {/* Last Name */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    Last Name <Text style={styles.required}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter last name"
+                    value={lastName}
+                    onChangeText={setLastName}
+                    editable={!isLoading}
+                    autoCapitalize="words"
+                  />
+                </View>
 
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Email <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="visitor@example.com"
-                value={email}
-                onChangeText={setEmail}
-                editable={!isLoading}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-              />
-            </View>
+                {/* Email */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    Email <Text style={styles.required}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="visitor@example.com"
+                    value={email}
+                    onChangeText={setEmail}
+                    editable={!isLoading}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
 
-            {/* Phone */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Phone Number <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="08012345678"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                editable={!isLoading}
-              />
-            </View>
+                {/* Phone */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    Phone Number <Text style={styles.required}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="08012345678"
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                    editable={!isLoading}
+                  />
+                </View>
 
             {/* Purpose */}
             <View style={styles.inputGroup}>
@@ -553,4 +755,98 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  segmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E5EA',
+    borderRadius: 8,
+    padding: 2,
+    height: 36,
+  },
+  segmentButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  segmentButtonActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  segmentText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  segmentTextActive: {
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  iconButton: {
+    padding: 4,
+  },
+  placeholderText: {
+    color: '#8E8E93',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  guestList: {
+    gap: 8,
+  },
+  guestItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  guestInfo: {
+    flex: 1,
+  },
+  guestName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  guestDetails: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  modalContent: {
+      padding: 16,
+      gap: 20
+  }
 });

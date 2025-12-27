@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,13 +16,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native';
-import { useCreateFamilyMemberMutation } from '@/store/api/householdApi';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useUpdateFamilyMemberMutation } from '@/store/api/householdApi';
 import { useAppSelector } from '@/store/hooks';
 import { haptics } from '@/utils/haptics';
 
-export default function AddFamilyMemberScreen() {
+export default function EditFamilyMemberScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { member } = route.params || {};
   const user = useAppSelector((state) => state.auth.user);
 
   // Multi-step form state
@@ -46,9 +48,43 @@ export default function AddFamilyMemberScreen() {
   const [jobTitle, setJobTitle] = useState('');
   const [employerName, setEmployerName] = useState('');
 
-  const [createMember, { isLoading }] = useCreateFamilyMemberMutation();
+  const [updateMember, { isLoading }] = useUpdateFamilyMemberMutation();
 
   const relationships = ['Spouse', 'Child', 'Parent', 'Sibling', 'Guardian', 'Dependent', 'Other'];
+
+  useEffect(() => {
+    if (member) {
+       // Pre-fill form
+       // Note: extracting first/last name might be tricky if it's combined string in 'name'
+       // However, we stored 'rawData' in our transformResponse in householdApi.ts!
+       // If member comes from the list, it should have rawData.
+       
+       const data = member.rawData || {};
+       setFirstName(data.firstname || '');
+       setLastName(data.surname || '');
+       setOthernames(data.othernames || '');
+       setPhysicalAddr(data.physicalAddr || '');
+       setGender((data.gender as any) || 'Male');
+       setDob(data.DoB ? new Date(data.DoB) : null);
+       setPhone(data.fone || data.phoneNo || '');
+       setEmail(data.email || '');
+       setRelationship(data.relationship || '');
+       setPhoto(data.photofilename ? data.photofilename : null); // If URL handling needed, logic here
+       setEmploymentStatus((data.employmentStatus as any) || 'Employed');
+       setJobTitle(data.jobTitle || '');
+       setEmployerName(data.employerName || '');
+       
+       // Fallback parsing if rawData missing (shouldn't happen with updated API)
+       if (!member.rawData) {
+           const names = member.name.split(' ');
+           setFirstName(names[0] || '');
+           setLastName(names.slice(1).join(' ') || '');
+           setPhone(member.phone || '');
+           setEmail(member.email || '');
+           setRelationship(member.relationship || '');
+       }
+    }
+  }, [member]);
 
   const handleTakePhoto = async () => {
     try {
@@ -177,31 +213,33 @@ export default function AddFamilyMemberScreen() {
 
     try {
       haptics.light();
-      // After validation, we know these values are not empty strings
-      await createMember({
-        residentId: user?.residentId || '',
-        firstName,
-        othernames,
-        surname: lastName,
-        gender: gender as 'Male' | 'Female', // Validated to not be empty
-        DoB: dob?.toISOString().split('T')[0] || '', // YYYY-MM-DD
-        phoneNo: phone,
-        email,
-        relationship,
-        physicalAddr,
-        photo: photo || undefined, // Convert null to undefined
-        employmentStatus: employmentStatus as any, // Validated
-        jobTitle: jobTitle.trim() || undefined,
-        employerName: employerName.trim() || undefined,
+      await updateMember({
+        id: member.id, // familymemberId from member object
+        data: {
+            residentId: user?.residentId || '',
+            firstName,
+            surname: lastName,
+            othernames,
+            gender: gender as 'Male' | 'Female' | 'Other',
+            DoB: dob?.toISOString().split('T')[0] || '',
+            phoneNo: phone,
+            email,
+            relationship,
+            physicalAddr,
+            photo: photo?.startsWith('http') || photo?.startsWith('file') ? photo : undefined, // Handle if photo not changed
+            employmentStatus: employmentStatus as any,
+            jobTitle: jobTitle.trim() || undefined,
+            employerName: employerName.trim() || undefined,
+        }
       }).unwrap();
 
       haptics.success();
-      Alert.alert('Success', 'Family member added successfully', [
+      Alert.alert('Success', 'Family member updated successfully', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
       haptics.error();
-      Alert.alert('Error', error?.data?.msg || 'Failed to add family member');
+      Alert.alert('Error', error?.data?.message || 'Failed to update family member');
     }
   };
 
@@ -471,7 +509,7 @@ export default function AddFamilyMemberScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.buttonText}>Add Member</Text>
+                    <Text style={styles.buttonText}>Update Member</Text>
                     <Ionicons name="checkmark" size={20} color="#fff" />
                   </>
                 )}
@@ -488,6 +526,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+    marginTop: 16,
   },
   keyboardView: {
     flex: 1,

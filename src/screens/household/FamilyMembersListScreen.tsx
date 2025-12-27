@@ -55,9 +55,9 @@ export default function FamilyMembersListScreen() {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => {
+            onPress={() => {
             haptics.light();
-            // navigation.navigate('EditFamilyMember', { memberId: item.id });
+              navigation.navigate('EditFamilyMember', { member: item });
           }}
         >
           <Ionicons name="create-outline" size={20} color="#007AFF" />
@@ -73,7 +73,7 @@ export default function FamilyMembersListScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={members}
         renderItem={renderMember}
@@ -95,7 +95,7 @@ export default function FamilyMembersListScreen() {
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+    // paddingTop: 16,
   },
   listContent: {
     padding: 16,

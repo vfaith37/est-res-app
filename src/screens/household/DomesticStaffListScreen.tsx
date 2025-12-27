@@ -11,10 +11,10 @@ import { haptics } from '@/utils/haptics';
 
 export default function DomesticStaffListScreen() {
   const navigation = useNavigation<any>();
-  const { data: staff, isLoading, refetch, isFetching } = useGetDomesticStaffQuery({});
+  const { data: staff, isLoading, refetch, isFetching } = useGetDomesticStaffQuery();
   const [updateStatus] = useUpdateStaffStatusMutation();
   const [deleteStaff] = useDeleteDomesticStaffMutation();
-
+console.log(staff)
   const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     
@@ -144,7 +144,7 @@ export default function DomesticStaffListScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={staff}
         renderItem={renderStaff}
@@ -166,7 +166,7 @@ export default function DomesticStaffListScreen() {
       >
         <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 

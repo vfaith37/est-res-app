@@ -76,6 +76,10 @@ export interface CreateVisitorTokenRequest {
   departuredate?: string; // Format: "2025-11-27" - Only for guests (overnight stays)
   visitorNum: number;
   visitReason: string;
+  visitorMainCategory: "Casual" | "Event";
+  visitorRelationship: string;
+  eventTitle: string;
+  eventVisitors: any[];
 }
 
 // Frontend create visitor request (user-friendly)
@@ -90,6 +94,10 @@ export interface CreateVisitorRequest {
   visitorNum: number;
   purpose: string;
   type: "guest" | "visitor"; // guest = has departure date, visitor = day visit only
+  visitorMainCategory?: "Casual" | "Event";
+  visitorRelationship?: string;
+  eventTitle?: string;
+  eventVisitors?: any[];
 }
 
 export interface ValidateVisitorRequest {
@@ -131,7 +139,7 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
 function transformCreateVisitorRequest(
   request: CreateVisitorRequest
 ): CreateVisitorTokenRequest {
-  const baseRequest = {
+  const baseRequest: CreateVisitorTokenRequest = {
     residentid: request.residentId,
     visitFirstname: request.firstName,
     visitLastname: request.lastName,
@@ -140,6 +148,10 @@ function transformCreateVisitorRequest(
     arrivedate: request.arriveDate,
     visitorNum: request.visitorNum,
     visitReason: request.purpose,
+    visitorMainCategory: request.visitorMainCategory || "Casual",
+    visitorRelationship: request.visitorRelationship || "PERSONAL_GUESTS",
+    eventTitle: request.eventTitle || "",
+    eventVisitors: request.eventVisitors || [],
   };
 
   // Add departuredate only for guests (overnight stays)

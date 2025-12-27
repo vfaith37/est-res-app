@@ -14,7 +14,6 @@ export default function DomesticStaffListScreen() {
   const { data: staff, isLoading, refetch, isFetching } = useGetDomesticStaffQuery();
   const [updateStatus] = useUpdateStaffStatusMutation();
   const [deleteStaff] = useDeleteDomesticStaffMutation();
-console.log(staff)
   const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     
@@ -80,7 +79,7 @@ console.log(staff)
         <View style={styles.staffInfo}>
           <View style={styles.nameRow}>
             <Text style={[styles.staffName, item.status === 'inactive' && styles.inactiveText]}>
-              {item.name}
+              {item.name.includes('undefined') ? (item.rawData?.Name || 'Staff Member') : item.name}
             </Text>
             <View style={[
               styles.statusBadge,
@@ -89,7 +88,7 @@ console.log(staff)
               <Text style={styles.statusText}>{item.status}</Text>
             </View>
           </View>
-          <Text style={styles.staffRole}>{item.role}</Text>
+          <Text style={styles.staffRole}>{item.rawData?.Name || item.role}</Text>
           <Text style={styles.staffContact}>{item.phone}</Text>
         </View>
       </View>

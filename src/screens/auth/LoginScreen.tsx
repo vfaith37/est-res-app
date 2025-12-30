@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -118,124 +119,131 @@ export default function LoginScreen({ navigation }: Props) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <Image
-          source={require("@/assets/images/auth.png")}
-          style={styles.authImage}
-        />
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to access your estate management dashboard and stay
-              connected with your community.
-            </Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Email/Phone Input */}
-            <View>
-              <Text style={styles.label}>Email / Telephone Number</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="enter your email or telephone number."
-                  placeholderTextColor="#C7C7CC"
-                  value={emailOrPhone}
-                  onChangeText={setEmailOrPhone}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  editable={!isLoading}
-                  returnKeyType="next"
-                />
-              </View>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <Image
+            source={require("@/assets/images/auth.png")}
+            style={styles.authImage}
+            resizeMode="contain"
+          />
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>
+                Sign in to access your estate management dashboard and stay
+                connected with your community.
+              </Text>
             </View>
 
-            {/* Password Input */}
-            <View>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="enter your password"
-                  placeholderTextColor="#C7C7CC"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  editable={!isLoading}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={togglePasswordVisibility}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-outline" : "eye-off-outline"}
-                    size={20}
-                    color="#8E8E93"
+            {/* Form */}
+            <View style={styles.form}>
+              {/* Email/Phone Input */}
+              <View>
+                <Text style={styles.label}>Email / Telephone Number</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="enter your email or telephone number."
+                    placeholderTextColor="#C7C7CC"
+                    value={emailOrPhone}
+                    onChangeText={setEmailOrPhone}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    editable={!isLoading}
+                    returnKeyType="next"
                   />
+                </View>
+              </View>
+
+              {/* Password Input */}
+              <View>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="enter your password"
+                    placeholderTextColor="#C7C7CC"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!isLoading}
+                    returnKeyType="done"
+                    onSubmitEditing={handleLogin}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={togglePasswordVisibility}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-outline" : "eye-off-outline"}
+                      size={20}
+                      color="#8E8E93"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Remember Me & Forgot Password */}
+              <View style={styles.optionsRow}>
+                <TouchableOpacity
+                  style={styles.rememberMeContainer}
+                  onPress={toggleRememberMe}
+                  disabled={isLoading}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      rememberMe && styles.checkboxChecked,
+                    ]}
+                  >
+                    {rememberMe && (
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.rememberMeText}>Remember me</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.light();
+                    navigation.navigate("ForgotPassword");
+                  }}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.forgotPasswordText}>Forgot password?</Text>
                 </TouchableOpacity>
               </View>
-            </View>
 
-            {/* Remember Me & Forgot Password */}
-            <View style={styles.optionsRow}>
+              {/* Login Button */}
               <TouchableOpacity
-                style={styles.rememberMeContainer}
-                onPress={toggleRememberMe}
+                style={[
+                  styles.loginButton,
+                  isLoading && styles.loginButtonDisabled,
+                ]}
+                onPress={handleLogin}
                 disabled={isLoading}
               >
-                <View
-                  style={[
-                    styles.checkbox,
-                    rememberMe && styles.checkboxChecked,
-                  ]}
-                >
-                  {rememberMe && (
-                    <Ionicons name="checkmark" size={14} color="#fff" />
-                  )}
-                </View>
-                <Text style={styles.rememberMeText}>Remember me</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  haptics.light();
-                  navigation.navigate("ForgotPassword");
-                }}
-                disabled={isLoading}
-              >
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </TouchableOpacity>
             </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[
-                styles.loginButton,
-                isLoading && styles.loginButtonDisabled,
-              ]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.loginButtonText}>Login</Text>
-              )}
-            </TouchableOpacity>
+            {/* Copyright section */}
+            <View style={styles.copyrightContainer}>
+              <Text style={styles.copyrightText}>
+                © 2025 Estate Resident Management App (ERMA). All Rights Reserved.
+              </Text>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Copyright section */}
-      <View style={styles.copyrightContainer}>
-        <Text style={styles.copyrightText}>
-          © 2025 Estate Resident Management App (ERMA). All Rights Reserved.
-        </Text>
-      </View>
     </View>
   );
 }
@@ -248,19 +256,23 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   authImage: {
     width: "100%",
-    height: "45%",
+    height: 300,
     alignSelf: "center",
   },
   content: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     backgroundColor: "#fff",
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 32,
     marginTop: -30,
+    paddingBottom: 20,
   },
   header: {
     alignItems: "center",

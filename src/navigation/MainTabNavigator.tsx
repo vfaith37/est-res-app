@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppSelector } from "@/store/hooks";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Screens
 import HomeScreen from "@/screens/home/HomeScreen";
@@ -421,13 +422,17 @@ function FamilyMemberSettingsNavigator() {
 
 // Security Tab Navigator
 function SecurityTabNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <SecurityTab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { height: 60, paddingBottom: 8 },
+        tabBarStyle: { 
+          height: 60 + insets.bottom, 
+          paddingBottom: 8 + insets.bottom 
+        },
       }}
     >
       <SecurityTab.Screen
@@ -476,13 +481,17 @@ function SecurityTabNavigator() {
 
 // Home Head Tab Navigator
 function HomeHeadTabNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <HomeHeadTab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { height: 60, paddingBottom: 8 },
+        tabBarStyle: { 
+          height: 60 + insets.bottom, 
+          paddingBottom: 8 + insets.bottom 
+        },
       }}
     >
       <HomeHeadTab.Screen
@@ -536,13 +545,17 @@ function HomeHeadTabNavigator() {
 
 // Family Member Tab Navigator
 function FamilyMemberTabNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <FamilyMemberTab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { height: 60, paddingBottom: 8 },
+        tabBarStyle: { 
+          height: 60 + insets.bottom, 
+          paddingBottom: 8 + insets.bottom 
+        },
       }}
     >
       <FamilyMemberTab.Screen

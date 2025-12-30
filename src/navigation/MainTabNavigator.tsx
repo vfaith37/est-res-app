@@ -607,7 +607,7 @@ export default function MainTabNavigator() {
   if (user?.role === "home_head") {
     return <HomeHeadTabNavigator />;
   }
-
+  
   if (user?.role === "family_member") {
     return <FamilyMemberTabNavigator />;
   }

@@ -102,7 +102,7 @@ function VisitorsNavigator() {
       <VisitorsStack.Screen
         name="VisitorQR"
         component={VisitorQRScreen}
-        options={{ title: "Visitor Pass" }}
+        options={{ title: "Visitor Pass", presentation: "modal" }}
       />
     </VisitorsStack.Navigator>
   );

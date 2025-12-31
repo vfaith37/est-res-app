@@ -182,56 +182,62 @@ export default function VisitorsListScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header Section */}
       <View style={styles.header}>
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[styles.toggleBtn, activeTab === 'tokens' && styles.toggleBtnActive]}
-            onPress={() => setActiveTab('tokens')}
-          >
-            <Text style={[styles.toggleText, activeTab === 'tokens' && styles.toggleTextActive]}>Tokens</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, activeTab === 'guests' && styles.toggleBtnActive]}
-            onPress={() => setActiveTab('guests')}
-          >
-            <Text style={[styles.toggleText, activeTab === 'guests' && styles.toggleTextActive]}>Guests</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[styles.toggleBtn, activeTab === 'tokens' && styles.toggleBtnActive]}
+              onPress={() => setActiveTab('tokens')}
+            >
+              <Text style={[styles.toggleText, activeTab === 'tokens' && styles.toggleTextActive]}>Tokens</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleBtn, activeTab === 'guests' && styles.toggleBtnActive]}
+              onPress={() => setActiveTab('guests')}
+            >
+              <Text style={[styles.toggleText, activeTab === 'guests' && styles.toggleTextActive]}>Guests</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.generateBtn} onPress={handleCreateVisitor}>
+            <Text style={styles.generateBtnText}>Generate Token</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.generateBtn} onPress={handleCreateVisitor}>
-          <Text style={styles.generateBtnText}>Generate Token</Text>
-        </TouchableOpacity>
+        {/* Stats Section */}
+        {activeTab === 'tokens' && stats && (
+          <View style={styles.statsContainer}>
+            {renderStatsCard('Total Tokens\nGenerated', stats.total)}
+            {renderStatsCard('Total Unused\nTokens', stats.unused)}
+            {renderStatsCard('Total In Use', stats.inUse)}
+          </View>
+        )}
+        <View>
+
+          {/* Search & Filter Section */}
+          {activeTab === 'tokens' && (
+            <View style={styles.searchContainer}>
+              <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="#9CA3AF" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search"
+                  placeholderTextColor="#9CA3AF"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
+                onPress={handleFilterPress}
+              >
+                <Ionicons name="funnel-outline" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* Stats Section */}
-      {activeTab === 'tokens' && stats && (
-        <View style={styles.statsContainer}>
-          {renderStatsCard('Total Tokens\nGenerated', stats.total)}
-          {renderStatsCard('Total Unused\nTokens', stats.unused)}
-          {renderStatsCard('Total In Use', stats.inUse)}
-        </View>
-      )}
 
-      {/* Search & Filter Section */}
-      {activeTab === 'tokens' && (
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#9CA3AF" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-          <TouchableOpacity
-            style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
-            onPress={handleFilterPress}
-          >
-            <Ionicons name="filter" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Main Content */}
       <View style={styles.content}>
@@ -315,14 +321,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB', // Light gray background
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   toggleContainer: {
     flexDirection: 'row',

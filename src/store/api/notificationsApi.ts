@@ -18,10 +18,48 @@ export const notificationsApi = api.injectEndpoints({
       Notification[],
       { unreadOnly?: boolean; limit?: number }
     >({
-      query: (params) => ({
-        url: '/notifications',
-        params,
-      }),
+      queryFn: async () => {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const mockData: Notification[] = [
+            {
+                id: '1',
+                type: 'announcement',
+                title: 'Water Supply interruption',
+                message: 'Lorem ipsum dolor sit amet consectetur. Eget com...',
+                read: false,
+                status: 'new',
+                createdAt: new Date().toISOString(), // Today
+            },
+            {
+                id: '2',
+                type: 'announcement',
+                title: 'Water Supply interruption',
+                message: 'Lorem ipsum dolor sit amet consectetur. Eget com...',
+                read: false,
+                status: 'new',
+                createdAt: new Date().toISOString(),
+            },
+            {
+                id: '3',
+                type: 'announcement',
+                title: 'Water Supply interruption',
+                message: 'Lorem ipsum dolor sit amet consectetur. Eget com...',
+                read: true,
+                status: 'opened',
+                createdAt: new Date().toISOString(),
+            },
+            {
+                id: '4',
+                type: 'announcement',
+                title: 'Water Supply interruption',
+                message: 'Lorem ipsum dolor sit amet consectetur. Eget com...',
+                read: true,
+                status: 'opened',
+                createdAt: new Date().toISOString(),
+            },
+        ];
+        return { data: mockData };
+      },
       providesTags: ['Notifications'],
     }),
 

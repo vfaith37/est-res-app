@@ -129,7 +129,7 @@ function PaymentsNavigator() {
   return (
     <PaymentsStack.Navigator
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
       }}
     >
       <PaymentsStack.Screen
@@ -140,7 +140,7 @@ function PaymentsNavigator() {
       <PaymentsStack.Screen
         name="PaymentDetails"
         component={PaymentDetailsScreen}
-        options={{ title: "Payment Details" }}
+        options={{ title: "Payment Details", headerShown: true }}
       />
     </PaymentsStack.Navigator>
   );
@@ -225,7 +225,7 @@ function ProfileNavigator() {
       />
       <ProfileStack.Screen
         name="Notifications"
-        component={EnhancedNotificationsScreen}
+        component={NotificationsScreen}
         options={{ title: "Notifications" }}
       />
       <ProfileStack.Screen
@@ -242,12 +242,12 @@ function ProfileNavigator() {
       <ProfileStack.Screen
         name="AddFamilyMember"
         component={AddFamilyMemberScreen}
-        options={{ title: "Add Family Member" }}
+        options={{ title: "Add Family Member", presentation: "modal" }}
       />
       <ProfileStack.Screen
         name="EditFamilyMember"
         component={EditFamilyMemberScreen}
-        options={{ title: "Edit Family Member" }}
+        options={{ title: "Edit Family Member", presentation: "modal" }}
       />
       <ProfileStack.Screen
         name="DomesticStaffList"
@@ -257,7 +257,7 @@ function ProfileNavigator() {
       <ProfileStack.Screen
         name="AddDomesticStaff"
         component={AddDomesticStaffScreen}
-        options={{ title: "Add Staff Member" }}
+        options={{ title: "Add Staff Member", presentation: "modal" }}
       />
       <ProfileStack.Screen
         name="EstateVendors"

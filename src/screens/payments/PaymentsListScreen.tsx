@@ -1,273 +1,256 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { format, parseISO, isValid } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { PaymentsStackParamList } from '@/types/navigation';
-import { useGetPaymentsQuery, useGetPaymentSummaryQuery } from '@/store/api/paymentsApi';
+import { useGetPaymentsQuery, Payment } from '@/store/api/paymentsApi';
+import ScreenHeaderWithStats, { StatItem } from '@/components/ScreenHeaderWithStats';
+import FilterModal from '@/components/FilterModal';
 import { haptics } from '@/utils/haptics';
 
-type PaymentsListScreenNavigationProp = NativeStackNavigationProp<
-  PaymentsStackParamList,
-  'PaymentsList'
->;
+export default function PaymentsListScreen() {
+  const navigation = useNavigation<any>();
+  const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-type Props = {
-  navigation: PaymentsListScreenNavigationProp;
-};
+  const { data: payments = [], isLoading, refetch, isFetching } = useGetPaymentsQuery({});
 
-export default function PaymentsListScreen({ navigation }: Props) {
-  const [filter, setFilter] = useState<string>('all');
-  const { data: payments, isLoading, refetch, isFetching } = useGetPaymentsQuery({});
-  const { data: summary } = useGetPaymentSummaryQuery();
-
-  const handleRefresh = () => {
+  const handleBack = () => navigation.goBack();
+  const handlePayDue = () => {
     haptics.light();
-    refetch();
+    // Navigate to payment flow
   };
 
-  const handlePaymentPress = (paymentId: string) => {
-    haptics.light();
-    navigation.navigate('PaymentDetails', { paymentId });
-  };
+  const sections = useMemo(() => {
+    let filtered = Array.isArray(payments) ? [...payments] : [];
 
-  const filteredPayments = Array.isArray(payments)
-    ? payments.filter((payment) => {
-        if (filter === 'all') return true;
-        return payment.status === filter;
-      })
-    : [];
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.description.toLowerCase().includes(q) ||
+        (p.invoiceId && p.invoiceId.includes(q))
+      );
+    }
 
-  const renderPayment = ({ item }: any) => (
-    <TouchableOpacity style={styles.paymentCard} onPress={() => handlePaymentPress(item.id)}>
-      <View style={[styles.paymentIcon, { backgroundColor: getTypeColor(item.type) }]}>
-        <Ionicons name={getTypeIcon(item.type)} size={24} color="#fff" />
-      </View>
+    // Filter
+    if (filter !== 'all') {
+      filtered = filtered.filter(p => {
+        if (filter === 'pending') return p.status === 'pending'; // 'pending' covers pending payment/review
+        if (filter === 'paid') return p.status === 'paid';
+        if (filter === 'overdue') return p.status === 'overdue' || p.status === 'cancelled'; // mapping cancelled to overdue or similar if needed
+        return true;
+      });
+    }
 
-      <View style={styles.paymentContent}>
-        <Text style={styles.paymentTitle}>{item.description}</Text>
-        <Text style={styles.paymentType}>{item.type.replace('_', ' ')}</Text>
-        <Text style={styles.paymentDate}>Due: {new Date(item.dueDate).toLocaleDateString()}</Text>
-      </View>
+    const groups: { [key: string]: Payment[] } = {};
 
-      <View style={styles.paymentRight}>
-        <Text style={styles.paymentAmount}>₦{item.amount.toLocaleString()}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{item.status}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+    filtered.forEach(item => {
+      let dateKey = 'Unknown Date';
+      if (item.createdAt) {
+        try {
+          const date = parseISO(item.createdAt);
+          if (isValid(date)) {
+            dateKey = format(date, 'EEEE MM/dd/yyyy');
+          }
+        } catch (e) {
+          // fallback
+        }
+      }
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(item);
+    });
+
+    return Object.keys(groups).map(date => ({
+      title: date,
+      data: groups[date],
+    }));
+  }, [payments, searchQuery, filter]);
+
+
+  const stats: StatItem[] = [
+    { label: 'Total Amount Paid', value: '₦500,000' },
+    { label: 'Current Monthly Paid', value: '₦8,000' },
+    { label: 'Total Paid', value: '20' },
+  ];
+
+  const renderSectionHeader = ({ section: { title } }: any) => (
+    <Text style={styles.sectionHeader}>{title}</Text>
   );
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'paid': return { bg: '#DCFCE7', text: '#16A34A', label: 'Paid' };
+      case 'pending': return { bg: '#FEF9C3', text: '#CA8A04', label: 'Pending Payment' };
+      case 'overdue': return { bg: '#FEE2E2', text: '#DC2626', label: 'Denied' }; // Using Denied color for overdue/cancelled as per design red badge
+      case 'cancelled': return { bg: '#FEE2E2', text: '#DC2626', label: 'Denied' };
+      default: return { bg: '#F3F4F6', text: '#4B5563', label: status };
+    }
+  };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* Summary Cards */}
-      {summary && (
-        <View style={styles.summaryContainer}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Total Due</Text>
-            <Text style={styles.summaryAmount}>₦{(summary.pending || 0).toLocaleString()}</Text>
+  const renderPayment = ({ item }: { item: Payment }) => {
+    const statusStyle = getStatusBadgeStyle(item.status);
+    const dateAdded = item.createdAt ? format(parseISO(item.createdAt), 'MM/dd/yyyy') : 'N/A';
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => {
+          haptics.light();
+          navigation.navigate('PaymentDetails', { paymentId: item.id });
+        }}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>{item.description}</Text>
+          <Text style={styles.amount}>₦{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+        </View>
+
+        <View style={styles.cardRow}>
+          <View>
+            <Text style={styles.label}>Due ID</Text>
+            <Text style={styles.value}>{item.dueId || item.id}</Text>
           </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Paid</Text>
-            <Text style={[styles.summaryAmount, { color: '#34C759' }]}>
-              ₦{(summary.paid || 0).toLocaleString()}
-            </Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Overdue</Text>
-            <Text style={[styles.summaryAmount, { color: '#FF3B30' }]}>
-              ₦{(summary.overdue || 0).toLocaleString()}
-            </Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.label}>Date Added</Text>
+            <Text style={styles.value}>{dateAdded}</Text>
           </View>
         </View>
-      )}
 
-      {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
-        {['all', 'pending', 'paid', 'overdue'].map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterTab, filter === f && styles.filterTabActive]}
-            onPress={() => {
-              haptics.light();
-              setFilter(f);
-            }}
-          >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={[styles.cardRow, { marginTop: 12 }]}>
+          <View>
+            <Text style={styles.label}>Invoice ID</Text>
+            <Text style={styles.value}>{item.invoiceId || 'N/A'}</Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.badgeText, { color: statusStyle.text }]}>{statusStyle.label}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
+      <ScreenHeaderWithStats
+        title="Dues & Payments"
+        // onBack removed as this is a main tab screen
+        onAdd={handlePayDue}
+        addButtonLabel="Pay Due"
+        stats={stats}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onFilterPress={() => setIsFilterVisible(true)}
+        buttonStyle={{ backgroundColor: '#0044C0' }} // Blue button
+      />
+
+      <View style={styles.content}>
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          renderItem={renderPayment}
+          renderSectionHeader={renderSectionHeader}
+          contentContainerStyle={styles.listContent}
+          stickySectionHeadersEnabled={false}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No payments found</Text>
+            </View>
+          }
+        />
       </View>
 
-      <FlatList
-        data={filteredPayments}
-        renderItem={renderPayment}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={isFetching} onRefresh={handleRefresh} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="card-outline" size={64} color="#C7C7CC" />
-            <Text style={styles.emptyText}>No payments found</Text>
-          </View>
-        }
+      {/* Mock FAB for "Outstanding/Urgent" if needed, just matching image red circle */}
+      <TouchableOpacity style={styles.fab} onPress={() => haptics.light()}>
+        <Ionicons name="alert-circle-outline" size={32} color="#fff" />
+      </TouchableOpacity>
+
+      <FilterModal
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        onApply={(status) => {
+          if (status) setFilter(status as any);
+        }}
+        onReset={() => setFilter('all')}
+        currentStatus={filter === 'all' ? null : filter}
       />
     </SafeAreaView>
   );
 }
 
-function getTypeIcon(type: string) {
-  const icons: any = {
-    service_charge: 'home',
-    utility: 'flash',
-    amenity: 'fitness',
-    fine: 'warning',
-    other: 'card',
-  };
-  return icons[type] || 'card';
-}
-
-function getTypeColor(type: string) {
-  const colors: any = {
-    service_charge: '#007AFF',
-    utility: '#FF9500',
-    amenity: '#34C759',
-    fine: '#FF3B30',
-    other: '#8E8E93',
-  };
-  return colors[type] || '#8E8E93';
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'paid':
-      return '#34C759';
-    case 'pending':
-      return '#FF9500';
-    case 'overdue':
-      return '#FF3B30';
-    default:
-      return '#8E8E93';
-  }
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#F9FAFB',
   },
-  summaryContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-  },
-  summaryCard: {
+  content: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  summaryAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 8,
-  },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  filterTabActive: {
-    backgroundColor: '#007AFF',
-  },
-  filterText: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '600',
-  },
-  filterTextActive: {
-    color: '#fff',
+    paddingHorizontal: 16,
   },
   listContent: {
-    padding: 16,
-    paddingTop: 0,
+    paddingBottom: 80, // for FAB
+    paddingTop: 16,
   },
-  paymentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  sectionHeader: {
+    fontSize: 14,
+    color: '#6B7280', // Gray-500
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  card: {
     backgroundColor: '#fff',
+    borderRadius: 8,
     padding: 16,
-    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB', // Gray-200
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
-  paymentIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
   },
-  paymentContent: {
-    flex: 1,
-  },
-  paymentTitle: {
+  amount: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#374151',
   },
-  paymentType: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 2,
-    textTransform: 'capitalize',
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  paymentDate: {
+  label: {
     fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 2,
+    color: '#6B7280',
+    marginBottom: 2,
   },
-  paymentRight: {
-    alignItems: 'flex-end',
-    gap: 8,
+  value: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#1F2937',
   },
-  paymentAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
+  badge: {
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 4,
   },
-  statusText: {
-    color: '#fff',
+  badgeText: {
     fontSize: 11,
     fontWeight: '600',
-    textTransform: 'capitalize',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -275,14 +258,23 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 16,
-    color: '#8E8E93',
+    fontSize: 16,
+    color: '#6B7280',
   },
-  loadingText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: '#8E8E93',
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#DC2626', // Red-600
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });

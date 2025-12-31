@@ -295,18 +295,18 @@ export default function ProfileScreen() {
             )}
           </View>
           <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
+          {/* <Text style={styles.email}>{user?.email}</Text> */}
           <View style={styles.badgeContainer}>
             <View style={styles.roleBadge}>
               <Text style={styles.roleText}>
                 {getRoleName(user?.role || "")}
               </Text>
             </View>
-            {user?.unit && (
+            {/* {user?.unit && (
               <View style={styles.unitBadge}>
                 <Text style={styles.unitText}>Unit {user.unit}</Text>
               </View>
-            )}
+            )} */}
           </View>
         </View>
 
@@ -323,7 +323,7 @@ export default function ProfileScreen() {
                   style={[
                     styles.menuItem,
                     itemIndex === section.items.length - 1 &&
-                      styles.menuItemLast,
+                    styles.menuItemLast,
                   ]}
                   onPress={() => {
                     haptics.light();
@@ -486,20 +486,19 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 14,
     color: "#8E8E93",
-    marginBottom: 12,
+    // marginBottom: 12,
   },
   badgeContainer: {
-    flexDirection: "row",
-    gap: 8,
+    // flexDirection: "row",
+    // gap: 8,
   },
   roleBadge: {
-    backgroundColor: "#34C75920",
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
   },
   roleText: {
-    color: "#34C759",
+    color: "#808188",
     fontSize: 14,
     fontWeight: "600",
   },

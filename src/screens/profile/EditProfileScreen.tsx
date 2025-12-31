@@ -30,11 +30,6 @@ export default function EditProfileScreen() {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId;
 
-  if (__DEV__) {
-    console.log("EditProfileScreen - user:", user);
-    console.log("EditProfileScreen - residentId:", residentId);
-  }
-
   // Fetch resident data
   const {
     data: resident,
@@ -44,16 +39,6 @@ export default function EditProfileScreen() {
   } = useGetResidentQuery(residentId!, {
     skip: !residentId,
   });
-
-  if (__DEV__) {
-    console.log("useGetResidentQuery result:", {
-      resident,
-      isLoading,
-      isError,
-      error,
-      hasData: !!resident,
-    });
-  }
 
   // Edit mutation
   const [editResident, { isLoading: isSaving }] = useEditResidentMutation();
@@ -331,7 +316,16 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <View style={styles.headerRight} />
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -339,7 +333,7 @@ export default function EditProfileScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Profile Photo */}
           <View style={styles.photoSection}>
-            <View style={styles.photoContainer}>
+            <TouchableOpacity style={styles.photoContainer} onPress={handleChangePhoto}>
               {selectedPhoto || resident.signedUrl ? (
                 <Image
                   source={{ uri: selectedPhoto || resident.signedUrl }}
@@ -350,12 +344,10 @@ export default function EditProfileScreen() {
                   <Ionicons name="person" size={60} color="#C7C7CC" />
                 </View>
               )}
-            </View>
-            <TouchableOpacity
-              style={styles.changePhotoButton}
-              onPress={handleChangePhoto}
-            >
-              <Text style={styles.changePhotoText}>Change Photo</Text>
+              {/* Camera Overlay */}
+              <View style={styles.photoOverlay}>
+                <Ionicons name="camera-outline" size={32} color="#fff" />
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -593,6 +585,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F2F2F7",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+  },
+  headerLeft: {
+    width: 40,
+    alignItems: "flex-start",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000",
+  },
+  headerRight: {
+    width: 40,
+  },
   keyboardView: {
     flex: 1,
   },
@@ -644,7 +658,8 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     overflow: "hidden",
     backgroundColor: "#E5E5EA",
-    marginBottom: 12,
+    // marginBottom: 12, // Removed as text button is gone
+    position: 'relative',
   },
   photo: {
     width: "100%",
@@ -656,6 +671,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#E5E5EA",
+  },
+  photoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   changePhotoButton: {
     paddingVertical: 8,

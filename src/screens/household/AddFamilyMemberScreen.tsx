@@ -34,8 +34,10 @@ export default function AddFamilyMemberScreen() {
   const [firstName, setFirstName] = useState('');
   const [otherNames, setOtherNames] = useState('');
   const [lastName, setLastName] = useState('');
-  const [dob, setDob] = useState<Date | null>(null);
-  const [showDobPicker, setShowDobPicker] = useState(false);
+  // Date Dropdown States
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('');
@@ -58,6 +60,13 @@ export default function AddFamilyMemberScreen() {
     'Grandfather', 'Grandmother', 'Uncle', 'Aunt', 'Nephew', 'Niece', 'Cousin', 'Guardian', 'Other'
   ];
   const employmentOptions = ['Employed', 'Self-Employed', 'Student', 'Retired', 'Unemployed'];
+
+  // Date Arrays
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const handleTakePhoto = async () => {
     try {
@@ -84,7 +93,7 @@ export default function AddFamilyMemberScreen() {
   };
 
   const validateStep1 = () => {
-    if (!firstName || !lastName || !dob || !phone || !email || !gender || !relationship /* || !photo */) {
+    if (!firstName || !lastName || !dobDay || !dobMonth || !phone || !email || !gender || !relationship) {
       Alert.alert('Missing Fields', 'Please fill all required fields in this section.');
       return false;
     }
@@ -113,15 +122,18 @@ export default function AddFamilyMemberScreen() {
 
     try {
       haptics.medium();
-      // Simulate API call success for this task if needed, or real call
-      // For now assuming existing API works
+
+      const monthIndex = months.indexOf(dobMonth) + 1;
+      const currentYear = new Date().getFullYear(); // Defaulting to current year since year input is removed
+      const formattedDate = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
+
       await createMember({
         residentId: user?.residentId || 'RES-123',
         firstName,
         othernames: otherNames,
         surname: lastName,
         gender: gender as any,
-        DoB: dob?.toISOString().split('T')[0] || '',
+        DoB: formattedDate,
         phoneNo: phone,
         email,
         relationship,
@@ -145,7 +157,8 @@ export default function AddFamilyMemberScreen() {
     setFirstName('');
     setOtherNames('');
     setLastName('');
-    setDob(null);
+    setDobDay('');
+    setDobMonth('');
     setPhone('');
     setEmail('');
     setGender('');
@@ -202,7 +215,7 @@ export default function AddFamilyMemberScreen() {
           {currentStep === 1 && <Text style={{ fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: "#002EE5" }}>Personal Information</Text>}
           {currentStep === 2 && <Ionicons name="checkmark-circle" size={20} color="#B0BEF7" />}
         </View>
-        <View style={{ borderBottomWidth: 3, borderBottomColor: currentStep === 2 ? '#002EE5' : '#B0BEF7', paddingVertical: currentStep === 1 ? 1 : 6, width: currentStep === 2 ? '85%' : '15%', alignItems: 'center' }}>
+        <View style={{ borderBottomWidth: 3, borderBottomColor: currentStep === 2 ? '#002EE5' : '#B0BEF7', paddingVertical: currentStep === 1 ? 3 : 6, width: currentStep === 2 ? '85%' : '15%', alignItems: 'center' }}>
           {currentStep === 2 && <Text style={{ fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: "#002EE5" }}>Employment Information</Text>}
           {currentStep === 1 && <View style={{ borderWidth: 1, borderColor: '#B0BEF7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 5 }}><Text style={{ fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: "#B0BEF7" }}>2</Text></View>}
         </View>
@@ -229,33 +242,25 @@ export default function AddFamilyMemberScreen() {
                 <TextInput style={styles.input} placeholder="enter..." value={lastName} onChangeText={setLastName} />
               </View>
 
-              <View style={styles.row}>
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={styles.label}>Date of Birth <Text style={styles.red}>*</Text></Text>
-                  <TouchableOpacity style={styles.dropdownInput} onPress={() => setShowDobPicker(true)}>
-                    <Text style={dob ? styles.inputText : styles.placeholderText}>
-                      {dob ? dob.getDate() : 'DD'}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={styles.label}> </Text>
-                  <TouchableOpacity style={styles.dropdownInput} onPress={() => setShowDobPicker(true)}>
-                    <Text style={dob ? styles.inputText : styles.placeholderText}>
-                      {dob ? dob.toLocaleString('default', { month: 'short' }) : 'MM'}
-                    </Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Date of Birth <Text style={styles.red}>*</Text></Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Day')}>
+                      <Text style={dobDay ? styles.inputText : styles.placeholderText}>{dobDay || 'Day'}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flex: 1.5 }}>
+                    <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Month')}>
+                      <Text style={dobMonth ? styles.inputText : styles.placeholderText}>{dobMonth || 'Month'}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              {showDobPicker && (
-                <DateTimePicker
-                  value={dob || new Date()}
-                  mode="date"
-                  onChange={(e, d) => { setShowDobPicker(false); if (d) setDob(d); }}
-                />
-              )}
+              {renderDropdown('Day', days, dobDay, setDobDay)}
+              {renderDropdown('Month', months, dobMonth, setDobMonth)}
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Phone Number <Text style={styles.red}>*</Text></Text>

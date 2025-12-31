@@ -63,7 +63,7 @@ export default function VisitorsListScreen({ navigation }: Props) {
 
   const handleCreateVisitor = () => {
     haptics.medium();
-    navigation.navigate('CreateVisitor');
+    navigation.navigate('CreateVisitor', { initialType: activeTab === 'guests' ? 'guest' : 'visitor' });
   };
 
   const handleVisitorPress = (visitor: any) => {
@@ -78,15 +78,23 @@ export default function VisitorsListScreen({ navigation }: Props) {
     // 1. Filter by Search Query
     const searchFiltered = visitors.filter((v: any) => {
       const query = searchQuery.toLowerCase();
+      // Safety check for properties
+      const name = v.name?.toLowerCase() || '';
+      const purpose = v.purpose?.toLowerCase() || '';
+      const status = v.status?.toLowerCase() || '';
+      const eventTitle = v.eventTitle?.toLowerCase() || '';
+
       return (
-        v.name.toLowerCase().includes(query) ||
-        v.purpose.toLowerCase().includes(query) ||
-        v.status.toLowerCase().includes(query)
+        name.includes(query) ||
+        purpose.includes(query) ||
+        status.includes(query) ||
+        eventTitle.includes(query)
       );
     });
 
     // 2. Filter by Type (Token vs Guest)
-    const typeFiltered = searchFiltered.filter((v: any) => v.type !== 'guest');
+    const targetType = activeTab === 'tokens' ? 'visitor' : 'guest';
+    const typeFiltered = searchFiltered.filter((v: any) => v.type === targetType);
 
     const grouped = typeFiltered.reduce((acc: any, visitor: any) => {
       const dateKey = format(parseISO(visitor.visitDate), 'EEEE dd/MM/yyyy');
@@ -103,15 +111,30 @@ export default function VisitorsListScreen({ navigation }: Props) {
     }));
   }, [visitors, activeTab, searchQuery]);
 
+  // Calculate Guest Stats
+  const guestStats = useMemo(() => {
+    if (!visitors) return { total: 0, unused: 0, inUse: 0 };
+    const guests = visitors.filter((v: any) => v.type === 'guest');
+    return {
+      total: guests.length,
+      unused: guests.filter((v: any) => v.status === 'Un-Used').length,
+      inUse: guests.filter((v: any) => v.status === 'In-Use').length,
+    };
+  }, [visitors]);
+
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'un-used':
       case 'unused':
+      case 'active': // Mapping 'active' to blue/green depending on preference, using 'used' style for now or new one? Design shows "Active" in blue.
+        return { bg: '#DBEAFE', text: '#2563EB' }; // Blueish for Active
+      case 'pending':
         return { bg: '#FEF9C3', text: '#CA8A04' }; // Yellowish
       case 'in-use':
       case 'in use':
         return { bg: '#DBEAFE', text: '#2563EB' }; // Blueish
       case 'used':
+      case 'completed':
         return { bg: '#DCFCE7', text: '#16A34A' }; // Greenish
       case 'revoked':
         return { bg: '#FEE2E2', text: '#DC2626' }; // Reddish
@@ -122,6 +145,14 @@ export default function VisitorsListScreen({ navigation }: Props) {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    // Map backend status to UI status if needed, or use as is
+    if (status === 'Un-Used') return 'Pending';
+    if (status === 'In-Use') return 'Active';
+    if (status === 'Used') return 'Completed';
+    return status;
+  };
+
   const renderStatsCard = (label: string, value: number) => (
     <View style={styles.statsCard}>
       <Text style={styles.statsLabel}>{label}</Text>
@@ -130,7 +161,10 @@ export default function VisitorsListScreen({ navigation }: Props) {
   );
 
   const renderVisitorCard = ({ item }: { item: any }) => {
-    const statusStyle = getStatusStyle(item.status);
+    const isGuest = activeTab === 'guests';
+    // For Guests, show mapped status label, for Tokens keep original
+    const displayStatus = isGuest ? getStatusLabel(item.status) : item.status;
+    const statusStyle = getStatusStyle(displayStatus);
 
     return (
       <TouchableOpacity
@@ -142,28 +176,65 @@ export default function VisitorsListScreen({ navigation }: Props) {
           <Text style={styles.visitorName}>{item.name}</Text>
         </View>
 
-        <View style={styles.cardRow}>
-          <View style={styles.infoColumn}>
-            <Text style={styles.label}>Email Address</Text>
-            <Text style={styles.value}>{item.email || 'N/A'}</Text>
-          </View>
-          <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
-            <Text style={styles.label}>Expected Visit Date</Text>
-            <Text style={styles.value}>{format(parseISO(item.visitDate), 'dd/MM/yyyy')}</Text>
-          </View>
-        </View>
+        {isGuest ? (
+          // Guest Card Layout
+          <View>
+            <View style={styles.cardRow}>
+              <View style={styles.infoColumn}>
+                <Text style={styles.label}>Guest ID</Text>
+                <Text style={styles.value}>{item.id}</Text>
+              </View>
+              <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
+                <Text style={styles.label}>
+                  {item.visitorMainCategory === 'Event' ? 'Event Title' : 'Relationship'}
+                </Text>
+                <Text style={styles.value}>
+                  {item.visitorMainCategory === 'Event' ? item.eventTitle : (item.visitorRelationship || 'Guest')}
+                </Text>
+              </View>
+            </View>
 
-        <View style={[styles.cardRow, { marginTop: 12 }]}>
-          <View style={styles.infoColumn}>
-            <Text style={styles.label}>Reason for Visit</Text>
-            <Text style={styles.value}>{item.purpose}</Text>
-          </View>
-          <View style={styles.statusContainer}>
-            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-              <Text style={[styles.statusText, { color: statusStyle.text }]}>{item.status}</Text>
+            <View style={[styles.cardRow, { marginTop: 12 }]}>
+              <View style={styles.infoColumn}>
+                <Text style={styles.label}>Validity Period</Text>
+                <Text style={styles.value}>
+                  {format(parseISO(item.visitDate), 'dd/MM/yyyy HH:mm')} - {item.departureDate ? format(parseISO(item.departureDate), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.statusContainer}>
+                <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                  <Text style={[styles.statusText, { color: statusStyle.text }]}>{displayStatus}</Text>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
+        ) : (
+          // Visitor Token Card Layout
+          <View>
+            <View style={styles.cardRow}>
+              <View style={styles.infoColumn}>
+                <Text style={styles.label}>Email Address</Text>
+                <Text style={styles.value}>{item.email || 'N/A'}</Text>
+              </View>
+              <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
+                <Text style={styles.label}>Expected Visit Date</Text>
+                <Text style={styles.value}>{format(parseISO(item.visitDate), 'dd/MM/yyyy')}</Text>
+              </View>
+            </View>
+
+            <View style={[styles.cardRow, { marginTop: 12 }]}>
+              <View style={styles.infoColumn}>
+                <Text style={styles.label}>Reason for Visit</Text>
+                <Text style={styles.value}>{item.purpose}</Text>
+              </View>
+              <View style={styles.statusContainer}>
+                <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                  <Text style={[styles.statusText, { color: statusStyle.text }]}>{item.status}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -196,8 +267,17 @@ export default function VisitorsListScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.generateBtn} onPress={handleCreateVisitor}>
-            <Text style={styles.generateBtnText}>Generate Token</Text>
+          <TouchableOpacity
+            style={styles.generateBtn}
+            onPress={() => {
+              haptics.medium();
+              // Pass the intended type to the create screen
+              navigation.navigate('CreateVisitor', { initialType: activeTab === 'guests' ? 'guest' : 'visitor' });
+            }}
+          >
+            <Text style={styles.generateBtnText}>
+              {activeTab === 'guests' ? 'Add Guest' : 'Generate Token'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -209,66 +289,70 @@ export default function VisitorsListScreen({ navigation }: Props) {
             {renderStatsCard('Total In Use', stats.inUse)}
           </View>
         )}
+
+        {/* Guest Stats Section */}
+        {activeTab === 'guests' && (
+          <View style={styles.statsContainer}>
+            {renderStatsCard('Total Guest IDs\nGenerated', guestStats.total)}
+            {renderStatsCard('Unused Guests\nCodes', guestStats.unused)}
+            {renderStatsCard('In Use Guests', guestStats.inUse)}
+          </View>
+        )}
+
         <View>
 
-          {/* Search & Filter Section */}
-          {activeTab === 'tokens' && (
-            <View style={styles.searchContainer}>
-              <View style={styles.searchBar}>
-                <Ionicons name="search" size={20} color="#9CA3AF" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search"
-                  placeholderTextColor="#9CA3AF"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-              <TouchableOpacity
-                style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
-                onPress={handleFilterPress}
-              >
-                <Ionicons name="funnel-outline" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
-              </TouchableOpacity>
+          {/* Search & Filter Section - Always visible now for both tabs */}
+          <View style={styles.searchContainer}>
+            <View style={styles.searchBar}>
+              <Ionicons name="search" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search"
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
             </View>
-          )}
+            <TouchableOpacity
+              style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
+              onPress={handleFilterPress}
+            >
+              <Ionicons name="funnel-outline" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-
-
       {/* Main Content */}
       <View style={styles.content}>
-        {activeTab === 'tokens' ? (
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id}
-            renderItem={renderVisitorCard}
-            renderSectionHeader={({ section: { title } }) => (
-              <Text style={styles.sectionHeader}>{title}</Text>
-            )}
-            contentContainerStyle={styles.listContent}
-            stickySectionHeadersEnabled={false}
-            refreshControl={
-              <RefreshControl refreshing={isFetching} onRefresh={handleRefresh} />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Ionicons name="documents-outline" size={64} color="#C7C7CC" />
-                <Text style={styles.emptyText}>No tokens found</Text>
-                <Text style={styles.emptySubtext}>
-                  {searchQuery || filterStatus ? "Try adjusting your filters" : "Generate a token to get started"}
-                </Text>
-              </View>
-            }
-          />
-        ) : (
-          <View style={styles.placeholderContainer}>
-            <Ionicons name="bed-outline" size={80} color="#D1D5DB" />
-            <Text style={styles.placeholderText}>Guest Management</Text>
-            <Text style={styles.placeholderSubtext}>Coming soon...</Text>
-          </View>
-        )}
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          renderItem={renderVisitorCard}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.sectionHeader}>{title}</Text>
+          )}
+          contentContainerStyle={styles.listContent}
+          stickySectionHeadersEnabled={false}
+          refreshControl={
+            <RefreshControl refreshing={isFetching} onRefresh={handleRefresh} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name={activeTab === 'guests' ? "people-outline" : "documents-outline"} size={64} color="#C7C7CC" />
+              <Text style={styles.emptyText}>
+                {activeTab === 'guests' ? 'No guests found' : 'No tokens found'}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {searchQuery || filterStatus
+                  ? "Try adjusting your filters"
+                  : activeTab === 'guests'
+                    ? "Add a guest to get started"
+                    : "Generate a token to get started"}
+              </Text>
+            </View>
+          }
+        />
       </View>
 
       <Modal

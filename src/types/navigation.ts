@@ -73,7 +73,7 @@ export type HomeStackParamList = {
 // Visitors Stack
 export type VisitorsStackParamList = {
   VisitorsList: undefined;
-  CreateVisitor: undefined;
+  CreateVisitor: { initialType?: 'guest' | 'visitor' };
   VisitorQR: { visitor: Visitor };
 };
 

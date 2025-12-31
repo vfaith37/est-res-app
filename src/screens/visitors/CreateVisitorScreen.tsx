@@ -19,6 +19,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as XLSX from 'xlsx';
 import { Modal } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { VisitorsStackParamList } from '@/types/navigation';
 import { useCreateVisitorMutation } from '@/store/api/visitorsApi';
 import { useSelector } from 'react-redux';
@@ -30,8 +31,11 @@ type CreateVisitorScreenNavigationProp = NativeStackNavigationProp<
   'CreateVisitor'
 >;
 
+type CreateVisitorScreenRouteProp = RouteProp<VisitorsStackParamList, 'CreateVisitor'>;
+
 type Props = {
   navigation: CreateVisitorScreenNavigationProp;
+  route: CreateVisitorScreenRouteProp;
 };
 
 interface EventVisitor {
@@ -41,11 +45,14 @@ interface EventVisitor {
   email: string;
 }
 
-export default function CreateVisitorScreen({ navigation }: Props) {
+export default function CreateVisitorScreen({ navigation, route }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId || '';
+  const initialType = route.params?.initialType;
 
-  const [type, setType] = useState<'guest' | 'visitor'>('visitor');
+  // If initialType is provided, use it, otherwise default to 'visitor'
+  const [type, setType] = useState<'guest' | 'visitor'>(initialType || 'visitor');
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -245,81 +252,83 @@ export default function CreateVisitorScreen({ navigation }: Props) {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.form}>
-            {/* Guest/Visitor Type Selection */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Type <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.typeContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    type === 'visitor' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setType('visitor');
-                  }}
-                  disabled={isLoading}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={24}
-                    color={type === 'visitor' ? '#fff' : '#007AFF'}
-                  />
-                  <Text
+            {/* Guest/Visitor Type Selection - Only show if NO initialType was provided (context mode) */}
+            {!initialType && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>
+                  Type <Text style={styles.required}>*</Text>
+                </Text>
+                <View style={styles.typeContainer}>
+                  <TouchableOpacity
                     style={[
-                      styles.typeText,
-                      type === 'visitor' && styles.typeTextActive,
+                      styles.typeButton,
+                      type === 'visitor' && styles.typeButtonActive,
                     ]}
+                    onPress={() => {
+                      haptics.light();
+                      setType('visitor');
+                    }}
+                    disabled={isLoading}
                   >
-                    Visitor
-                  </Text>
-                  <Text
-                    style={[
-                      styles.typeSubtext,
-                      type === 'visitor' && styles.typeSubtextActive,
-                    ]}
-                  >
-                    Day Visit Only
-                  </Text>
-                </TouchableOpacity>
+                    <Ionicons
+                      name="person-outline"
+                      size={24}
+                      color={type === 'visitor' ? '#fff' : '#007AFF'}
+                    />
+                    <Text
+                      style={[
+                        styles.typeText,
+                        type === 'visitor' && styles.typeTextActive,
+                      ]}
+                    >
+                      Visitor
+                    </Text>
+                    <Text
+                      style={[
+                        styles.typeSubtext,
+                        type === 'visitor' && styles.typeSubtextActive,
+                      ]}
+                    >
+                      Day Visit Only
+                    </Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    type === 'guest' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setType('guest');
-                  }}
-                  disabled={isLoading}
-                >
-                  <Ionicons
-                    name="bed-outline"
-                    size={24}
-                    color={type === 'guest' ? '#fff' : '#007AFF'}
-                  />
-                  <Text
+                  <TouchableOpacity
                     style={[
-                      styles.typeText,
-                      type === 'guest' && styles.typeTextActive,
+                      styles.typeButton,
+                      type === 'guest' && styles.typeButtonActive,
                     ]}
+                    onPress={() => {
+                      haptics.light();
+                      setType('guest');
+                    }}
+                    disabled={isLoading}
                   >
-                    Guest
-                  </Text>
-                  <Text
-                    style={[
-                      styles.typeSubtext,
-                      type === 'guest' && styles.typeSubtextActive,
-                    ]}
-                  >
-                    Overnight Stay
-                  </Text>
-                </TouchableOpacity>
+                    <Ionicons
+                      name="bed-outline"
+                      size={24}
+                      color={type === 'guest' ? '#fff' : '#007AFF'}
+                    />
+                    <Text
+                      style={[
+                        styles.typeText,
+                        type === 'guest' && styles.typeTextActive,
+                      ]}
+                    >
+                      Guest
+                    </Text>
+                    <Text
+                      style={[
+                        styles.typeSubtext,
+                        type === 'guest' && styles.typeSubtextActive,
+                      ]}
+                    >
+                      Overnight Stay
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            )}
 
             {/* Category Selection */}
             <View style={styles.inputGroup}>
@@ -385,35 +394,35 @@ export default function CreateVisitorScreen({ navigation }: Props) {
             {/* Event Guests Section */}
             {visitorCategory === 'Event' && (
               <View style={styles.inputGroup}>
-                 <View style={styles.sectionHeader}>
-                    <Text style={styles.label}>Guest List ({eventVisitors.length})</Text>
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity onPress={handleImport} style={styles.iconButton}>
-                            <Ionicons name="document-text-outline" size={24} color="#007AFF" />
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.label}>Guest List ({eventVisitors.length})</Text>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity onPress={handleImport} style={styles.iconButton}>
+                      <Ionicons name="document-text-outline" size={24} color="#007AFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setIsAddGuestModalVisible(true)} style={styles.iconButton}>
+                      <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {eventVisitors.length === 0 ? (
+                  <Text style={styles.placeholderText}>No guests added yet. Add manually or import from Excel/CSV.</Text>
+                ) : (
+                  <View style={styles.guestList}>
+                    {eventVisitors.map((guest, index) => (
+                      <View key={index} style={styles.guestItem}>
+                        <View style={styles.guestInfo}>
+                          <Text style={styles.guestName}>{guest.visitorName}</Text>
+                          <Text style={styles.guestDetails}>{guest.gender} • {guest.fone}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => removeGuest(index)}>
+                          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setIsAddGuestModalVisible(true)} style={styles.iconButton}>
-                            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-                        </TouchableOpacity>
-                    </View>
-                 </View>
-                 
-                 {eventVisitors.length === 0 ? (
-                     <Text style={styles.placeholderText}>No guests added yet. Add manually or import from Excel/CSV.</Text>
-                 ) : (
-                     <View style={styles.guestList}>
-                         {eventVisitors.map((guest, index) => (
-                             <View key={index} style={styles.guestItem}>
-                                 <View style={styles.guestInfo}>
-                                     <Text style={styles.guestName}>{guest.visitorName}</Text>
-                                     <Text style={styles.guestDetails}>{guest.gender} • {guest.fone}</Text>
-                                 </View>
-                                 <TouchableOpacity onPress={() => removeGuest(index)}>
-                                     <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                                 </TouchableOpacity>
-                             </View>
-                         ))}
-                     </View>
-                 )}
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
 
@@ -422,62 +431,62 @@ export default function CreateVisitorScreen({ navigation }: Props) {
               <Text style={styles.label}>
                 First Name <Text style={styles.required}>*</Text>
               </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter first name"
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    editable={!isLoading}
-                    autoCapitalize="words"
-                  />
-                </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter first name"
+                value={firstName}
+                onChangeText={setFirstName}
+                editable={!isLoading}
+                autoCapitalize="words"
+              />
+            </View>
 
-                {/* Last Name */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    Last Name <Text style={styles.required}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter last name"
-                    value={lastName}
-                    onChangeText={setLastName}
-                    editable={!isLoading}
-                    autoCapitalize="words"
-                  />
-                </View>
+            {/* Last Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Last Name <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter last name"
+                value={lastName}
+                onChangeText={setLastName}
+                editable={!isLoading}
+                autoCapitalize="words"
+              />
+            </View>
 
-                {/* Email */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    Email <Text style={styles.required}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="visitor@example.com"
-                    value={email}
-                    onChangeText={setEmail}
-                    editable={!isLoading}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                  />
-                </View>
+            {/* Email */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Email <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="visitor@example.com"
+                value={email}
+                onChangeText={setEmail}
+                editable={!isLoading}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            </View>
 
-                {/* Phone */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>
-                    Phone Number <Text style={styles.required}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="08012345678"
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                    editable={!isLoading}
-                  />
-                </View>
+            {/* Phone */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Phone Number <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="08012345678"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                editable={!isLoading}
+              />
+            </View>
 
             {/* Purpose */}
             <View style={styles.inputGroup}>
@@ -587,7 +596,7 @@ export default function CreateVisitorScreen({ navigation }: Props) {
                   {(() => {
                     const days = Math.ceil(
                       (departureDate.getTime() - visitDate.getTime()) /
-                        (1000 * 60 * 60 * 24)
+                      (1000 * 60 * 60 * 24)
                     );
                     if (days > 0) {
                       return `Duration: ${days} ${days === 1 ? 'night' : 'nights'}`;
@@ -846,7 +855,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalContent: {
-      padding: 16,
-      gap: 20
+    padding: 16,
+    gap: 20
   }
 });

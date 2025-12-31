@@ -226,6 +226,22 @@ export const visitorsApi = api.injectEndpoints({
       providesTags: ["Visitors"],
     }),
 
+    // ✅ Get guest category list
+    getGuestCategoryList: builder.query<{ name: string }[], void>({
+      query: () => ({
+        url: "resident/getguestcategorylist",
+        method: "GET",
+      }),
+      transformResponse: (response: ApiResponse<{ name: string }[]>) => {
+        if (response.respCode !== "00") {
+          throw new Error(
+            response.message || "Failed to fetch guest categories"
+          );
+        }
+        return response.data;
+      },
+    }),
+
     // ✅ Create new visitor token (generate pass)
     createVisitor: builder.mutation<Visitor, CreateVisitorRequest>({
       query: (visitor) => ({
@@ -386,6 +402,7 @@ export const visitorsApi = api.injectEndpoints({
 
 export const {
   useGetVisitorsQuery,
+  useGetGuestCategoryListQuery,
   useCreateVisitorMutation,
   useChangeVisitorStatusMutation,
   useRevokeVisitorMutation,

@@ -69,74 +69,78 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
     });
   };
 
+  const handleShareOption = async (option: 'email' | 'whatsapp' | 'copy') => {
+    haptics.light();
+    // For now just share normal text, extended logic can be added later
+    await Share.share({
+      message: `Visitor Pass: ${visitor.id}\nFor: ${visitor.name}`,
+    });
+  };
+
   return (
-    <>
-      <SafeAreaView style={styles.container} edges={['bottom']}>
-        <View style={styles.content}>
-          {/* TYPE BADGE */}
-          <View style={styles.typeBadge}>
-            <Ionicons name="person" size={14} color="#007AFF" />
-            <Text style={styles.typeBadgeText}>Visitor Pass</Text>
-          </View>
-
-          {/* QR CARD */}
-          <View style={styles.qrCard}>
-            <QRCode value={visitor.qrCode} size={220} />
-            <View style={styles.qrMeta}>
-              <Text style={styles.tokenLabel}>TOKEN ID</Text>
-              <Text style={styles.tokenValue}>{visitor.id}</Text>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.content}>
+        {/* QR CARD */}
+        <View style={styles.resultCard}>
+          <View style={styles.successHeader}>
+            <View style={styles.checkCircle}>
+              <Ionicons name="checkmark" size={32} color="#fff" />
             </View>
+            <Text style={styles.successTitle}>Guest ID Generated</Text>
+            <Text style={styles.successSubtitle}>
+              Share this code with your guest. It can be used multiple times until the end of the validity period.
+            </Text>
           </View>
 
-          {/* STATUS */}
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(visitor.status) },
-            ]}
-          >
-            <Text style={styles.statusText}>{visitor.status}</Text>
+          <View style={styles.qrContainer}>
+            <QRCode value={visitor.qrCode} size={200} />
+            <Text style={styles.tokenCode}>{visitor.id}</Text>
           </View>
 
-          {/* INFO */}
-          <View style={styles.infoCard}>
-            <Text style={styles.name}>{visitor.name}</Text>
-            <Text style={styles.subtle}>{visitor.phone}</Text>
-            <Text style={styles.subtle}>{visitor.email}</Text>
+          <View style={styles.detailsContainer}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Guest Name</Text>
+              <Text style={styles.detailValue}>{visitor.name}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Resident Address</Text>
+              <Text style={styles.detailValue} numberOfLines={2}>
+                {visitor.address || 'Zone 1, BLOCK 3, Plot 25'}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Relationship</Text>
+              <Text style={styles.detailValue}>
+                {(visitor as any).visitorRelationship || 'Guest'}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Validity Period</Text>
+              <Text style={styles.detailValue} numberOfLines={1}>
+                {new Date(visitor.visitDate).toLocaleDateString('en-GB')} – {visitor.departureDate ? new Date(visitor.departureDate).toLocaleDateString('en-GB') : new Date(visitor.visitDate).toLocaleDateString('en-GB')}
+              </Text>
+            </View>
+            <Text style={styles.generatedDate}>
+              Date Generated: {new Date(visitor.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+            </Text>
           </View>
         </View>
+      </View>
 
-        {/* FOOTER */}
-        <View style={styles.footer}>
-          {!isRevoked && (
-            <>
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                onPress={handleShare}
-              >
-                <Ionicons name="share-outline" size={20} color="#fff" />
-                <Text style={styles.primaryBtnText}>Share Pass</Text>
-              </TouchableOpacity>
+      {/* FOOTER Actions */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('email')}>
+          <Ionicons name="mail-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('whatsapp')}>
+          <Ionicons name="logo-whatsapp" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('copy')}>
+          <Ionicons name="copy-outline" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
 
-              {canRevoke && (
-                <TouchableOpacity
-                  style={styles.dangerBtn}
-                  onPress={openRevokeModal}
-                >
-                  <Ionicons
-                    name="close-circle-outline"
-                    size={20}
-                    color="#FF3B30"
-                  />
-                  <Text style={styles.dangerBtnText}>Revoke Pass</Text>
-                </TouchableOpacity>
-              )}
-            </>
-          )}
-        </View>
-      </SafeAreaView>
-
-      {/* ================= REVOKE MODAL ================= */}
+      {/* Keep modal logic just in case, though unused in UI */}
       <Modal
         visible={showRevokeModal}
         transparent
@@ -147,68 +151,9 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
           style={styles.modalBackdrop}
           onPress={closeRevokeModal}
         />
-
-        <View style={styles.modalSheet}>
-          <Text style={styles.modalTitle}>
-            Are you sure you want to revoke this token for{' '}
-            <Text style={{ fontWeight: '700' }}>{visitor.name}</Text>?
-            It will become invalid immediately and cannot be used for
-            entry.
-          </Text>
-
-          {/* <Text style={styles.modalText}>
-            It will become invalid immediately and cannot be used for
-            entry.
-          </Text> */}
-
-          <Text style={styles.modalQuestion}>
-            Do you want to Revoke this Token?
-          </Text>
-
-          <View style={styles.modalActions}>
-
-            <TouchableOpacity
-              style={styles.modalRevoke}
-              onPress={handleConfirmRevoke}
-              disabled={isRevoking}
-            >
-              {isRevoking ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.modalRevokeText}>
-                  Yes, revoke
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalCancel}
-              onPress={closeRevokeModal}
-            >
-              <Text style={styles.modalCancelText}>No, cancel</Text>
-            </TouchableOpacity>
-
-          </View>
-        </View>
       </Modal>
-      {/* ================================================ */}
-    </>
+    </SafeAreaView>
   );
-}
-
-/* ---------------- HELPERS ---------------- */
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'Un-Used':
-      return '#34C759';
-    case 'Revoked':
-      return '#FF3B30';
-    case 'Used':
-      return '#8E8E93';
-    default:
-      return '#8E8E93';
-  }
 }
 
 /* ---------------- STYLES ---------------- */
@@ -216,158 +161,114 @@ function getStatusColor(status: string) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#F5F5F5',
   },
   content: {
     flex: 1,
     padding: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  typeBadge: {
-    flexDirection: 'row',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: '#007AFF20',
-    marginBottom: 16,
-  },
-  typeBadgeText: {
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-
-  qrCard: {
+  resultCard: {
     backgroundColor: '#fff',
-    padding: 24,
     borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: 16,
-    elevation: 5,
-  },
-  qrMeta: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  tokenLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  tokenValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: 3,
-  },
-
-  statusBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
-  },
-  statusText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
-  infoCard: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+    // padding: 20, // Padding inside handled by children
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  name: {
+  successHeader: {
+    backgroundColor: '#E8F5E9', // Light green bg
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 30,
+  },
+  checkCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#34C759',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  successTitle: {
     fontSize: 20,
     fontWeight: '700',
-    textAlign: 'center',
-  },
-  subtle: {
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-
-  footer: {
-    padding: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-    backgroundColor: '#F2F2F7',
-  },
-
-  primaryBtn: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  primaryBtnText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
-  dangerBtn: {
-    borderWidth: 1,
-    borderColor: '#FF3B30',
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  dangerBtnText: {
-    color: '#FF3B30',
-    fontWeight: '600',
-  },
-
-  /* ---------- MODAL ---------- */
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalSheet: {
-    backgroundColor: '#fff',
-    padding: 25,
-    borderRadius: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    textAlign: 'center',
+    color: '#1C7E34', // Darker green
     marginBottom: 8,
   },
-  modalQuestion: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginBottom: 20,
+  successSubtitle: {
+    fontSize: 14,
+    color: '#666',
     textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 10,
   },
-  modalActions: {
-    width: '100%',
+  qrContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  tokenCode: {
+    marginTop: 12,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#007AFF', // Blue color from design
+    letterSpacing: 1,
+  },
+  detailsContainer: {
+    backgroundColor: '#F9F9F9',
+    margin: 20,
+    borderRadius: 12,
+    padding: 16,
     gap: 12,
   },
-  modalCancel: {
-    padding: 14,
-    borderRadius: 25,
-    // backgroundColor: '#F2F2F7',
-    alignItems: 'center',
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  modalCancelText: {
-    fontSize: 16,
+  detailLabel: {
+    fontSize: 14,
+    color: '#8E8E93',
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#000',
+    flex: 1,
+    textAlign: 'right',
   },
-  modalRevoke: {
-    padding: 14,
-    borderRadius: 25,
-    backgroundColor: '#FF3B30',
+  generatedDate: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 10,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  actionBtn: {
+    flex: 1,
+    height: 60,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
-  modalRevokeText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
 });

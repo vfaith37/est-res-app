@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { haptics } from '@/utils/haptics';
 import { format, parseISO, isSameDay } from 'date-fns';
+import GuestCategoryModal from '@/components/GuestCategoryModal';
 
 type VisitorsListScreenNavigationProp = NativeStackNavigationProp<
   VisitorsStackParamList,
@@ -35,6 +36,9 @@ export default function VisitorsListScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+
+  // Guest Category Modal State
+  const [isGuestCategoryModalVisible, setIsGuestCategoryModalVisible] = useState(false);
 
   const handleFilterPress = () => {
     haptics.medium();
@@ -63,7 +67,20 @@ export default function VisitorsListScreen({ navigation }: Props) {
 
   const handleCreateVisitor = () => {
     haptics.medium();
-    navigation.navigate('CreateVisitor', { initialType: activeTab === 'guests' ? 'guest' : 'visitor' });
+    if (activeTab === 'guests') {
+      // Open Modal first
+      setIsGuestCategoryModalVisible(true);
+    } else {
+      navigation.navigate('CreateVisitor', { initialType: 'visitor' });
+    }
+  };
+
+  const handleGuestCategoryContinue = (category: 'Casual' | 'Event') => {
+    setIsGuestCategoryModalVisible(false);
+    navigation.navigate('CreateVisitor', {
+      initialType: 'guest',
+      guestCategory: category
+    });
   };
 
   const handleVisitorPress = (visitor: any) => {
@@ -269,11 +286,7 @@ export default function VisitorsListScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.generateBtn}
-            onPress={() => {
-              haptics.medium();
-              // Pass the intended type to the create screen
-              navigation.navigate('CreateVisitor', { initialType: activeTab === 'guests' ? 'guest' : 'visitor' });
-            }}
+            onPress={handleCreateVisitor}
           >
             <Text style={styles.generateBtnText}>
               {activeTab === 'guests' ? 'Add Guest' : 'Generate Token'}
@@ -393,6 +406,12 @@ export default function VisitorsListScreen({ navigation }: Props) {
         </Pressable>
       </Modal>
 
+      <GuestCategoryModal
+        visible={isGuestCategoryModalVisible}
+        onClose={() => setIsGuestCategoryModalVisible(false)}
+        onContinue={handleGuestCategoryContinue}
+      />
+
     </SafeAreaView>
   );
 }
@@ -447,6 +466,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 12,
+    paddingTop: 30,
+    paddingBottom: 50,
   },
   modalTitle: {
     fontSize: 18,
@@ -641,4 +662,8 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     marginTop: 8,
   },
+
+  //   fontWeight: '600',
+  //   fontSize: 16,
+  // },
 });

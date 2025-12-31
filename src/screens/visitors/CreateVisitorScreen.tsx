@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,19 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as XLSX from 'xlsx';
-import { Modal } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { VisitorsStackParamList } from '@/types/navigation';
-import { useCreateVisitorMutation } from '@/store/api/visitorsApi';
+import {
+  useCreateVisitorMutation,
+  useGetGuestCategoryListQuery,
+} from '@/store/api/visitorsApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { haptics } from '@/utils/haptics';
@@ -38,157 +39,108 @@ type Props = {
   route: CreateVisitorScreenRouteProp;
 };
 
-interface EventVisitor {
-  visitorName: string;
-  gender: 'Male' | 'Female';
-  fone: string;
-  email: string;
-}
-
 export default function CreateVisitorScreen({ navigation, route }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId || '';
   const initialType = route.params?.initialType;
 
-  // If initialType is provided, use it, otherwise default to 'visitor'
+  // State
   const [type, setType] = useState<'guest' | 'visitor'>(initialType || 'visitor');
 
+  // Common Fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [purpose, setPurpose] = useState('');
+
+  // Visitor Specific
   const [visitorNum, setVisitorNum] = useState('1');
   const [visitDate, setVisitDate] = useState(new Date());
-  const [departureDate, setDepartureDate] = useState(new Date(Date.now() + 86400000)); // Tomorrow
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
-  const [showDepartureDatePicker, setShowDepartureDatePicker] = useState(false);
+  const [purpose, setPurpose] = useState(''); // "Reason for Visit"
 
-  // New fields for extended functionality
-  const [visitorCategory, setVisitorCategory] = useState<'Casual' | 'Event'>('Casual');
+  // Guest Specific
+  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
+  const [visitorRelationship, setVisitorRelationship] = useState('PERSONAL_GUESTS'); // Default or empty? Image implies select.
+  // Actually image shows "select...". I should start with empty string if strict?
+  // But I'll keep default to avoid validation error for now, or change to '' and validate.
+  // Image shows "select...", so I will set initial to '' and validate.
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 86400000));
+  const [guestNote, setGuestNote] = useState(''); // "Optional Note"
+
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  // Event Guest Specific
   const [eventTitle, setEventTitle] = useState('');
-  const [visitorRelationship, setVisitorRelationship] = useState('PERSONAL_GUESTS');
-  const [eventVisitors, setEventVisitors] = useState<EventVisitor[]>([]);
+  const [eventGuests, setEventGuests] = useState<any[]>([]);
+  const [currentGuest, setCurrentGuest] = useState({
+    firstName: '',
+    lastName: '',
+    gender: 'Male' as 'Male' | 'Female',
+    email: '',
+    phone: ''
+  });
+  // Track which gender dropdown is open (main visitor/guest or current event guest addition)
+  // Reusing isGenderDropdownOpen for both but logic needs to know context if needed?
+  // Actually, for the "Add Guest" form inside Event, we can use the same modal state if we share the setter.
+  // But wait, existing gender state `gender` is for single guest. `currentGuest.gender` is for the list.
+  // Let's us separate state or just update `currentGuest` when modal confirms.
+  const [isEventGenderDropdownOpen, setIsEventGenderDropdownOpen] = useState(false);
+
+  const guestCategory = route.params?.guestCategory;
 
   // Modal State
-  const [isAddGuestModalVisible, setIsAddGuestModalVisible] = useState(false);
-  const [newGuestName, setNewGuestName] = useState('');
-  const [newGuestGender, setNewGuestGender] = useState<'Male' | 'Female'>('Male');
-  const [newGuestPhone, setNewGuestPhone] = useState('');
-  const [newGuestEmail, setNewGuestEmail] = useState('');
+  const [isRelationshipDropdownOpen, setIsRelationshipDropdownOpen] = useState(false);
+  const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState(false);
 
   const [createVisitor, { isLoading }] = useCreateVisitorMutation();
+  const { data: relationshipCategories = [] } = useGetGuestCategoryListQuery();
 
-  const handleImport = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'text/csv',
-          'application/vnd.ms-excel'
-        ],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) return;
-
-      const { uri } = result.assets[0];
-      const fileContent = await FileSystem.readAsStringAsync(uri, {
-        encoding: 'base64',
-      });
-
-      const workbook = XLSX.read(fileContent, { type: 'base64' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const data: any[] = XLSX.utils.sheet_to_json(sheet);
-
-      if (data && data.length > 0) {
-        // Map columns to our structure.
-        // Assuming columns: Name, Gender, Phone, Email
-        // Or closely matching keys.
-        const mappedVisitors: EventVisitor[] = data.map((row) => ({
-          visitorName: row['Name'] || row['name'] || row['Visitor Name'] || row['visitorName'] || '',
-          gender: (row['Gender'] || row['gender'] || 'Male'), // Default to Male if missing
-          fone: (row['Phone'] || row['phone'] || row['fone'] || row['Mobile'] || '').toString(),
-          email: row['Email'] || row['email'] || '',
-        })).filter(v => v.visitorName && v.fone); // Basic validation
-
-        if (mappedVisitors.length > 0) {
-          setEventVisitors((prev) => [...prev, ...mappedVisitors]);
-          haptics.success();
-          Alert.alert('Success', `Imported ${mappedVisitors.length} guests.`);
-        } else {
-          Alert.alert('Error', 'No valid guests found in file. Ensure columns are: Name, Gender, Phone, Email');
-        }
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-      Alert.alert('Error', 'Failed to import file');
-    }
-  };
-
-  const handleAddGuest = () => {
-    if (!newGuestName || !newGuestPhone) {
-      Alert.alert('Error', 'Name and Phone are required');
-      return;
-    }
-    setEventVisitors(prev => [...prev, {
-      visitorName: newGuestName,
-      gender: newGuestGender,
-      fone: newGuestPhone,
-      email: newGuestEmail
-    }]);
-    setNewGuestName('');
-    setNewGuestPhone('');
-    setNewGuestEmail('');
-    setNewGuestGender('Male');
-    setIsAddGuestModalVisible(false);
-  };
-
-  const removeGuest = (index: number) => {
-    setEventVisitors(prev => prev.filter((_, i) => i !== index));
-    haptics.light();
-  };
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: type === 'guest' ? 'Create Guest' : 'Generate New Token'
+    });
+  }, [navigation, type]);
 
   const handleSubmit = async () => {
-    // Validate required fields
-    if (!firstName || !lastName || !phone || !email || !purpose) {
-      haptics.error();
-      Alert.alert('Error', 'Please fill in all required fields');
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      haptics.error();
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    // Validate visitor number
-    const visitorCount = parseInt(visitorNum, 10);
-    if (isNaN(visitorCount) || visitorCount < 0) {
-      haptics.error();
-      Alert.alert('Error', 'Please enter a valid number of visitors');
-      return;
-    }
-
-    // Validate event fields
-    if (visitorCategory === 'Event' && !eventTitle.trim()) {
-      haptics.error();
-      Alert.alert('Error', 'Please enter an event title');
-      return;
-    }
-
-    // Validate departure date for guests (must be different day, not same day)
-    if (type === 'guest') {
-      const arrivalDay = visitDate.toISOString().split('T')[0];
-      const departureDay = departureDate.toISOString().split('T')[0];
-
-      if (arrivalDay === departureDay) {
+    // Validate required fields based on Type
+    if (type === 'visitor') {
+      if (!firstName || !lastName || !purpose || !phone) {
         haptics.error();
-        Alert.alert('Error', 'Departure date must be different from arrival date');
+        Alert.alert('Error', 'Please fill in all required fields');
+        return;
+      }
+    } else {
+      // Guest Validation
+      if (!firstName || !lastName || !visitorRelationship || !gender) {
+        haptics.error();
+        Alert.alert('Error', 'Please fill in all required fields');
+        return;
+      }
+    }
+
+    // Validate email format if provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        haptics.error();
+        Alert.alert('Error', 'Please enter a valid email address');
+        return;
+      }
+    }
+
+    // Validate duration for guests
+    if (type === 'guest') {
+      const startDay = startDate.toISOString().split('T')[0];
+      const endDay = endDate.toISOString().split('T')[0];
+
+      if (startDay === endDay) {
+        haptics.error();
+        Alert.alert('Error', 'Duration End Date must be different from Start Date');
         return;
       }
     }
@@ -202,11 +154,55 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
     try {
       haptics.light();
 
-      // Format dates as YYYY-MM-DD for backend
-      const formattedArriveDate = visitDate.toISOString().split('T')[0];
+      const formattedArriveDate = type === 'visitor'
+        ? visitDate.toISOString().split('T')[0]
+        : startDate.toISOString().split('T')[0];
+
       const formattedDepartureDate = type === 'guest'
-        ? departureDate.toISOString().split('T')[0]
+        ? endDate.toISOString().split('T')[0]
         : undefined;
+
+      // START Event Handling
+      if (type === 'guest' && guestCategory === 'Event') {
+        if (!eventTitle) {
+          Alert.alert('Error', 'Please enter Event Title');
+          return;
+        }
+        if (eventGuests.length === 0) {
+          Alert.alert('Error', 'Please add at least one guest');
+          return;
+        }
+
+        // Helper to format payload
+        const payload = {
+          residentId,
+          firstName: eventTitle, // Using Event Title as placeholder name
+          lastName: 'Event',
+          email: eventGuests[0].email || '', // Use first guest email?
+          phone: eventGuests[0].phone || '',
+          arriveDate: formattedArriveDate,
+          departureDate: formattedDepartureDate,
+          visitorNum: eventGuests.length,
+          purpose: 'Event: ' + eventTitle,
+          type: type,
+          visitorMainCategory: 'Event',
+          eventTitle: eventTitle,
+          eventVisitors: eventGuests
+        };
+
+        // @ts-ignore
+        const visitor = await createVisitor(payload).unwrap();
+        haptics.success();
+
+        Alert.alert('Success', 'Event Guests Added Successfully', [
+          { text: 'OK', onPress: () => navigation.navigate('VisitorQR', { visitor }) }
+        ]);
+        return;
+      }
+      // END Event Handling
+
+      const finalPurpose = type === 'visitor' ? purpose : (guestNote || 'Personal Visit');
+      const finalVisitorNum = type === 'visitor' ? parseInt(visitorNum, 10) || 1 : 1;
 
       const visitor = await createVisitor({
         residentId,
@@ -216,19 +212,18 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         phone,
         arriveDate: formattedArriveDate,
         departureDate: formattedDepartureDate,
-        visitorNum: visitorCount,
-        purpose,
+        visitorNum: finalVisitorNum,
+        purpose: finalPurpose,
         type,
-        visitorMainCategory: visitorCategory,
-        visitorRelationship,
-        eventTitle: visitorCategory === 'Event' ? eventTitle : '',
-        eventVisitors: visitorCategory === 'Event' ? eventVisitors : [],
+        visitorMainCategory: guestCategory || 'Casual', // Use param or Default
+        visitorRelationship: type === 'guest' ? visitorRelationship : undefined,
       }).unwrap();
 
       haptics.success();
       const message = type === 'guest'
-        ? 'Guest pass created successfully'
-        : 'Visitor pass created successfully';
+        ? 'Guest ID Generated Successfully'
+        : 'Visitor Token Generated Successfully';
+
       Alert.alert('Success', message, [
         {
           text: 'OK',
@@ -240,394 +235,573 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       if (__DEV__) {
         console.error('Create visitor error:', error);
       }
-      Alert.alert('Error', error?.data?.message || 'Failed to create visitor pass');
+      Alert.alert('Error', error?.data?.message || 'Failed to create pass');
     }
   };
 
+  const handleAddGuest = () => {
+    if (!currentGuest.firstName || !currentGuest.lastName) {
+      Alert.alert('Required', 'Please enter Guest Name');
+      return;
+    }
+    setEventGuests([...eventGuests, currentGuest]);
+    setCurrentGuest({
+      firstName: '',
+      lastName: '',
+      gender: 'Male',
+      email: '',
+      phone: ''
+    });
+  };
+
+  const handleRemoveGuest = (index: number) => {
+    const newGuests = [...eventGuests];
+    newGuests.splice(index, 1);
+    setEventGuests(newGuests);
+  };
+
+
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.form}>
-            {/* Guest/Visitor Type Selection - Only show if NO initialType was provided (context mode) */}
-            {!initialType && (
+      {/* Event Guest Form */}
+      {type === 'guest' && guestCategory === 'Event' ? (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.form}>
+
+              {/* Event Title */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Type <Text style={styles.required}>*</Text>
-                </Text>
-                <View style={styles.typeContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.typeButton,
-                      type === 'visitor' && styles.typeButtonActive,
-                    ]}
-                    onPress={() => {
-                      haptics.light();
-                      setType('visitor');
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Ionicons
-                      name="person-outline"
-                      size={24}
-                      color={type === 'visitor' ? '#fff' : '#007AFF'}
-                    />
-                    <Text
-                      style={[
-                        styles.typeText,
-                        type === 'visitor' && styles.typeTextActive,
-                      ]}
-                    >
-                      Visitor
-                    </Text>
-                    <Text
-                      style={[
-                        styles.typeSubtext,
-                        type === 'visitor' && styles.typeSubtextActive,
-                      ]}
-                    >
-                      Day Visit Only
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.typeButton,
-                      type === 'guest' && styles.typeButtonActive,
-                    ]}
-                    onPress={() => {
-                      haptics.light();
-                      setType('guest');
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Ionicons
-                      name="bed-outline"
-                      size={24}
-                      color={type === 'guest' ? '#fff' : '#007AFF'}
-                    />
-                    <Text
-                      style={[
-                        styles.typeText,
-                        type === 'guest' && styles.typeTextActive,
-                      ]}
-                    >
-                      Guest
-                    </Text>
-                    <Text
-                      style={[
-                        styles.typeSubtext,
-                        type === 'guest' && styles.typeSubtextActive,
-                      ]}
-                    >
-                      Overnight Stay
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {/* Category Selection */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Category</Text>
-              <View style={styles.segmentedControl}>
-                <TouchableOpacity
-                  style={[
-                    styles.segmentButton,
-                    visitorCategory === 'Casual' && styles.segmentButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setVisitorCategory('Casual');
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      visitorCategory === 'Casual' && styles.segmentTextActive,
-                    ]}
-                  >
-                    Casual
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.segmentButton,
-                    visitorCategory === 'Event' && styles.segmentButtonActive,
-                  ]}
-                  onPress={() => {
-                    haptics.light();
-                    setVisitorCategory('Event');
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      visitorCategory === 'Event' && styles.segmentTextActive,
-                    ]}
-                  >
-                    Event
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Event Title (Only for Event) */}
-            {visitorCategory === 'Event' && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Event Title <Text style={styles.required}>*</Text>
-                </Text>
+                <Text style={styles.label}>Event Title <Text style={styles.required}>*</Text></Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="e.g., Birthday Party, House Warming"
+                  placeholder="enter..."
+                  placeholderTextColor="#A0A0A0"
                   value={eventTitle}
                   onChangeText={setEventTitle}
-                  editable={!isLoading}
                 />
               </View>
-            )}
 
-            {/* Event Guests Section */}
-            {visitorCategory === 'Event' && (
+              {/* Dates */}
               <View style={styles.inputGroup}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.label}>Guest List ({eventVisitors.length})</Text>
-                  <View style={styles.actionButtons}>
-                    <TouchableOpacity onPress={handleImport} style={styles.iconButton}>
-                      <Ionicons name="document-text-outline" size={24} color="#007AFF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setIsAddGuestModalVisible(true)} style={styles.iconButton}>
-                      <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {eventVisitors.length === 0 ? (
-                  <Text style={styles.placeholderText}>No guests added yet. Add manually or import from Excel/CSV.</Text>
-                ) : (
-                  <View style={styles.guestList}>
-                    {eventVisitors.map((guest, index) => (
-                      <View key={index} style={styles.guestItem}>
-                        <View style={styles.guestInfo}>
-                          <Text style={styles.guestName}>{guest.visitorName}</Text>
-                          <Text style={styles.guestDetails}>{guest.gender} • {guest.fone}</Text>
-                        </View>
-                        <TouchableOpacity onPress={() => removeGuest(index)}>
-                          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* First Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                First Name <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter first name"
-                value={firstName}
-                onChangeText={setFirstName}
-                editable={!isLoading}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Last Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Last Name <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter last name"
-                value={lastName}
-                onChangeText={setLastName}
-                editable={!isLoading}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Email <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="visitor@example.com"
-                value={email}
-                onChangeText={setEmail}
-                editable={!isLoading}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-              />
-            </View>
-
-            {/* Phone */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Phone Number <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="08012345678"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                editable={!isLoading}
-              />
-            </View>
-
-            {/* Purpose */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Purpose of Visit <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Personal visit, Delivery, Business"
-                value={purpose}
-                onChangeText={setPurpose}
-                editable={!isLoading}
-                multiline
-                numberOfLines={2}
-              />
-            </View>
-
-            {/* Number of Visitors */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Number of Visitors <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., 1, 2, 3"
-                value={visitorNum}
-                onChangeText={setVisitorNum}
-                keyboardType="number-pad"
-                editable={!isLoading}
-              />
-              <Text style={styles.helperText}>
-                How many people will be visiting?
-              </Text>
-            </View>
-
-            {/* Arrival Date */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                Arrival Date <Text style={styles.required}>*</Text>
-              </Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowVisitDatePicker(true)}
-                disabled={isLoading}
-              >
-                <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
-                <Text style={styles.dateText}>
-                  {visitDate.toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              {showVisitDatePicker && (
-                <DateTimePicker
-                  value={visitDate}
-                  mode="date"
-                  minimumDate={new Date()}
-                  onChange={(event, selectedDate) => {
-                    setShowVisitDatePicker(false);
-                    if (selectedDate) {
-                      setVisitDate(selectedDate);
-                      // Adjust departure date if it's the same day as new arrival date
-                      if (type === 'guest') {
-                        const newArrivalDay = selectedDate.toISOString().split('T')[0];
-                        const currentDepartureDay = departureDate.toISOString().split('T')[0];
-
-                        if (newArrivalDay === currentDepartureDay) {
-                          // Set departure to next day if they're the same
-                          setDepartureDate(
-                            new Date(selectedDate.getTime() + 86400000)
-                          );
-                        }
-                      }
-                    }
-                  }}
-                />
-              )}
-            </View>
-
-            {/* Departure Date (Only for Guests) */}
-            {type === 'guest' && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Departure Date <Text style={styles.required}>*</Text>
-                </Text>
+                <Text style={styles.label}>Duration Start Date <Text style={styles.required}>*</Text></Text>
                 <TouchableOpacity
                   style={styles.dateButton}
-                  onPress={() => setShowDepartureDatePicker(true)}
-                  disabled={isLoading}
+                  onPress={() => setShowStartDatePicker(true)}
                 >
-                  <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
-                  <Text style={styles.dateText}>
-                    {departureDate.toLocaleDateString()}
-                  </Text>
+                  <Text style={styles.dateText}>{format(startDate, 'dd/MM/yyyy')}</Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
                 </TouchableOpacity>
-                {showDepartureDatePicker && (
-                  <DateTimePicker
-                    value={departureDate}
-                    mode="date"
-                    onChange={(event, selectedDate) => {
-                      setShowDepartureDatePicker(false);
-                      if (selectedDate) {
-                        setDepartureDate(selectedDate);
-                      }
-                    }}
-                  />
-                )}
-                <Text style={styles.helperText}>
-                  {(() => {
-                    const days = Math.ceil(
-                      (departureDate.getTime() - visitDate.getTime()) /
-                      (1000 * 60 * 60 * 24)
-                    );
-                    if (days > 0) {
-                      return `Duration: ${days} ${days === 1 ? 'night' : 'nights'}`;
-                    } else if (days < 0) {
-                      return `Note: Departure is ${Math.abs(days)} ${Math.abs(days) === 1 ? 'day' : 'days'} before arrival`;
-                    } else {
-                      return 'Departure and arrival are on the same day';
-                    }
-                  })()}
-                </Text>
               </View>
-            )}
-          </View>
-        </ScrollView>
 
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>
-                {type === 'guest' ? 'Create Guest Pass' : 'Create Visitor Pass'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Duration End Date <Text style={styles.required}>*</Text></Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  <Text style={styles.dateText}>{format(endDate, 'dd/MM/yyyy')}</Text>
+                  <Ionicons name="calendar-outline" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Add Guest Container */}
+              <View style={[styles.card, { padding: 16, borderWidth: 1, borderColor: '#E5E5EA', borderRadius: 12 }]}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Guest First Name <Text style={styles.required}>*</Text></Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="enter..."
+                    placeholderTextColor="#A0A0A0"
+                    value={currentGuest.firstName}
+                    onChangeText={(t) => setCurrentGuest({ ...currentGuest, firstName: t })}
+                  />
+                </View>
+                <View style={[styles.inputGroup, { marginTop: 12 }]}>
+                  <Text style={styles.label}>Guest Last Name <Text style={styles.required}>*</Text></Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="enter..."
+                    placeholderTextColor="#A0A0A0"
+                    value={currentGuest.lastName}
+                    onChangeText={(t) => setCurrentGuest({ ...currentGuest, lastName: t })}
+                  />
+                </View>
+
+                <View style={[styles.inputGroup, { marginTop: 12 }]}>
+                  <Text style={styles.label}>Gender <Text style={styles.required}>*</Text></Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setIsEventGenderDropdownOpen(true)}
+                  >
+                    <Text style={styles.dropdownText}>{currentGuest.gender || 'select...'}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={[styles.inputGroup, { marginTop: 12 }]}>
+                  <Text style={styles.label}>Email Address</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="example@gmail.com"
+                    placeholderTextColor="#A0A0A0"
+                    value={currentGuest.email}
+                    onChangeText={(t) => setCurrentGuest({ ...currentGuest, email: t })}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { marginTop: 12 }]}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="enter..."
+                    placeholderTextColor="#A0A0A0"
+                    value={currentGuest.phone}
+                    onChangeText={(t) => setCurrentGuest({ ...currentGuest, phone: t })}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.secondaryButton, { marginTop: 16, flexDirection: 'row', justifyContent: 'center', gap: 8 }]}
+                  onPress={handleAddGuest}
+                >
+                  <Ionicons name="add" size={18} color="#007AFF" />
+                  <Text style={styles.secondaryButtonText}>Add Guest</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Guest List */}
+              {eventGuests.map((guest, index) => (
+                <View key={index} style={[styles.card, { padding: 16, backgroundColor: '#F9FAFB', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                  <View>
+                    <Text style={{ fontWeight: '600', fontSize: 16 }}>{guest.firstName} {guest.lastName}</Text>
+                    <Text style={{ color: '#666', fontSize: 14, marginTop: 4 }}>{guest.gender}</Text>
+                    {guest.email ? <Text style={{ color: '#666', fontSize: 13 }}>{guest.email}</Text> : null}
+                    {guest.phone ? <Text style={{ color: '#666', fontSize: 13 }}>{guest.phone}</Text> : null}
+                  </View>
+                  <TouchableOpacity onPress={() => handleRemoveGuest(index)}>
+                    <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                (isLoading || eventGuests.length === 0) && styles.buttonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={isLoading || eventGuests.length === 0}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Generate ID</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.form}>
+              {/* VISITOR FORM */}
+              {type === 'visitor' && (
+                <>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Visitor First Name <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      editable={!isLoading}
+                      autoCapitalize="words"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Visitor Last Name <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={lastName}
+                      onChangeText={setLastName}
+                      editable={!isLoading}
+                      autoCapitalize="words"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Email Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="example@gmail.com"
+                      placeholderTextColor="#A0A0A0"
+                      value={email}
+                      onChangeText={setEmail}
+                      editable={!isLoading}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Phone Number</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={phone}
+                      onChangeText={setPhone}
+                      keyboardType="phone-pad"
+                      editable={!isLoading}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Reason for Visit <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={purpose}
+                      onChangeText={setPurpose}
+                      editable={!isLoading}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Arrival Date</Text>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowVisitDatePicker(true)}
+                      disabled={isLoading}
+                    >
+                      <Text style={styles.dateText}>
+                        {visitDate.toLocaleDateString('en-GB')}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={20} color="#666" />
+                    </TouchableOpacity>
+                    {showVisitDatePicker && (
+                      <DateTimePicker
+                        value={visitDate}
+                        mode="date"
+                        minimumDate={new Date()}
+                        onChange={(event, selectedDate) => {
+                          setShowVisitDatePicker(false);
+                          if (selectedDate) setVisitDate(selectedDate);
+                        }}
+                      />
+                    )}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Number of additional Visitor(s)</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="1"
+                      placeholderTextColor="#A0A0A0"
+                      value={visitorNum}
+                      onChangeText={setVisitorNum}
+                      keyboardType="number-pad"
+                      editable={!isLoading}
+                    />
+                  </View>
+                </>
+              )}
+
+              {/* GUEST FORM */}
+              {type === 'guest' && (
+                <>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Guest First Name <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={firstName}
+                      onChangeText={setFirstName}
+                      editable={!isLoading}
+                      autoCapitalize="words"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Guest Last Name <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={lastName}
+                      onChangeText={setLastName}
+                      editable={!isLoading}
+                      autoCapitalize="words"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Relationship <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.dropdownButton}
+                      onPress={() => setIsRelationshipDropdownOpen(true)}
+                      disabled={isLoading}
+                    >
+                      <Text style={[styles.dropdownText, !visitorRelationship && styles.placeholderText]}>
+                        {visitorRelationship || 'select...'}
+                      </Text>
+                      <Ionicons name="chevron-down-outline" size={20} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Gender <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.dropdownButton}
+                      onPress={() => setIsGenderDropdownOpen(true)}
+                      disabled={isLoading}
+                    >
+                      <Text style={styles.dropdownText}>
+                        {gender || 'select...'}
+                      </Text>
+                      <Ionicons name="chevron-down-outline" size={20} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Phone Number</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={phone}
+                      onChangeText={setPhone}
+                      keyboardType="phone-pad"
+                      editable={!isLoading}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Email Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="example@gmail.com"
+                      placeholderTextColor="#A0A0A0"
+                      value={email}
+                      onChangeText={setEmail}
+                      editable={!isLoading}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Duration Start Date <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowStartDatePicker(true)}
+                      disabled={isLoading}
+                    >
+                      <Text style={[styles.dateText, !startDate && styles.placeholderText]}>
+                        {startDate ? startDate.toLocaleDateString('en-GB') : 'select...'}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={20} color="#666" />
+                    </TouchableOpacity>
+                    {showStartDatePicker && (
+                      <DateTimePicker
+                        value={startDate}
+                        mode="date"
+                        minimumDate={new Date()}
+                        onChange={(event, selectedDate) => {
+                          setShowStartDatePicker(false);
+                          if (selectedDate) setStartDate(selectedDate);
+                        }}
+                      />
+                    )}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Duration End Date <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowEndDatePicker(true)}
+                      disabled={isLoading}
+                    >
+                      <Text style={[styles.dateText, !endDate && styles.placeholderText]}>
+                        {endDate ? endDate.toLocaleDateString('en-GB') : 'select...'}
+                      </Text>
+                      <Ionicons name="calendar-outline" size={20} color="#666" />
+                    </TouchableOpacity>
+                    {showEndDatePicker && (
+                      <DateTimePicker
+                        value={endDate}
+                        mode="date"
+                        minimumDate={startDate}
+                        onChange={(event, selectedDate) => {
+                          setShowEndDatePicker(false);
+                          if (selectedDate) setEndDate(selectedDate);
+                        }}
+                      />
+                    )}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Optional Note <Text style={{ fontWeight: 'normal', color: '#8E8E93' }}>(Optional)</Text>
+                    </Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      placeholder="enter..."
+                      placeholderTextColor="#A0A0A0"
+                      value={guestNote}
+                      onChangeText={setGuestNote}
+                      editable={!isLoading}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                </>
+              )}
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>
+                  {type === 'guest' ? 'Generate ID' : 'Generate Token'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      )}
+
+      {/* Modals */}
+      <Modal
+        visible={isRelationshipDropdownOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsRelationshipDropdownOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsRelationshipDropdownOpen(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Relationship</Text>
+              <TouchableOpacity onPress={() => setIsRelationshipDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {relationshipCategories.map((category: any, index: number) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setVisitorRelationship(category.name);
+                    setIsRelationshipDropdownOpen(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      visitorRelationship === category.name && styles.modalOptionTextActive,
+                    ]}
+                  >
+                    {category.name}
+                  </Text>
+                  {visitorRelationship === category.name && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={isGenderDropdownOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsGenderDropdownOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsGenderDropdownOpen(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Gender</Text>
+              <TouchableOpacity onPress={() => setIsGenderDropdownOpen(false)}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <View>
+              {['Male', 'Female'].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setGender(option as 'Male' | 'Female');
+                    setIsGenderDropdownOpen(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, gender === option && styles.modalOptionTextActive]}>
+                    {option}
+                  </Text>
+                  {gender === option && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -649,6 +823,10 @@ const styles = StyleSheet.create({
   inputGroup: {
     gap: 8,
   },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+  },
   label: {
     fontSize: 16,
     fontWeight: '600',
@@ -658,91 +836,34 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    padding: 16,
+    borderColor: '#E8E8E8',
+    borderRadius: 8,
+    padding: 14,
     fontSize: 16,
+    color: '#000',
   },
-  typeContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  typeButton: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    gap: 8,
-  },
-  typeButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  typeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  typeTextActive: {
-    color: '#fff',
-  },
-  typeSubtext: {
-    fontSize: 12,
-    color: '#007AFF',
-  },
-  typeSubtextActive: {
-    color: '#fff',
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: 'space-between',
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    padding: 16,
-    gap: 12,
+    borderColor: '#E8E8E8',
+    borderRadius: 8,
+    padding: 14,
   },
   dateText: {
     fontSize: 16,
     color: '#000',
   },
-  helperText: {
-    fontSize: 14,
+  placeholderText: {
     color: '#8E8E93',
-    fontStyle: 'italic',
-  },
-  timeSlotContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  timeSlotButton: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    padding: 12,
-    alignItems: 'center',
-  },
-  timeSlotButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  timeSlotText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  timeSlotTextActive: {
-    color: '#fff',
-    fontWeight: '600',
   },
   footer: {
     padding: 16,
@@ -764,82 +885,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  segmentedControl: {
+  dropdownButton: {
     flexDirection: 'row',
-    backgroundColor: '#E5E5EA',
-    borderRadius: 8,
-    padding: 2,
-    height: 36,
-  },
-  segmentButton: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 6,
-  },
-  segmentButtonActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segmentText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  segmentTextActive: {
-    fontWeight: '600',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  iconButton: {
-    padding: 4,
-  },
-  placeholderText: {
-    color: '#8E8E93',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  guestList: {
-    gap: 8,
-  },
-  guestItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: '#E8E8E8',
+    borderRadius: 8,
+    padding: 14,
   },
-  guestInfo: {
-    flex: 1,
-  },
-  guestName: {
+  dropdownText: {
     fontSize: 16,
-    fontWeight: '600',
     color: '#000',
-  },
-  guestDetails: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 2,
-  },
-  modalContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    textTransform: 'capitalize',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+    minHeight: 300,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -854,8 +927,133 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  modalContent: {
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#000',
+    textTransform: 'capitalize',
+  },
+  modalOptionTextActive: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  // New Styles
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 16,
+  },
+  comingSoonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#8E8E93',
+    textAlign: 'center',
+  },
+  secondaryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F7',
+  },
+  secondaryButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  categoryContainer: {
     padding: 16,
-    gap: 20
+    gap: 12,
+  },
+  categoryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    gap: 12,
+  },
+  categoryOptionActive: {
+    borderColor: '#007AFF',
+    backgroundColor: '#F0F8FF',
+  },
+  dropdownList: {
+    marginTop: 4,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  categoryTitleActive: {
+    color: '#007AFF',
+  },
+  categorySubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  categorySubtitleActive: {
+    color: '#5D9CEC', // Lighter blue for subtitle
+  },
+  radioOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#C7C7CC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#007AFF',
+  },
+  modalFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+    gap: 12,
+  },
+  textButton: {
+    alignItems: 'center',
+    padding: 12,
+  },
+  textButtonLabel: {
+    color: '#007AFF',
+    fontSize: 16,
   }
 });

@@ -21,16 +21,14 @@ type VisitorsListScreenNavigationProp = NativeStackNavigationProp<
   VisitorsStackParamList,
   'VisitorsList'
 >;
-type VisitorsListScreenRouteProp = RouteProp<VisitorsStackParamList, 'VisitorsList'>;
 
 type Props = {
   navigation: VisitorsListScreenNavigationProp;
-  route: VisitorsListScreenRouteProp;
 };
 
 type TabType = 'tokens' | 'guests';
 
-export default function VisitorsListScreen({ navigation, route }: Props) {
+export default function VisitorsListScreen({ navigation }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId || '';
   const [activeTab, setActiveTab] = useState<TabType>('tokens');

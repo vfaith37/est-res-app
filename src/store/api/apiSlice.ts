@@ -15,7 +15,7 @@ import { ENCRYPTION_CONFIG } from "@/config/encryption.config";
 import { updateTokens, logout } from "../slices/authSlice";
 
 const API_URL =
-  Constants.expoConfig?.extra?.apiUrl || "https://api.yourestate.com";
+  Constants.expoConfig?.extra?.apiUrl || "https://romakop.com.ng/api";
 
 // Simple mutex to prevent multiple simultaneous token refresh attempts
 let isRefreshing = false;

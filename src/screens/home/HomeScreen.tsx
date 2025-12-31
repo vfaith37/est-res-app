@@ -41,7 +41,7 @@ export default function HomeScreen({ navigation }: any) {
     data: allVisitors,
     refetch: refetchVisitors,
     isFetching: isFetchingVisitors,
-  } = useGetVisitorsQuery(user?.residentId || "");
+  } = useGetVisitorsQuery({ residentId: user?.residentId || "" });
 
   const {
     data: maintenanceRequests,
@@ -63,15 +63,15 @@ export default function HomeScreen({ navigation }: any) {
     : 0;
 
   // Filter upcoming visitors (Un-Used status and future dates)
-  const upcomingVisitors = allVisitors
-    ? allVisitors
-        .filter((visitor) => {
-          const visitDate = new Date(visitor.visitDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return visitor.status === "Un-Used" && visitDate >= today;
-        })
-        .slice(0, 5)
+  const upcomingVisitors = allVisitors?.visitors
+    ? allVisitors.visitors
+      .filter((visitor) => {
+        const visitDate = new Date(visitor.visitDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return visitor.status === "Un-Used" && visitDate >= today;
+      })
+      .slice(0, 5)
     : [];
 
   const handleRefresh = () => {
@@ -127,13 +127,14 @@ export default function HomeScreen({ navigation }: any) {
   // Get recent payments (last 3)
   const recentPayments = Array.isArray(allPayments)
     ? allPayments
-        .filter((p) => p.status === "paid")
-        .sort(
-          (a, b) =>
-            new Date(b.paidDate!).getTime() - new Date(a.paidDate!).getTime()
-        )
-        .slice(0, 3)
+      .filter((p) => p.status === "paid")
+      .sort(
+        (a, b) =>
+          new Date(b.paidDate!).getTime() - new Date(a.paidDate!).getTime()
+      )
+      .slice(0, 3)
     : [];
+  console.log(user);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -145,12 +146,15 @@ export default function HomeScreen({ navigation }: any) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.name}>{user?.name}!</Text>
-            <Text style={styles.unit}>Unit {user?.unit}</Text>
+            <Text style={styles.name}>Welcome back, {user?.name.split(" ")[0]}</Text>
+            {/* <Text style={styles.name}>{user?.name}!</Text> */}
+            <Text style={styles.accountType}>{user?.accountType}</Text>
           </View>
+          <TouchableOpacity style={[styles.notificationButton, { backgroundColor: "rgba(243, 103, 103, 1)" }]}>
+            <Ionicons name="information-circle-outline" size={24} color="#fff" />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color="#000" />
+            <Ionicons name="notifications" size={24} color="#fff" />
             {unreadCount && unreadCount.length > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount.length}</Text>
@@ -159,121 +163,60 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Ionicons name="people-outline" size={24} color="#007AFF" />
-            <Text style={styles.statNumber}>
-              {upcomingVisitors?.length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Upcoming Visitors</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Ionicons name="build-outline" size={24} color="#FF9500" />
-            <Text style={styles.statNumber}>
-              {maintenanceRequests?.length || 0}
-            </Text>
-            <Text style={styles.statLabel}>Pending Issues</Text>
-          </View>
-
-          {isHomeHead ? (
-            <View style={styles.statCard}>
-              <Ionicons name="card-outline" size={24} color="#FF3B30" />
-              <Text style={styles.statNumber}>
-                {pendingPayments?.length || 0}
-              </Text>
-              <Text style={styles.statLabel}>Due Payments</Text>
-            </View>
-          ) : (
-            <View style={styles.statCard}>
-              <Ionicons name="alert-circle-outline" size={24} color="#FF3B30" />
-              <Text style={styles.statNumber}>{activeEmergencies}</Text>
-              <Text style={styles.statLabel}>Active Alerts</Text>
-            </View>
-          )}
-        </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-
           <View style={styles.actionsGrid}>
-            {/* Home Head Quick Actions */}
-            {isHomeHead && (
-              <>
-                <QuickActionCard
-                  icon="person-add-outline"
-                  title="New Visitor"
-                  color="#007AFF"
-                  onPress={() => {
-                    haptics.medium();
-                    navigation.navigate("Visitors", {
-                      screen: "CreateVisitor",
-                    });
-                  }}
-                />
-                <QuickActionCard
-                  icon="build-outline"
-                  title="Report Issue"
-                  color="#FF9500"
-                  onPress={() => {
-                    haptics.medium();
-                    navigation.navigate("Profile", {
-                      screen: "ReportIssue",
-                    });
-                  }}
-                />
-                <QuickActionCard
-                  icon="card-outline"
-                  title="Pay Bills"
-                  color="#34C759"
-                  onPress={() => {
-                    haptics.medium();
-                    navigation.navigate("Payments");
-                  }}
-                />
-                <QuickActionCard
-                  icon="alert-circle-outline"
-                  title="Emergency"
-                  color="#FF3B30"
-                  onPress={() => {
-                    haptics.heavy();
-                    navigation.navigate("Profile", {
-                      screen: "ReportEmergency",
-                    });
-                  }}
-                />
-              </>
+            <View style={styles.statCard}>
+              <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
+                <Ionicons name="people" size={24} color="#007AFF" />
+              </View>
+              <Text style={styles.statNumber}>
+                {upcomingVisitors?.length || 0}
+              </Text>
+              <Text style={styles.statLabel}>My Visitors</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
+                <Ionicons name="notifications" size={24} color="#007AFF" />
+              </View>
+              <Text style={styles.statNumber}>
+                {maintenanceRequests?.length || 0}
+              </Text>
+              <Text style={styles.statLabel}>My Notifications</Text>
+            </View>
+
+            {isHomeHead ? (
+              <View style={styles.statCard}>
+                <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
+                  <Ionicons name="pie-chart" size={24} color="#007AFF" />
+                </View>
+                <Text style={styles.statNumber}>
+                  {pendingPayments?.length || 0}
+                </Text>
+                <Text style={styles.statLabel}>My Outstandings</Text>
+              </View>
+            ) : (
+              <View style={styles.statCard}>
+                <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
+                  <Ionicons name="alert-circle-outline" size={24} color="#007AFF" />
+                </View>
+                <Text style={styles.statNumber}>{activeEmergencies}</Text>
+                <Text style={styles.statLabel}>Active Alerts</Text>
+              </View>
             )}
 
-            {/* Family Member Quick Actions */}
-            {user?.role === "family_member" && (
-              <>
-                <QuickActionCard
-                  icon="person-add-outline"
-                  title="New Visitor"
-                  color="#007AFF"
-                  onPress={() => {
-                    haptics.medium();
-                    navigation.navigate("Tokens", {
-                      screen: "CreateVisitor",
-                    });
-                  }}
-                />
-                <QuickActionCard
-                  icon="alert-circle-outline"
-                  title="Emergency"
-                  color="#FF3B30"
-                  onPress={() => {
-                    haptics.heavy();
-                    navigation.navigate("Emergencies", {
-                      screen: "ReportEmergency",
-                    });
-                  }}
-                />
-              </>
-            )}
+            <View style={styles.statCard}>
+              <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
+                <Ionicons name="chatbubble-ellipses" size={24} color="#007AFF" />
+              </View>
+              <Text style={styles.statNumber}>
+                {maintenanceRequests?.length || 0}
+              </Text>
+              <Text style={styles.statLabel}>Complaints</Text>
+            </View>
           </View>
         </View>
 
@@ -284,6 +227,11 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.sectionTitle}>Payment Trends</Text>
               <Text style={styles.sectionSubtitle}>Last 6 months</Text>
             </View>
+
+            {/* <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Payment Trends</Text>
+              <Text style={styles.sectionSubtitle}>Last 6 months</Text>
+            </View> */}
 
             <View style={styles.chartContainer}>
               {(() => {
@@ -462,17 +410,6 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
-function QuickActionCard({ icon, title, color, onPress }: any) {
-  return (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
-      <View style={[styles.actionIcon, { backgroundColor: color + "20" }]}>
-        <Ionicons name={icon} size={24} color={color} />
-      </View>
-      <Text style={styles.actionTitle}>{title}</Text>
-    </TouchableOpacity>
-  );
-}
-
 function getPaymentTypeIcon(type: string) {
   const icons: any = {
     service_charge: "home",
@@ -505,7 +442,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     padding: 20,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
   },
   greeting: {
     fontSize: 14,
@@ -516,13 +453,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 4,
   },
-  unit: {
+  accountType: {
     fontSize: 14,
     color: "#8E8E93",
     marginTop: 2,
   },
   notificationButton: {
     padding: 8,
+    backgroundColor: "#000",
+    borderRadius: 12,
     position: "relative",
   },
   badge: {
@@ -547,7 +486,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statCard: {
-    flex: 1,
+    width: "48%",
     backgroundColor: "#fff",
     padding: 16,
     borderRadius: 12,
@@ -577,6 +516,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 12,

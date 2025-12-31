@@ -76,7 +76,7 @@ const EmergencyStack = createNativeStackNavigator();
 // Stack Navigators
 function HomeNavigator() {
   return (
-    <HomeStack.Navigator>
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen
         name="HomeMain"
         component={HomeScreen}
@@ -88,7 +88,7 @@ function HomeNavigator() {
 
 function VisitorsNavigator() {
   return (
-    <VisitorsStack.Navigator>
+    <VisitorsStack.Navigator screenOptions={{ headerShown: false }}>
       <VisitorsStack.Screen
         name="VisitorsList"
         component={VisitorsListScreen}
@@ -97,7 +97,7 @@ function VisitorsNavigator() {
       <VisitorsStack.Screen
         name="CreateVisitor"
         component={CreateVisitorScreen}
-        options={{ title: "New Visitor Pass" }}
+        options={{ title: "New Visitor Pass", presentation: "modal" }}
       />
       <VisitorsStack.Screen
         name="VisitorQR"
@@ -305,21 +305,6 @@ function ProfileNavigator() {
   );
 }
 
-// Security Dashboard (placeholder)
-function SecurityDashboard() {
-  return <HomeScreen />;
-}
-
-// Incidents Screen (placeholder)
-function IncidentsScreen() {
-  return <HomeScreen />;
-}
-
-// Amenities Screen (placeholder)
-function AmenitiesScreen() {
-  return <HomeScreen />;
-}
-
 // Security Settings Stack Navigator
 function SecuritySettingsNavigator() {
   return (
@@ -429,9 +414,9 @@ function SecurityTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { 
-          height: 60 + insets.bottom, 
-          paddingBottom: 8 + insets.bottom 
+        tabBarStyle: {
+          height: 60 + insets.bottom,
+          paddingBottom: 8 + insets.bottom
         },
       }}
     >
@@ -488,9 +473,9 @@ function HomeHeadTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { 
-          height: 60 + insets.bottom, 
-          paddingBottom: 8 + insets.bottom 
+        tabBarStyle: {
+          height: 60 + insets.bottom,
+          paddingBottom: 8 + insets.bottom
         },
       }}
     >
@@ -552,9 +537,9 @@ function FamilyMemberTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: { 
-          height: 60 + insets.bottom, 
-          paddingBottom: 8 + insets.bottom 
+        tabBarStyle: {
+          height: 60 + insets.bottom,
+          paddingBottom: 8 + insets.bottom
         },
       }}
     >
@@ -616,11 +601,11 @@ export default function MainTabNavigator() {
   if (user?.role === "security") {
     return <SecurityTabNavigator />;
   }
-  
+
   if (user?.role === "home_head") {
     return <HomeHeadTabNavigator />;
   }
-  
+
   if (user?.role === "family_member") {
     return <FamilyMemberTabNavigator />;
   }

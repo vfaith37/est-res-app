@@ -11,7 +11,7 @@ export interface VisitorTokenData {
   coyid: string; // Company ID
   residentid: string;
   tok: string; // Token ID (e.g., "TT1000000051")
-  fullName: string;
+  visitorfullName: string;
   email: string;
   phoneno: string;
   visitReason: string;
@@ -42,6 +42,20 @@ export interface GetResidentTokensResponse {
     pageSize: number;
     totalPages: number;
   };
+}
+
+export interface VisitorStats {
+  total: number;
+  unused: number;
+  used: number;
+  inUse: number;
+  revoked: number;
+  expired: number;
+}
+
+export interface GetVisitorsResponse {
+  visitors: Visitor[];
+  stats: VisitorStats;
 }
 
 // Frontend normalized Visitor type
@@ -115,7 +129,7 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
   return {
     id: tokenData.tok,
     uuid: tokenData.id,
-    name: tokenData.fullName,
+    name: tokenData.visitorfullName,
     phone: tokenData.phoneno,
     email: tokenData.email,
     purpose: tokenData.visitReason,
@@ -169,10 +183,14 @@ export const visitorsApi = api.injectEndpoints({
   overrideExisting: true, // Allow HMR to override endpoints in development
   endpoints: (builder) => ({
     // ✅ Get all visitor tokens for a resident
-    getVisitors: builder.query<Visitor[], string>({
-      query: (residentId) => ({
-        url: `estatemgt/getresidenttoken/${residentId}`,
+    getVisitors: builder.query<GetVisitorsResponse, { residentId: string; status?: string }>({
+      query: ({ residentId, status }) => ({
+        url: `resident/getallresidenttoken`,
         method: "GET",
+        params: {
+          residentid: residentId,
+          status,
+        },
       }),
       transformResponse: (
         response: ApiResponse<GetResidentTokensResponse>
@@ -184,9 +202,26 @@ export const visitorsApi = api.injectEndpoints({
         }
         // Response has nested structure: data.data[]
         const tokens = response.data.data || [];
+        const summary = response.data.summary || {
+            total_tokens: 0,
+            unUsed_token: 0,
+            used_token: 0,
+            inUsed_token: 0,
+            revoked_token: 0,
+            expired_token: 0
+        };
 
-        // Transform backend data to frontend format
-        return tokens.map((token) => transformVisitorToken(token));
+        return {
+            visitors: tokens.map((token) => transformVisitorToken(token)),
+            stats: {
+                total: summary.total_tokens,
+                unused: summary.unUsed_token,
+                used: summary.used_token,
+                inUse: summary.inUsed_token,
+                revoked: summary.revoked_token,
+                expired: summary.expired_token
+            }
+        };
       },
       providesTags: ["Visitors"],
     }),

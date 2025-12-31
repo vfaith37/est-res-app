@@ -3,12 +3,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useGetVisitorsQuery, useCheckOutVisitorMutation } from '@/store/api/visitorsApi';
 import { haptics } from '@/utils/haptics';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function CheckedInVisitorsScreen() {
-  const { data: visitors, isLoading, refetch, isFetching } = useGetVisitorsQuery({ 
+  const user = useSelector((state: RootState) => state.auth.user);
+  const residentId = user?.residentId || '';
+
+  const { data: visitors, isLoading, refetch, isFetching } = useGetVisitorsQuery({
+    residentId,
     status: 'checked-in',
-    limit: 100 
-  });
+  }, { skip: !residentId });
   const [checkOutVisitor, { isLoading: isCheckingOut }] = useCheckOutVisitorMutation();
 
   const handleCheckOut = (visitorId: string, name: string) => {
@@ -19,7 +24,7 @@ export default function CheckedInVisitorsScreen() {
         onPress: async () => {
           try {
             haptics.medium();
-            await checkOutVisitor(visitorId).unwrap();
+            await checkOutVisitor({ tokenId: visitorId }).unwrap();
             haptics.success();
             Alert.alert('Success', `${name} has been checked out`);
           } catch (error: any) {
@@ -36,10 +41,10 @@ export default function CheckedInVisitorsScreen() {
       <View style={styles.visitorInfo}>
         <View style={styles.visitorHeader}>
           <View style={styles.iconContainer}>
-            <Ionicons 
-              name={item.type === 'guest' ? 'person' : 'people'} 
-              size={24} 
-              color="#007AFF" 
+            <Ionicons
+              name={item.type === 'guest' ? 'person' : 'people'}
+              size={24}
+              color="#007AFF"
             />
           </View>
           <View style={styles.visitorDetails}>
@@ -81,11 +86,11 @@ export default function CheckedInVisitorsScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>Checked-In Visitors</Text>
-        <Text style={styles.count}>{visitors?.length || 0} active</Text>
+        <Text style={styles.count}>{visitors?.visitors.length || 0} active</Text>
       </View>
 
       <FlatList
-        data={visitors}
+        data={visitors?.visitors}
         renderItem={renderVisitor}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}

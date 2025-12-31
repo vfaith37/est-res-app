@@ -111,7 +111,13 @@ export interface CreateVisitorRequest {
   visitorMainCategory?: "Casual" | "Event";
   visitorRelationship?: string;
   eventTitle?: string;
-  eventVisitors?: any[];
+  eventVisitors?: {
+    firstName: string;
+    lastName: string;
+    gender: string;
+    email: string;
+    phone: string;
+  }[];
 }
 
 export interface ValidateVisitorRequest {
@@ -165,8 +171,16 @@ function transformCreateVisitorRequest(
     visitorMainCategory: request.visitorMainCategory || "Casual",
     visitorRelationship: request.visitorRelationship || "PERSONAL_GUESTS",
     eventTitle: request.eventTitle || "",
-    eventVisitors: request.eventVisitors || [],
+    eventVisitors:
+      request.eventVisitors?.map((g) => ({
+        visitorName: `${g.firstName} ${g.lastName}`,
+        gender: g.gender,
+        fone: g.phone,
+        email: g.email,
+      })) || [],
   };
+
+  console.log(baseRequest);
 
   // Add departuredate only for guests (overnight stays)
   if (request.type === "guest" && request.departureDate) {

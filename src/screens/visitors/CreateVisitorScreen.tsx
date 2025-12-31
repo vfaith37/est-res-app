@@ -185,12 +185,11 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
           visitorNum: eventGuests.length,
           purpose: 'Event: ' + eventTitle,
           type: type,
-          visitorMainCategory: 'Event',
+          visitorMainCategory: 'Event' as const,
           eventTitle: eventTitle,
           eventVisitors: eventGuests
         };
 
-        // @ts-ignore
         const visitor = await createVisitor(payload).unwrap();
         haptics.success();
 

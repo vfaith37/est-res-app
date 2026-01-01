@@ -23,6 +23,7 @@ type NavigationProp = NativeStackNavigationProp<
   VisitorsStackParamList,
   'VisitorQR'
 >;
+
 type RouteProps = RouteProp<VisitorsStackParamList, 'VisitorQR'>;
 
 type Props = {
@@ -136,62 +137,66 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
         </View>
       </SafeAreaView>
 
-      {/* ================= REVOKE MODAL ================= */}
+      {/* ================= BOTTOM SHEET MODAL ================= */}
       <Modal
         visible={showRevokeModal}
         transparent
         animationType="slide"
         onRequestClose={closeRevokeModal}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={closeRevokeModal}
-        />
+        <View style={styles.modalRoot}>
+          {/* Backdrop */}
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={closeRevokeModal}
+          />
 
-        <View style={styles.modalSheet}>
-          <Text style={styles.modalTitle}>
-            Are you sure you want to revoke this token for{' '}
-            <Text style={{ fontWeight: '700' }}>{visitor.name}</Text>?
-            It will become invalid immediately and cannot be used for
-            entry.
-          </Text>
+          {/* Bottom Sheet */}
+          <View style={styles.modalSheet}>
+            <View style={styles.sheetHandle} />
 
-          {/* <Text style={styles.modalText}>
-            It will become invalid immediately and cannot be used for
-            entry.
-          </Text> */}
+            <Text style={styles.modalTitle}>
+              Are you sure you want to revoke this token for{' '}
+              <Text style={{ fontWeight: '700' }}>{visitor.name}</Text>?
+            </Text>
 
-          <Text style={styles.modalQuestion}>
-            Do you want to Revoke this Token?
-          </Text>
+            <Text style={styles.modalSubText}>
+              It will become invalid immediately and cannot be used for
+              entry.
+            </Text>
 
-          <View style={styles.modalActions}>
+            <Text style={styles.modalQuestion}>
+              Do you want to revoke this token?
+            </Text>
 
-            <TouchableOpacity
-              style={styles.modalRevoke}
-              onPress={handleConfirmRevoke}
-              disabled={isRevoking}
-            >
-              {isRevoking ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.modalRevokeText}>
-                  Yes, revoke
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalRevoke}
+                onPress={handleConfirmRevoke}
+                disabled={isRevoking}
+              >
+                {isRevoking ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalRevokeText}>
+                    Yes, revoke
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={closeRevokeModal}
+              >
+                <Text style={styles.modalCancelText}>
+                  No, cancel
                 </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalCancel}
-              onPress={closeRevokeModal}
-            >
-              <Text style={styles.modalCancelText}>No, cancel</Text>
-            </TouchableOpacity>
-
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
-      {/* ================================================ */}
+      {/* ===================================================== */}
     </>
   );
 }
@@ -324,50 +329,72 @@ const styles = StyleSheet.create({
   },
 
   /* ---------- MODAL ---------- */
-  modalBackdrop: {
+
+  modalRoot: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalSheet: {
     backgroundColor: '#fff',
-    padding: 25,
-    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D1D6',
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 8,
   },
+  modalSubText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
   modalQuestion: {
     fontSize: 17,
     fontWeight: '600',
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 24,
   },
   modalActions: {
-    width: '100%',
     gap: 12,
   },
-  modalCancel: {
-    padding: 14,
-    borderRadius: 25,
-    // backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-  },
-  modalCancelText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
   modalRevoke: {
-    padding: 14,
+    height: 50,
     borderRadius: 25,
     backgroundColor: '#FF3B30',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   modalRevokeText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  modalCancel: {
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
   },
 });

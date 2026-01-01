@@ -54,6 +54,7 @@ import type {
   SecuritySettingsStackParamList,
   FamilyMemberSettingsStackParamList,
 } from "@/types/navigation";
+import { Platform } from "react-native";
 
 const SecurityTab = createBottomTabNavigator<SecurityTabParamList>();
 const HomeHeadTab = createBottomTabNavigator<HomeHeadTabParamList>();
@@ -474,8 +475,8 @@ function HomeHeadTabNavigator() {
         tabBarActiveTintColor: "#007AFF",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
-          height: 60 + insets.bottom,
-          paddingBottom: 8 + insets.bottom
+          height: Platform.OS !== "ios" ? 60 + insets.bottom : insets.bottom + 30,
+          paddingBottom: Platform.OS !== "ios" ? 8 + insets.bottom : insets.bottom + 3
         },
       }}
     >
@@ -484,25 +485,25 @@ function HomeHeadTabNavigator() {
         component={HomeNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
       <HomeHeadTab.Screen
-        name="Visitors"
+        name="Token/Guest"
         component={VisitorsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+            <Ionicons name="people" size={size} color={color} />
           ),
         }}
       />
       <HomeHeadTab.Screen
-        name="Payments"
+        name="Dues/Pays"
         component={PaymentsNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card-outline" size={size} color={color} />
+            <Ionicons name="pie-chart" size={size} color={color} />
           ),
         }}
       />
@@ -516,11 +517,11 @@ function HomeHeadTabNavigator() {
         }}
       /> */}
       <HomeHeadTab.Screen
-        name="Profile"
+        name="Settings"
         component={ProfileNavigator}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />

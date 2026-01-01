@@ -37,10 +37,10 @@ export type SecurityHomeTabParamList = {
 
 export type HomeHeadTabParamList = {
   Home: undefined;
-  Visitors: undefined;
-  Payments: undefined;
-  Amenities: undefined;
-  Profile: undefined;
+  "Token/Guest": undefined;
+  "Dues/Pays": undefined;
+  // Amenities: undefined;
+  Settings: undefined;
 };
 
 export type FamilyMemberTabParamList = {

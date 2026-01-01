@@ -116,10 +116,10 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "height" : "height"}
         style={styles.keyboardView}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           bounces={false}
@@ -269,28 +269,31 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     backgroundColor: "#fff",
+    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 22,
     marginTop: -30,
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   header: {
     alignItems: "center",
     marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 12,
+    fontSize: 28,
+    fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 6,
+    color: "#000",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 16,
     color: "#8E8E93",
     textAlign: "center",
-    lineHeight: 20,
-    paddingHorizontal: 8,
+    marginBottom: 32,
+    lineHeight: 22,
+    fontStyle: "italic",
+    paddingHorizontal: 0,
   },
   form: {
     gap: 20,
@@ -304,14 +307,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
     paddingHorizontal: 16,
-    height: 50,
+    height: 56,
   },
   input: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: "#000",
   },
   eyeIcon: {
@@ -347,13 +352,13 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 13,
-    color: "#0047FF",
+    color: "#007AFF",
     fontWeight: "400",
   },
   loginButton: {
-    backgroundColor: "#0047FF",
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: "#007AFF",
+    height: 56,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 8,

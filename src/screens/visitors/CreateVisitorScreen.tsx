@@ -262,7 +262,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
 
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'top']}>
       {/* Event Guest Form */}
       {type === 'guest' && guestCategory === 'Event' ? (
         <KeyboardAvoidingView
@@ -809,6 +809,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
+    paddingTop: 20,
   },
   keyboardView: {
     flex: 1,

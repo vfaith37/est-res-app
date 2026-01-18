@@ -30,6 +30,7 @@ import AddFamilyMemberScreen from "@/screens/household/AddFamilyMemberScreen";
 import EditFamilyMemberScreen from "@/screens/household/EditFamilyMemberScreen";
 import DomesticStaffListScreen from "@/screens/household/DomesticStaffListScreen";
 import AddDomesticStaffScreen from "@/screens/household/AddDomesticStaffScreen";
+import EditDomesticStaffScreen from "@/screens/household/EditDomesticStaffScreen";
 import NotificationsScreen from "@/screens/notifications/NotificationsScreen";
 import NotificationDetailsScreen from "@/screens/notifications/NotificationDetailsScreen";
 import EnhancedNotificationsScreen from "@/screens/notifications/EnhancedNotificationsScreen";
@@ -259,6 +260,11 @@ function ProfileNavigator() {
         name="AddDomesticStaff"
         component={AddDomesticStaffScreen}
         options={{ title: "Add Staff Member", presentation: "modal" }}
+      />
+      <ProfileStack.Screen
+        name="EditDomesticStaff"
+        component={EditDomesticStaffScreen}
+        options={{ title: "Edit Staff Member", presentation: "modal" }}
       />
       <ProfileStack.Screen
         name="EstateVendors"

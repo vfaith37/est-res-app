@@ -56,8 +56,25 @@ export default function AddFamilyMemberScreen() {
 
   const genderOptions = ['Male', 'Female'];
   const relationshipOptions = [
-    'Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister',
-    'Grandfather', 'Grandmother', 'Uncle', 'Aunt', 'Nephew', 'Niece', 'Cousin', 'Guardian', 'Other'
+    { label: 'Self', value: 'Self' },
+    { label: 'Spouse', value: 'Spouse' },
+    { label: 'Parent', value: 'Parent' },
+    { label: 'Child', value: 'Child' },
+    { label: 'Sibling', value: 'Sibling' },
+    { label: 'Partner', value: 'Partner' },
+    { label: 'Fiance', value: 'Fiance' },
+    { label: 'Grandparent', value: 'Grandparent' },
+    { label: 'Grandchild', value: 'Grandchild' },
+    { label: 'Uncle/Aunt', value: 'Uncle_Aunt' },
+    { label: 'Nephew/Niece', value: 'Nephew_Niece' },
+    { label: 'Cousin', value: 'Cousin' },
+    { label: 'Friend', value: 'Friend' },
+    { label: 'Colleague', value: 'Colleague' },
+    { label: 'Legal Guardian', value: 'Legal_Guardian' },
+    { label: 'Caregiver', value: 'Caregiver' },
+    { label: 'In-Law', value: 'In_Law' },
+    { label: 'Step Family', value: 'Step_Family' },
+    { label: 'Other', value: 'Other' }
   ];
   const employmentOptions = ['Employed', 'Self-Employed', 'Student', 'Retired', 'Unemployed'];
 
@@ -169,25 +186,31 @@ export default function AddFamilyMemberScreen() {
     setEmployerName('');
   };
 
-  const renderDropdown = (title: string, options: string[], value: string, setValue: (val: string) => void) => (
+  const renderDropdown = (title: string, options: any[], value: string, setValue: (val: string) => void) => (
     <Modal visible={activeDropdown === title} transparent animationType="fade">
       <TouchableOpacity style={styles.dropdownOverlay} onPress={() => setActiveDropdown(null)}>
         <View style={styles.dropdownContent}>
           <Text style={styles.dropdownHeader}>{title}</Text>
           <ScrollView style={{ maxHeight: 300 }}>
-            {options.map(opt => (
-              <TouchableOpacity
-                key={opt}
-                style={[styles.dropdownItem, value === opt && styles.dropdownItemActive]}
-                onPress={() => {
-                  setValue(opt);
-                  setActiveDropdown(null);
-                }}
-              >
-                <Text style={[styles.dropdownItemText, value === opt && styles.dropdownItemTextActive]}>{opt}</Text>
-                {value === opt && <Ionicons name="checkmark" size={20} color="#002EE5" />}
-              </TouchableOpacity>
-            ))}
+            {options.map((opt, index) => {
+              const label = typeof opt === 'object' ? opt.label : opt;
+              const val = typeof opt === 'object' ? opt.value : opt;
+              const isSelected = value === val;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.dropdownItem, isSelected && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setValue(val);
+                    setActiveDropdown(null);
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextActive]}>{label}</Text>
+                  {isSelected && <Ionicons name="checkmark" size={20} color="#002EE5" />}
+                </TouchableOpacity>
+              )
+            })}
           </ScrollView>
         </View>
       </TouchableOpacity>
@@ -284,7 +307,9 @@ export default function AddFamilyMemberScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Relationship <Text style={styles.red}>*</Text></Text>
                 <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Relationship')}>
-                  <Text style={relationship ? styles.inputText : styles.placeholderText}>{relationship || 'select...'}</Text>
+                  <Text style={relationship ? styles.inputText : styles.placeholderText}>
+                    {relationshipOptions.find(opt => opt.value === relationship)?.label || relationship || 'select...'}
+                  </Text>
                   <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                 </TouchableOpacity>
               </View>

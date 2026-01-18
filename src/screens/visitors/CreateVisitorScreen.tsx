@@ -573,7 +573,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                       disabled={isLoading}
                     >
                       <Text style={[styles.dropdownText, !visitorRelationship && styles.placeholderText]}>
-                        {visitorRelationship || 'select...'}
+                        {visitorRelationship ? visitorRelationship.replace(/_/g, ' ') : 'select...'}
                       </Text>
                       <Ionicons name="chevron-down-outline" size={20} color="#6B7280" />
                     </TouchableOpacity>
@@ -749,7 +749,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                       visitorRelationship === category.name && styles.modalOptionTextActive,
                     ]}
                   >
-                    {category.name}
+                    {category.name.replace(/_/g, ' ')}
                   </Text>
                   {visitorRelationship === category.name && (
                     <Ionicons name="checkmark" size={20} color="#007AFF" />

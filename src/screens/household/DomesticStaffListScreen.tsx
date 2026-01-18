@@ -119,8 +119,7 @@ export default function DomesticStaffListScreen() {
         style={styles.card}
         activeOpacity={0.7}
         onPress={() => {
-          // Optional: Navigate to detail/edit
-          // navigation.navigate('EditDomesticStaff', { staffId: item.id })
+          navigation.navigate('EditDomesticStaff', { staff: item });
         }}
       >
         <View style={styles.cardHeader}>

@@ -128,7 +128,7 @@ export const householdApi = api.injectEndpoints({
             // @ts-ignore: React Native FormData
             formData.append('file', { uri: data.photo, name: filename, type });
         }
-
+        console.log(formData);
         return {
           url: "/residenthead/addfamilymembers",
           method: "POST",

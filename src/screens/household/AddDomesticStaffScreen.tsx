@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,102 +11,84 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
 import { useCreateDomesticStaffMutation } from '@/store/api/householdApi';
 import { haptics } from '@/utils/haptics';
+import SuccessModal from '@/components/SuccessModal';
 
-export default function AddDomesticStaffScreen({ navigation }: any) {
-  // Multi-step form state
-  const [currentSection, setCurrentSection] = useState(1); // 1 or 2
+export default function AddDomesticStaffScreen() {
+  const navigation = useNavigation<any>();
 
-  // Section 1: Personal Information
+  // Steps: 1 = Personal, 2 = Employment
+  const [currentStep, setCurrentStep] = useState(1);
+
+  // Form State - Personal
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [gender, setGender] = useState<'Male' | 'Female' | ''>('');
-  const [dob, setDob] = useState<Date | null>(null);
-  const [showDobPicker, setShowDobPicker] = useState(false);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [gender, setGender] = useState('');
+
+  // DOB Dropdown States
+  const [dobDay, setDobDay] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+
   const [photo, setPhoto] = useState<string | null>(null);
 
-  // Section 2: Employment Information
+  // Form State - Employment
   const [role, setRole] = useState('');
-  const [employmentType, setEmploymentType] = useState<'Full-time' | 'Part-time' | 'Contract' | ''>('');
+  const [employmentType, setEmploymentType] = useState('');
   const [workDays, setWorkDays] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 
-  const [createStaff, { isLoading }] = useCreateDomesticStaffMutation();
+  // Dropdown States
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
+  const [createStaff, { isLoading }] = useCreateDomesticStaffMutation();
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Options
+  const genderOptions = ['Male', 'Female'];
   const staffRoles = ['Cook', 'Cleaner', 'Driver', 'Gardener', 'Security', 'Nanny', 'Housekeeper', 'Other'];
+  const employmentTypeOptions = ['Full-time', 'Part-time', 'Contract'];
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // Date Arrays
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const handleTakePhoto = async () => {
     try {
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Camera permission is required to take photos');
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [3, 4],
-        quality: 0.8,
-      });
-
+      const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+      if (!granted) return Alert.alert('Permission Required', 'Camera access is needed.');
+      const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [3, 4], quality: 0.8 });
       if (!result.canceled && result.assets[0]) {
         setPhoto(result.assets[0].uri);
         haptics.success();
       }
-    } catch (error) {
-      console.error('Camera error:', error);
-      Alert.alert('Error', 'Failed to take photo');
-    }
+    } catch { Alert.alert('Error', 'Failed to take photo'); }
   };
 
   const handleChoosePhoto = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Photo library permission is required');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [3, 4],
-        quality: 0.8,
-      });
-
+      const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!granted) return Alert.alert('Permission Required', 'Gallery access is needed.');
+      const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [3, 4], quality: 0.8 });
       if (!result.canceled && result.assets[0]) {
         setPhoto(result.assets[0].uri);
         haptics.success();
       }
-    } catch (error) {
-      console.error('Image picker error:', error);
-      Alert.alert('Error', 'Failed to select photo');
-    }
-  };
-
-  const handlePhotoOptions = () => {
-    Alert.alert(
-      'Passport Photograph',
-      'Choose an option',
-      [
-        { text: 'Take Photo', onPress: handleTakePhoto },
-        { text: 'Choose from Device', onPress: handleChoosePhoto },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    } catch { Alert.alert('Error', 'Failed to pick photo'); }
   };
 
   const toggleWorkDay = (day: string) => {
@@ -115,97 +97,115 @@ export default function AddDomesticStaffScreen({ navigation }: any) {
     } else {
       setWorkDays([...workDays, day]);
     }
+    haptics.selection();
   };
 
-  const validateSection1 = () => {
-    if (!firstName.trim()) {
-      Alert.alert('Error', 'Please enter first name');
-      return false;
-    }
-    if (!lastName.trim()) {
-      Alert.alert('Error', 'Please enter last name');
-      return false;
-    }
-    if (!gender) {
-      Alert.alert('Error', 'Please select gender');
-      return false;
-    }
-    if (!dob) {
-      Alert.alert('Error', 'Please select date of birth');
-      return false;
-    }
-    if (!phone.trim()) {
-      Alert.alert('Error', 'Please enter phone number');
-      return false;
-    }
-    if (!email.trim()) {
-      Alert.alert('Error', 'Please enter email address');
+  const validateStep1 = () => {
+    if (!firstName || !lastName || !dobDay || !dobMonth || !phone || !email || !gender) {
+      Alert.alert('Missing Fields', 'Please fill all required fields in this section.');
       return false;
     }
     return true;
   };
 
-  const validateSection2 = () => {
-    if (!role) {
-      Alert.alert('Error', 'Please select a role');
-      return false;
-    }
-    if (!employmentType) {
-      Alert.alert('Error', 'Please select employment type');
-      return false;
-    }
-    if (!startDate) {
-      Alert.alert('Error', 'Please select employment start date');
+  const validateStep2 = () => {
+    if (!role || !employmentType || !startDate) {
+      Alert.alert('Missing Fields', 'Please select role, employment type and start date.');
       return false;
     }
     return true;
   };
 
   const handleNext = () => {
-    if (validateSection1()) {
+    if (validateStep1()) {
       haptics.light();
-      setCurrentSection(2);
+      setCurrentStep(2);
     } else {
       haptics.error();
     }
   };
 
-  const handlePrevious = () => {
-    haptics.light();
-    setCurrentSection(1);
-  };
-
   const handleSubmit = async () => {
-    if (!validateSection2()) {
-      haptics.error();
-      return;
-    }
+    if (!validateStep2()) return;
 
     try {
-      haptics.light();
+      haptics.medium();
+
+      const monthIndex = months.indexOf(dobMonth) + 1;
+      const currentYear = new Date().getFullYear();
+      // Note: Using current year for DOB as requested in previous tasks, 
+      // but typically staff DOB might need year. Sticking to 'similar design' constraint.
+      const formattedDob = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
+
       await createStaff({
         firstName,
         lastName,
-        gender: gender as 'Male' | 'Female', // Type assertion - validated by validateSection1
-        dateOfBirth: dob?.toISOString(),
+        gender: gender as 'Male' | 'Female',
+        dateOfBirth: formattedDob,
         phone,
         email,
-        photo: photo || undefined, // Convert null to undefined
+        photo: photo || undefined,
         role,
-        employmentType: employmentType as 'Full-time' | 'Part-time' | 'Contract', // Type assertion - validated by validateSection2
+        employmentType: employmentType as 'Full-time' | 'Part-time' | 'Contract',
         workDays: workDays.length > 0 ? workDays : undefined,
         startDate: startDate?.toISOString(),
       }).unwrap();
 
       haptics.success();
-      Alert.alert('Success', 'Domestic staff added successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (error: any) {
+      setShowSuccess(true);
+    } catch (err: any) {
       haptics.error();
-      Alert.alert('Error', error?.data?.message || 'Failed to add staff');
+      Alert.alert('Error', err?.data?.message || 'Failed to add staff');
     }
   };
+
+  const handleReset = () => {
+    setShowSuccess(false);
+    setCurrentStep(1);
+    setFirstName('');
+    setLastName('');
+    setDobDay('');
+    setDobMonth('');
+    setPhone('');
+    setEmail('');
+    setGender('');
+    setPhoto(null);
+    setRole('');
+    setEmploymentType('');
+    setWorkDays([]);
+    setStartDate(new Date());
+  };
+
+  const renderDropdown = (title: string, options: any[], value: string, setValue: (val: string) => void) => (
+    <Modal visible={activeDropdown === title} transparent animationType="fade">
+      <TouchableOpacity style={styles.dropdownOverlay} onPress={() => setActiveDropdown(null)}>
+        <View style={styles.dropdownContent}>
+          <Text style={styles.dropdownHeader}>{title}</Text>
+          <ScrollView style={{ maxHeight: 300 }}>
+            {options.map((opt, index) => {
+              const label = typeof opt === 'object' ? opt.label : opt;
+              const val = typeof opt === 'object' ? opt.value : opt;
+              const isSelected = value === val;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.dropdownItem, isSelected && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setValue(val);
+                    setActiveDropdown(null);
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextActive]}>{label}</Text>
+                  {isSelected && <Ionicons name="checkmark" size={20} color="#002EE5" />}
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'Select Date';
@@ -217,270 +217,206 @@ export default function AddDomesticStaffScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        {/* Progress Indicator */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressStep, currentSection >= 1 && styles.progressStepActive]}>
-              <Text style={[styles.progressStepNumber, currentSection >= 1 && styles.progressStepNumberActive]}>1</Text>
-            </View>
-            <View style={[styles.progressLine, currentSection >= 2 && styles.progressLineActive]} />
-            <View style={[styles.progressStep, currentSection >= 2 && styles.progressStepActive]}>
-              <Text style={[styles.progressStepNumber, currentSection >= 2 && styles.progressStepNumberActive]}>2</Text>
-            </View>
-          </View>
-          <View style={styles.progressLabels}>
-            <Text style={[styles.progressLabel, currentSection === 1 && styles.progressLabelActive]}>Personal</Text>
-            <Text style={[styles.progressLabel, currentSection === 2 && styles.progressLabelActive]}>Employment</Text>
-          </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Add Domestic Staff</Text>
         </View>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Section 1: Personal Information */}
-          {currentSection === 1 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
+      {/* Progress Bar */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, justifyContent: 'center', padding: 12, paddingHorizontal: 20, width: '100%' }}>
+        <View style={{ borderBottomWidth: 3, borderBottomColor: currentStep === 1 ? '#002EE5' : '#B0BEF7', paddingVertical: currentStep === 2 ? 4 : 8, width: currentStep === 1 ? '85%' : '15%', alignItems: 'center' }}>
+          {currentStep === 1 && <Text style={{ fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: "#002EE5" }}>Personal Information</Text>}
+          {currentStep === 2 && <Ionicons name="checkmark-circle" size={20} color="#B0BEF7" />}
+        </View>
+        <View style={{ borderBottomWidth: 3, borderBottomColor: currentStep === 2 ? '#002EE5' : '#B0BEF7', paddingVertical: currentStep === 1 ? 3 : 6, width: currentStep === 2 ? '85%' : '15%', alignItems: 'center' }}>
+          {currentStep === 2 && <Text style={{ fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: "#002EE5" }}>Employment Information</Text>}
+          {currentStep === 1 && <View style={{ borderWidth: 1, borderColor: '#B0BEF7', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 5 }}><Text style={{ fontSize: 14, fontWeight: 'bold', textAlign: 'center', color: "#B0BEF7" }}>2</Text></View>}
+        </View>
+      </View>
 
-              {/* Photo Upload */}
-              <View style={styles.photoContainer}>
-                {photo ? (
-                  <TouchableOpacity onPress={handlePhotoOptions} style={styles.photoWrapper}>
-                    <Image source={{ uri: photo }} style={styles.photo} />
-                    <View style={styles.photoOverlay}>
-                      <Ionicons name="camera" size={24} color="#fff" />
-                    </View>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity style={styles.photoPlaceholder} onPress={handlePhotoOptions}>
-                    <Ionicons name="camera-outline" size={40} color="#8E8E93" />
-                    <Text style={styles.photoPlaceholderText}>Add Passport Photo</Text>
-                  </TouchableOpacity>
-                )}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.formContent}>
+
+          {/* Step 1: Personal Info */}
+          {currentStep === 1 && (
+            <View style={styles.stepContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>First Name <Text style={styles.red}>*</Text></Text>
+                <TextInput style={styles.input} placeholder="enter..." value={firstName} onChangeText={setFirstName} />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>First Name <Text style={styles.required}>*</Text></Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter first name"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  editable={!isLoading}
-                />
+                <Text style={styles.label}>Last Name <Text style={styles.red}>*</Text></Text>
+                <TextInput style={styles.input} placeholder="enter..." value={lastName} onChangeText={setLastName} />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Last Name <Text style={styles.required}>*</Text></Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter last name"
-                  value={lastName}
-                  onChangeText={setLastName}
-                  editable={!isLoading}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Gender <Text style={styles.required}>*</Text></Text>
-                <View style={styles.buttonGroup}>
-                  <TouchableOpacity
-                    style={[styles.selectButton, gender === 'Male' && styles.selectButtonActive]}
-                    onPress={() => { haptics.light(); setGender('Male'); }}
-                    disabled={isLoading}
-                  >
-                    <Text style={[styles.selectButtonText, gender === 'Male' && styles.selectButtonTextActive]}>Male</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.selectButton, gender === 'Female' && styles.selectButtonActive]}
-                    onPress={() => { haptics.light(); setGender('Female'); }}
-                    disabled={isLoading}
-                  >
-                    <Text style={[styles.selectButtonText, gender === 'Female' && styles.selectButtonTextActive]}>Female</Text>
-                  </TouchableOpacity>
+                <Text style={styles.label}>Date of Birth <Text style={styles.red}>*</Text></Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Day')}>
+                      <Text style={dobDay ? styles.inputText : styles.placeholderText}>{dobDay || 'Day'}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flex: 1.5 }}>
+                    <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Month')}>
+                      <Text style={dobMonth ? styles.inputText : styles.placeholderText}>{dobMonth || 'Month'}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
+              {renderDropdown('Day', days, dobDay, setDobDay)}
+              {renderDropdown('Month', months, dobMonth, setDobMonth)}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Date of Birth <Text style={styles.required}>*</Text></Text>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => { haptics.light(); setShowDobPicker(true); }}
-                  disabled={isLoading}
-                >
-                  <Text style={[styles.dateButtonText, !dob && styles.dateButtonPlaceholder]}>{formatDate(dob)}</Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+                <Text style={styles.label}>Phone Number <Text style={styles.red}>*</Text></Text>
+                <TextInput style={styles.input} placeholder="enter..." value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email Address <Text style={styles.red}>*</Text></Text>
+                <TextInput style={styles.input} placeholder="enter..." value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Gender <Text style={styles.red}>*</Text></Text>
+                <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Gender')}>
+                  <Text style={gender ? styles.inputText : styles.placeholderText}>{gender || 'select...'}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                 </TouchableOpacity>
               </View>
-
-              {showDobPicker && (
-                <DateTimePicker
-                  value={dob || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setShowDobPicker(false);
-                    if (selectedDate) setDob(selectedDate);
-                  }}
-                  maximumDate={new Date()}
-                />
-              )}
+              {renderDropdown('Gender', genderOptions, gender, setGender)}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Phone Number <Text style={styles.required}>*</Text></Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter phone number"
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  editable={!isLoading}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address <Text style={styles.required}>*</Text></Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter email address"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  editable={!isLoading}
-                />
+                <Text style={styles.label}>Upload Passport Photograph <Text style={styles.red}>*</Text></Text>
+                <View style={styles.passportContainer}>
+                  {photo ? (
+                    <Image source={{ uri: photo }} style={styles.previewImage} />
+                  ) : (
+                    <View style={styles.iconCircle}>
+                      <Ionicons name="image-outline" size={32} color="#fff" />
+                    </View>
+                  )}
+                  <Text style={styles.helperText}>Maximum size of 5mb, accept only JPG, JPEG, and PNG</Text>
+                  <View style={styles.photoButtons}>
+                    <TouchableOpacity style={styles.photoBtn} onPress={handleTakePhoto}>
+                      <Text style={styles.photoBtnText}>Snap</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.photoBtn} onPress={handleChoosePhoto}>
+                      <Text style={styles.photoBtnText}>Choose file</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
           )}
 
-          {/* Section 2: Employment Information */}
-          {currentSection === 2 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Employment Information</Text>
+          {/* Step 2: Employment Info */}
+          {currentStep === 2 && (
+            <View style={styles.stepContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Role <Text style={styles.red}>*</Text></Text>
+                <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Role')}>
+                  <Text style={role ? styles.inputText : styles.placeholderText}>{role || 'select...'}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+              {renderDropdown('Role', staffRoles, role, setRole)}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Role <Text style={styles.required}>*</Text></Text>
-                <View style={styles.roleContainer}>
-                  {staffRoles.map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      style={[styles.roleButton, role === r && styles.roleButtonActive]}
-                      onPress={() => { haptics.light(); setRole(r); }}
-                      disabled={isLoading}
-                    >
-                      <Text style={[styles.roleText, role === r && styles.roleTextActive]}>{r}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                <Text style={styles.label}>Employment Type <Text style={styles.red}>*</Text></Text>
+                <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Employment Type')}>
+                  <Text style={employmentType ? styles.inputText : styles.placeholderText}>{employmentType || 'select...'}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+              {renderDropdown('Employment Type', employmentTypeOptions, employmentType, setEmploymentType)}
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Employment Start Date <Text style={styles.red}>*</Text></Text>
+                <TouchableOpacity
+                  style={styles.dropdownInput}
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  <Text style={startDate ? styles.inputText : styles.placeholderText}>{formatDate(startDate)}</Text>
+                  <Ionicons name="calendar-outline" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+                {showStartDatePicker && (
+                  <DateTimePicker
+                    value={startDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setShowStartDatePicker(false);
+                      if (selectedDate) setStartDate(selectedDate);
+                    }}
+                  />
+                )}
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Employment Type <Text style={styles.required}>*</Text></Text>
-                <View style={styles.buttonGroup}>
-                  {['Full-time', 'Part-time', 'Contract'].map((type) => (
-                    <TouchableOpacity
-                      key={type}
-                      style={[styles.selectButton, employmentType === type && styles.selectButtonActive]}
-                      onPress={() => { haptics.light(); setEmploymentType(type as any); }}
-                      disabled={isLoading}
-                    >
-                      <Text style={[styles.selectButtonText, employmentType === type && styles.selectButtonTextActive]}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Work Days (Optional)</Text>
-                <View style={styles.roleContainer}>
+                <Text style={styles.label}>Work Days <Text style={styles.optional}>(Optional)</Text></Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {weekDays.map((day) => (
                     <TouchableOpacity
                       key={day}
-                      style={[styles.dayButton, workDays.includes(day) && styles.dayButtonActive]}
-                      onPress={() => { haptics.light(); toggleWorkDay(day); }}
-                      disabled={isLoading}
+                      style={[
+                        styles.dayButton,
+                        workDays.includes(day) && styles.dayButtonActive
+                      ]}
+                      onPress={() => toggleWorkDay(day)}
                     >
-                      <Text style={[styles.dayText, workDays.includes(day) && styles.dayTextActive]}>
-                        {day.substring(0, 3)}
-                      </Text>
+                      <Text style={[
+                        styles.dayText,
+                        workDays.includes(day) && styles.dayTextActive
+                      ]}>{day.substring(0, 3)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Employment Start Date <Text style={styles.required}>*</Text></Text>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => { haptics.light(); setShowStartDatePicker(true); }}
-                  disabled={isLoading}
-                >
-                  <Text style={[styles.dateButtonText, !startDate && styles.dateButtonPlaceholder]}>
-                    {formatDate(startDate)}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
-                </TouchableOpacity>
-              </View>
-
-              {showStartDatePicker && (
-                <DateTimePicker
-                  value={startDate || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setShowStartDatePicker(false);
-                    if (selectedDate) setStartDate(selectedDate);
-                  }}
-                />
-              )}
             </View>
           )}
+
         </ScrollView>
 
-        {/* Footer with Navigation Buttons */}
         <View style={styles.footer}>
-          {currentSection === 1 ? (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleNext}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>Next</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
+          {currentStep === 1 ? (
+            <TouchableOpacity style={styles.mainButton} onPress={handleNext}>
+              <Text style={styles.mainButtonText}>Continue</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.footerButtons}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonSecondary]}
-                onPress={handlePrevious}
-                disabled={isLoading}
-              >
-                <Ionicons name="arrow-back" size={20} color="#007AFF" />
-                <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Previous</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonPrimary, isLoading && styles.buttonDisabled]}
-                onPress={handleSubmit}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Text style={styles.buttonText}>Add Staff</Text>
-                    <Ionicons name="checkmark" size={20} color="#fff" />
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.mainButton} onPress={handleSubmit} disabled={isLoading}>
+              {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.mainButtonText}>Add Staff</Text>}
+            </TouchableOpacity>
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <SuccessModal
+        visible={showSuccess}
+        title="Domestic Staff Added Successfully!"
+        message="The staff member has been added to your household."
+        primaryButtonText="Close"
+        secondaryButtonText="Add Another Staff"
+        onPrimaryPress={() => {
+          setShowSuccess(false);
+          navigation.goBack();
+        }}
+        onSecondaryPress={handleReset}
+      />
+
     </SafeAreaView>
   );
 }
@@ -488,264 +424,131 @@ export default function AddDomesticStaffScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  progressContainer: {
     backgroundColor: '#fff',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingTop: 20
   },
-  progressBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  progressStep: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E5E5EA',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressStepActive: {
-    backgroundColor: '#007AFF',
-  },
-  progressStepNumber: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8E8E93',
-  },
-  progressStepNumberActive: {
-    color: '#fff',
-  },
-  progressLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: '#E5E5EA',
-    marginHorizontal: 8,
-  },
-  progressLineActive: {
-    backgroundColor: '#007AFF',
-  },
-  progressLabels: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
   },
-  progressLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
   },
-  progressLabelActive: {
-    color: '#007AFF',
-    fontWeight: '600',
+  formContent: {
+    padding: 20,
+    paddingBottom: 40,
   },
-  scrollContent: {
-    padding: 16,
-  },
-  section: {
+  stepContainer: {
     gap: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  photoContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  photoWrapper: {
-    position: 'relative',
-  },
-  photo: {
-    width: 120,
-    height: 160,
-    borderRadius: 12,
-  },
-  photoOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 8,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    alignItems: 'center',
-  },
-  photoPlaceholder: {
-    width: 120,
-    height: 160,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9F9F9',
-  },
-  photoPlaceholderText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 8,
-    textAlign: 'center',
   },
   inputGroup: {
     gap: 8,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontSize: 14,
+    color: '#374151',
   },
-  required: {
-    color: '#FF3B30',
-  },
+  red: { color: '#EF4444' },
+  optional: { color: '#9CA3AF', fontSize: 12 },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    padding: 16,
-    fontSize: 16,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  selectButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  selectButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  selectButtonText: {
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 12,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
   },
-  selectButtonTextActive: {
-    color: '#fff',
-  },
-  dateButton: {
+  dropdownInput: {
     flexDirection: 'row',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  inputText: { fontSize: 14, color: '#000' },
+  placeholderText: { fontSize: 14, color: '#9CA3AF' },
+  passportContainer: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    padding: 24,
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    padding: 16,
   },
-  dateButtonText: {
+  iconCircle: {
+    width: 64, height: 64, borderRadius: 32, backgroundColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', marginBottom: 16
+  },
+  previewImage: {
+    width: 100, height: 100, borderRadius: 50, marginBottom: 16,
+  },
+  helperText: {
+    fontSize: 12, color: '#6B7280', textAlign: 'center', marginBottom: 16,
+  },
+  photoButtons: {
+    flexDirection: 'row', gap: 12,
+  },
+  photoBtn: {
+    paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff'
+  },
+  photoBtnText: {
+    fontSize: 13, fontWeight: '600', color: '#002EE5',
+  },
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F2F2F7',
+  },
+  mainButton: {
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  mainButtonText: {
     fontSize: 16,
-    color: '#000',
-  },
-  dateButtonPlaceholder: {
-    color: '#8E8E93',
-  },
-  roleContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  roleButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  roleButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  roleText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  roleTextActive: {
-    color: '#fff',
     fontWeight: '600',
+    color: '#374151',
+  },
+  dropdownOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 20,
+  },
+  dropdownContent: {
+    backgroundColor: '#fff', borderRadius: 12, padding: 16, maxHeight: 400,
+  },
+  dropdownHeader: {
+    fontSize: 14, color: '#EF4444', marginBottom: 12,
+  },
+  dropdownItem: {
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', flexDirection: 'row', justifyContent: 'space-between'
+  },
+  dropdownItemActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  dropdownItemText: {
+    fontSize: 14, color: '#374151',
+  },
+  dropdownItemTextActive: {
+    color: '#002EE5', fontWeight: '600',
   },
   dayButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#E5E5EA', backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center',
   },
   dayButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#007AFF', borderColor: '#007AFF',
   },
   dayText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000',
+    fontSize: 12, fontWeight: '600', color: '#000',
   },
   dayTextActive: {
     color: '#fff',
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  footerButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  button: {
-    flexDirection: 'row',
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  buttonPrimary: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-  },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonTextSecondary: {
-    color: '#007AFF',
   },
 });

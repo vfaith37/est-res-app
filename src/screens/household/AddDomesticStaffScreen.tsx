@@ -44,6 +44,7 @@ export default function AddDomesticStaffScreen() {
   // Form State - Employment
   const [role, setRole] = useState('');
   const [employmentType, setEmploymentType] = useState('');
+  const [workFrequency, setWorkFrequency] = useState('');
   const [workDays, setWorkDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -57,7 +58,8 @@ export default function AddDomesticStaffScreen() {
   // Options
   const genderOptions = ['Male', 'Female'];
   const staffRoles = ['Cook', 'Cleaner', 'Driver', 'Gardener', 'Security', 'Nanny', 'Housekeeper', 'Other'];
-  const employmentTypeOptions = ['Full-time', 'Part-time', 'Contract'];
+  const employmentTypeOptions = ['Live-In', 'Live-Out'];
+  const workFrequencyOptions = ['Weekdays', 'Weekends', 'Full Week', 'Custom Days'];
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   // Date Arrays
@@ -109,8 +111,12 @@ export default function AddDomesticStaffScreen() {
   };
 
   const validateStep2 = () => {
-    if (!role || !employmentType || !startDate) {
-      Alert.alert('Missing Fields', 'Please select role, employment type and start date.');
+    if (!role || !employmentType || !startDate || !workFrequency) {
+      Alert.alert('Missing Fields', 'Please select role, employment type, start date and work days.');
+      return false;
+    }
+    if (workFrequency === 'Custom Days' && workDays.length === 0) {
+      Alert.alert('Missing Fields', 'Please select at least one work day.');
       return false;
     }
     return true;
@@ -146,7 +152,7 @@ export default function AddDomesticStaffScreen() {
         email,
         photo: photo || undefined,
         role,
-        employmentType: employmentType as 'Full-time' | 'Part-time' | 'Contract',
+        employmentType: employmentType as 'Live-In' | 'Live-Out',
         workDays: workDays.length > 0 ? workDays : undefined,
         startDate: startDate?.toISOString(),
       }).unwrap();
@@ -366,25 +372,71 @@ export default function AddDomesticStaffScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Work Days <Text style={styles.optional}>(Optional)</Text></Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {weekDays.map((day) => (
-                    <TouchableOpacity
-                      key={day}
-                      style={[
-                        styles.dayButton,
-                        workDays.includes(day) && styles.dayButtonActive
-                      ]}
-                      onPress={() => toggleWorkDay(day)}
-                    >
-                      <Text style={[
-                        styles.dayText,
-                        workDays.includes(day) && styles.dayTextActive
-                      ]}>{day.substring(0, 3)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                <Text style={styles.label}>Work Days <Text style={styles.red}>*</Text></Text>
+                <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Work Frequency')}>
+                  <Text style={workFrequency ? styles.inputText : styles.placeholderText}>{workFrequency || 'select...'}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                </TouchableOpacity>
               </View>
+              {renderDropdown('Work Frequency', workFrequencyOptions, workFrequency, (val) => {
+                setWorkFrequency(val);
+                if (val === 'Weekdays') {
+                  setWorkDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
+                } else if (val === 'Weekends') {
+                  setWorkDays(['Saturday', 'Sunday']);
+                } else if (val === 'Full Week') {
+                  setWorkDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+                } else if (val === 'Custom Days') {
+                  setWorkDays([]);
+                }
+              })}
+
+              {workFrequency === 'Custom Days' && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Select Days</Text>
+                  <TouchableOpacity style={styles.dropdownInput} onPress={() => setActiveDropdown('Custom Days')}>
+                    <Text style={styles.inputText}>Select Days</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+
+                  {/* Custom Multi-select Dropdown */}
+                  <Modal visible={activeDropdown === 'Custom Days'} transparent animationType="fade">
+                    <TouchableOpacity style={styles.dropdownOverlay} onPress={() => setActiveDropdown(null)}>
+                      <View style={styles.dropdownContent}>
+                        <Text style={styles.dropdownHeader}>Select Days</Text>
+                        <ScrollView style={{ maxHeight: 300 }}>
+                          {weekDays.map((day, index) => {
+                            const isSelected = workDays.includes(day);
+                            return (
+                              <TouchableOpacity
+                                key={index}
+                                style={[styles.dropdownItem, isSelected && styles.dropdownItemActive]}
+                                onPress={() => toggleWorkDay(day)}
+                              >
+                                <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextActive]}>{day}</Text>
+                                {isSelected && <Ionicons name="checkmark" size={20} color="#002EE5" />}
+                              </TouchableOpacity>
+                            )
+                          })}
+                        </ScrollView>
+                      </View>
+                    </TouchableOpacity>
+                  </Modal>
+
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                    {workDays.map((day) => (
+                      <TouchableOpacity
+                        key={day}
+                        style={styles.selectedDayChip}
+                        onPress={() => toggleWorkDay(day)}
+                      >
+                        <Text style={styles.selectedDayText}>{day}</Text>
+                        <Ionicons name="close-circle" size={16} color="#fff" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
 
             </View>
           )}
@@ -550,5 +602,19 @@ const styles = StyleSheet.create({
   },
   dayTextActive: {
     color: '#fff',
+  },
+  selectedDayChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#002EE5',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 4,
+  },
+  selectedDayText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

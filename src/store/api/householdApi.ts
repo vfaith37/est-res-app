@@ -33,7 +33,7 @@ export interface CreateFamilyMemberRequest {
   firstName: string;
   othernames?: string;
   surname: string;
-  gender: 'Male' | 'Female' | 'Other';
+  gender: "Male" | "Female" | "Other";
   DoB: string; // YYYY-MM-DD
   phoneNo: string;
   email: string;
@@ -41,7 +41,12 @@ export interface CreateFamilyMemberRequest {
   physicalAddr?: string;
   photo?: string | null; // URI
   // Employment Information
-  employmentStatus: 'Employed' | 'Unemployed' | 'Self-employed' | 'Student' | 'Retired';
+  employmentStatus:
+    | "Employed"
+    | "Unemployed"
+    | "Self-employed"
+    | "Student"
+    | "Retired";
   jobTitle?: string;
   employerName?: string;
 }
@@ -49,14 +54,14 @@ export interface CreateFamilyMemberRequest {
 export interface CreateDomesticStaffRequest {
   firstName: string;
   lastName: string;
-  gender: 'Male' | 'Female';
+  gender: "Male" | "Female";
   dateOfBirth?: string; // Optional to handle null dates
   phone: string;
   email: string;
   photo?: string | null; // URI or base64, can be null
   // Employment Information
   role: string;
-  employmentType: 'Full-time' | 'Part-time' | 'Contract';
+  employmentType: "Live-In" | "Live-Out";
   workDays?: string[]; // Array of day names
   startDate?: string; // Optional to handle null dates
 }
@@ -81,11 +86,12 @@ export const householdApi = api.injectEndpoints({
           email: m.email,
           phone: m.fone,
           relationship: m.relationship,
-          status: m.familyStatus?.toLowerCase() === "active" ? "active" : "inactive",
+          status:
+            m.familyStatus?.toLowerCase() === "active" ? "active" : "inactive",
           createdAt: new Date().toISOString(),
           avatar: m.photofilename ? m.photofilename : undefined,
           // Store raw data for editing
-          rawData: m
+          rawData: m,
         }));
       },
       providesTags: ["FamilyMembers"],
@@ -99,34 +105,34 @@ export const householdApi = api.injectEndpoints({
     createFamilyMember: builder.mutation<void, CreateFamilyMemberRequest>({
       query: (data) => {
         const formData = new FormData();
-        
+
         // Append all text fields to 'body'
         const body = {
-            residentId: data.residentId,
-            firstName: data.firstName,
-            othernames: data.othernames || '',
-            surname: data.surname,
-            DoB: data.DoB,
-            phoneNo: data.phoneNo,
-            email: data.email,
-            physicalAddr: data.physicalAddr || '',
-            gender: data.gender,
-            relationship: data.relationship,
-            employmentStatus: data.employmentStatus,
-            jobTitle: data.jobTitle || '',
-            employerName: data.employerName || '',
+          residentId: data.residentId,
+          firstName: data.firstName,
+          othernames: data.othernames || "",
+          surname: data.surname,
+          DoB: data.DoB,
+          phoneNo: data.phoneNo,
+          email: data.email,
+          physicalAddr: data.physicalAddr || "",
+          gender: data.gender,
+          relationship: data.relationship,
+          employmentStatus: data.employmentStatus,
+          jobTitle: data.jobTitle || "",
+          employerName: data.employerName || "",
         };
-        
-        formData.append('body', JSON.stringify(body));
+
+        formData.append("body", JSON.stringify(body));
 
         // Append file if exists
         if (data.photo) {
-            const filename = data.photo.split('/').pop() || 'photo.jpg';
-            const match = /\.(\w+)$/.exec(filename);
-            const type = match ? `image/${match[1]}` : 'image/jpeg';
-            
-            // @ts-ignore: React Native FormData
-            formData.append('file', { uri: data.photo, name: filename, type });
+          const filename = data.photo.split("/").pop() || "photo.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : "image/jpeg";
+
+          // @ts-ignore: React Native FormData
+          formData.append("file", { uri: data.photo, name: filename, type });
         }
         console.log(formData);
         return {
@@ -134,54 +140,57 @@ export const householdApi = api.injectEndpoints({
           method: "POST",
           body: formData,
           headers: {
-             'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         };
       },
       invalidatesTags: ["FamilyMembers"],
     }),
 
-    updateFamilyMember: builder.mutation<void, { id: string; data: Partial<CreateFamilyMemberRequest> }>({
+    updateFamilyMember: builder.mutation<
+      void,
+      { id: string; data: Partial<CreateFamilyMemberRequest> }
+    >({
       query: ({ id, data }) => {
         const formData = new FormData();
-        
+
         // Append all text fields to 'body'
         // Ideally we should merge with existing data, but for now we send what we have
         // The backend likely expects the full object or partial updates? Assuming partial allowed or full object passed.
         // Based on "editfamilymembers", usually requires ID + fields.
-        
+
         const body: any = {
-           familymemberId: id, // Important for update
-           ...data
-        };
-        
-        // Transform keys if needed for edit (assuming same payload structure as add but with ID)
-         const mappedBody = {
-            familymemberId: id,
-            residentId: data.residentId,
-            firstName: data.firstName,
-            othernames: data.othernames || '',
-            surname: data.surname,
-            DoB: data.DoB,
-            phoneNo: data.phoneNo,
-            email: data.email,
-            physicalAddr: data.physicalAddr || '',
-            gender: data.gender,
-            relationship: data.relationship,
-            employmentStatus: data.employmentStatus,
-            jobTitle: data.jobTitle || '',
-            employerName: data.employerName || '',
+          familymemberId: id, // Important for update
+          ...data,
         };
 
-        formData.append('body', JSON.stringify(mappedBody));
+        // Transform keys if needed for edit (assuming same payload structure as add but with ID)
+        const mappedBody = {
+          familymemberId: id,
+          residentId: data.residentId,
+          firstName: data.firstName,
+          othernames: data.othernames || "",
+          surname: data.surname,
+          DoB: data.DoB,
+          phoneNo: data.phoneNo,
+          email: data.email,
+          physicalAddr: data.physicalAddr || "",
+          gender: data.gender,
+          relationship: data.relationship,
+          employmentStatus: data.employmentStatus,
+          jobTitle: data.jobTitle || "",
+          employerName: data.employerName || "",
+        };
+
+        formData.append("body", JSON.stringify(mappedBody));
 
         if (data.photo) {
-            const filename = data.photo.split('/').pop() || 'photo.jpg';
-            const match = /\.(\w+)$/.exec(filename);
-            const type = match ? `image/${match[1]}` : 'image/jpeg';
-            
-            // @ts-ignore: React Native FormData
-            formData.append('file', { uri: data.photo, name: filename, type });
+          const filename = data.photo.split("/").pop() || "photo.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : "image/jpeg";
+
+          // @ts-ignore: React Native FormData
+          formData.append("file", { uri: data.photo, name: filename, type });
         }
 
         return {
@@ -189,7 +198,7 @@ export const householdApi = api.injectEndpoints({
           method: "PUT", // Or POST/PATCH depending on backend, usually PUT for edit
           body: formData,
           headers: {
-             'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         };
       },
@@ -215,25 +224,25 @@ export const householdApi = api.injectEndpoints({
       }),
       transformResponse: (response: any) => {
         if (response.respCode !== "00") {
-             // Backend might return different codes, but assuming 00 is success like family
-             // If array is empty/null, handle gracefully
+          // Backend might return different codes, but assuming 00 is success like family
+          // If array is empty/null, handle gracefully
         }
         const staff = response.data || []; // Adjust based on actual structure, maybe response.data.data
-        
+
         return staff.map((s: any) => ({
-            id: s.staffId || s.id,
-            name: `${s.firstname} ${s.surname}`,
-            phone: s.fone || s.phoneNo || '',
-            role: s.staffRole || s.role || 'Staff',
-            idNumber: s.idNumber || '', // specific field might need check
-            address: s.address || '',
-            emergencyContact: s.emergencyContact || '',
-            emergencyPhone: s.emergencyPhone || '',
-            startDate: s.startDate || new Date().toISOString(),
-            status: s.status?.toLowerCase() === 'active' ? 'active' : 'inactive', // or map from specific field
-            photo: s.photofilename || undefined,
-            createdAt: new Date().toISOString(),
-            rawData: s
+          id: s.staffId || s.id,
+          name: `${s.firstname} ${s.surname}`,
+          phone: s.fone || s.phoneNo || "",
+          role: s.staffRole || s.role || "Staff",
+          idNumber: s.idNumber || "", // specific field might need check
+          address: s.address || "",
+          emergencyContact: s.emergencyContact || "",
+          emergencyPhone: s.emergencyPhone || "",
+          startDate: s.startDate || new Date().toISOString(),
+          status: s.status?.toLowerCase() === "active" ? "active" : "inactive", // or map from specific field
+          photo: s.photofilename || undefined,
+          createdAt: new Date().toISOString(),
+          rawData: s,
         }));
       },
       providesTags: ["DomesticStaff"],

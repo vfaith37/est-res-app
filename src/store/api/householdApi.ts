@@ -1,4 +1,5 @@
 import { api } from "./apiSlice";
+import { encryptPayload } from "@/utils/encryption";
 
 export interface FamilyMember {
   id: string;
@@ -52,8 +53,10 @@ export interface CreateFamilyMemberRequest {
 }
 
 export interface CreateDomesticStaffRequest {
+  residentId: string;
   firstName: string;
   lastName: string;
+  othernames?: string;
   gender: "Male" | "Female";
   dateOfBirth?: string; // Optional to handle null dates
   phone: string;
@@ -103,46 +106,49 @@ export const householdApi = api.injectEndpoints({
     }),
 
     createFamilyMember: builder.mutation<void, CreateFamilyMemberRequest>({
-      query: (data) => {
-        const formData = new FormData();
+      queryFn: async (data, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const body = {
+            residentId: data.residentId,
+            firstName: data.firstName,
+            othernames: data.othernames || "",
+            surname: data.surname,
+            DoB: data.DoB,
+            phoneNo: data.phoneNo,
+            email: data.email,
+            physicalAddr: data.physicalAddr || "",
+            gender: data.gender,
+            relationship: data.relationship,
+            employmentStatus: data.employmentStatus,
+            jobTitle: data.jobTitle || "",
+            employerName: data.employerName || "",
+          };
 
-        // Append all text fields to 'body'
-        const body = {
-          residentId: data.residentId,
-          firstName: data.firstName,
-          othernames: data.othernames || "",
-          surname: data.surname,
-          DoB: data.DoB,
-          phoneNo: data.phoneNo,
-          email: data.email,
-          physicalAddr: data.physicalAddr || "",
-          gender: data.gender,
-          relationship: data.relationship,
-          employmentStatus: data.employmentStatus,
-          jobTitle: data.jobTitle || "",
-          employerName: data.employerName || "",
-        };
+          const { encryptedPayload, hash } = await encryptPayload(body);
 
-        formData.append("body", JSON.stringify(body));
+          const formData = new FormData();
+          formData.append("body", encryptedPayload);
 
-        // Append file if exists
-        if (data.photo) {
-          const filename = data.photo.split("/").pop() || "photo.jpg";
-          const match = /\.(\w+)$/.exec(filename);
-          const type = match ? `image/${match[1]}` : "image/jpeg";
+          if (data.photo) {
+            const filename = data.photo.split("/").pop() || "photo.jpg";
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : "image/jpeg";
+            // @ts-ignore
+            formData.append("file", { uri: data.photo, name: filename, type });
+          }
 
-          // @ts-ignore: React Native FormData
-          formData.append("file", { uri: data.photo, name: filename, type });
+          const result = await baseQuery({
+            url: "/residenthead/addfamilymembers",
+            method: "POST",
+            body: formData,
+            headers: { "X-Payload-Hash": hash },
+          });
+
+          if (result.error) return { error: result.error as any };
+          return { data: result.data as void };
+        } catch (e: any) {
+          return { error: { status: "CUSTOM_ERROR", error: e.message } };
         }
-        console.log(formData);
-        return {
-          url: "/residenthead/addfamilymembers",
-          method: "POST",
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        };
       },
       invalidatesTags: ["FamilyMembers"],
     }),
@@ -151,56 +157,50 @@ export const householdApi = api.injectEndpoints({
       void,
       { id: string; data: Partial<CreateFamilyMemberRequest> }
     >({
-      query: ({ id, data }) => {
-        const formData = new FormData();
+      queryFn: async ({ id, data }, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const body = {
+            familymemberId: id,
+            residentId: data.residentId,
+            firstName: data.firstName,
+            othernames: data.othernames || "",
+            surname: data.surname,
+            DoB: data.DoB,
+            phoneNo: data.phoneNo,
+            email: data.email,
+            physicalAddr: data.physicalAddr || "",
+            gender: data.gender,
+            relationship: data.relationship,
+            employmentStatus: data.employmentStatus,
+            jobTitle: data.jobTitle || "",
+            employerName: data.employerName || "",
+          };
 
-        // Append all text fields to 'body'
-        // Ideally we should merge with existing data, but for now we send what we have
-        // The backend likely expects the full object or partial updates? Assuming partial allowed or full object passed.
-        // Based on "editfamilymembers", usually requires ID + fields.
+          const { encryptedPayload, hash } = await encryptPayload(body);
 
-        const body: any = {
-          familymemberId: id, // Important for update
-          ...data,
-        };
+          const formData = new FormData();
+          formData.append("body", encryptedPayload);
 
-        // Transform keys if needed for edit (assuming same payload structure as add but with ID)
-        const mappedBody = {
-          familymemberId: id,
-          residentId: data.residentId,
-          firstName: data.firstName,
-          othernames: data.othernames || "",
-          surname: data.surname,
-          DoB: data.DoB,
-          phoneNo: data.phoneNo,
-          email: data.email,
-          physicalAddr: data.physicalAddr || "",
-          gender: data.gender,
-          relationship: data.relationship,
-          employmentStatus: data.employmentStatus,
-          jobTitle: data.jobTitle || "",
-          employerName: data.employerName || "",
-        };
+          if (data.photo) {
+            const filename = data.photo.split("/").pop() || "photo.jpg";
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : "image/jpeg";
+            // @ts-ignore
+            formData.append("file", { uri: data.photo, name: filename, type });
+          }
 
-        formData.append("body", JSON.stringify(mappedBody));
+          const result = await baseQuery({
+            url: "/residenthead/editfamilymembers",
+            method: "PUT",
+            body: formData,
+            headers: { "X-Payload-Hash": hash },
+          });
 
-        if (data.photo) {
-          const filename = data.photo.split("/").pop() || "photo.jpg";
-          const match = /\.(\w+)$/.exec(filename);
-          const type = match ? `image/${match[1]}` : "image/jpeg";
-
-          // @ts-ignore: React Native FormData
-          formData.append("file", { uri: data.photo, name: filename, type });
+          if (result.error) return { error: result.error as any };
+          return { data: result.data as void };
+        } catch (e: any) {
+          return { error: { status: "CUSTOM_ERROR", error: e.message } };
         }
-
-        return {
-          url: "/residenthead/editfamilymembers",
-          method: "PUT", // Or POST/PATCH depending on backend, usually PUT for edit
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        };
       },
       invalidatesTags: (result, error, { id }) => [
         "FamilyMembers",
@@ -257,11 +257,60 @@ export const householdApi = api.injectEndpoints({
       DomesticStaff,
       CreateDomesticStaffRequest
     >({
-      query: (staff) => ({
-        url: "/residenthead/adddomesticstaff",
-        method: "POST",
-        body: staff,
-      }),
+      queryFn: async (staff, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const days = staff.workDays || [];
+          // Construct body (all fields except photo are in staff)
+          const body = {
+            residentId: staff.residentId,
+            firstname: staff.firstName,
+            surname: staff.lastName,
+            othername: staff.othernames || "",
+            gender: staff.gender,
+            DoB: staff.dateOfBirth,
+            fone: staff.phone,
+            email: staff.email,
+            empRole: staff.role,
+            empType: staff.employmentType, // 'Live-In' | 'Live-Out'
+            empStartDate: staff.startDate,
+
+            // Work Time Logic
+            workTime: "Custom_Days", // Defaulting to Custom_Days to specify exact days
+            cMonday: days.includes("Monday"),
+            cTuesday: days.includes("Tuesday"),
+            cWednesday: days.includes("Wednesday"),
+            cThursday: days.includes("Thursday"),
+            cFriday: days.includes("Friday"),
+            cSaturday: days.includes("Saturday"),
+            cSunday: days.includes("Sunday"),
+          };
+
+          const { encryptedPayload, hash } = await encryptPayload(body);
+
+          const formData = new FormData();
+          formData.append("body", encryptedPayload);
+
+          if (staff.photo) {
+            const filename = staff.photo.split("/").pop() || "photo.jpg";
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : "image/jpeg";
+            // @ts-ignore
+            formData.append("file", { uri: staff.photo, name: filename, type });
+          }
+
+          const result = await baseQuery({
+            url: "/residenthead/adddomesticstaff",
+            method: "POST",
+            body: formData,
+            headers: { "X-Payload-Hash": hash },
+          });
+
+          if (result.error) return { error: result.error as any };
+          return { data: result.data as DomesticStaff };
+        } catch (e: any) {
+          return { error: { status: "CUSTOM_ERROR", error: e.message } };
+        }
+      },
       invalidatesTags: ["DomesticStaff"],
     }),
 
@@ -269,11 +318,63 @@ export const householdApi = api.injectEndpoints({
       DomesticStaff,
       { id: string; data: Partial<CreateDomesticStaffRequest> }
     >({
-      query: ({ id, data }) => ({
-        url: `/residenthead/editdomesticstaff/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      queryFn: async ({ id, data }, _queryApi, _extraOptions, baseQuery) => {
+        try {
+          const days = data.workDays || [];
+          // Map keys for update - assuming similar structure to create but with staffId
+          // Note: Update payload might need to be partial, but usually replacing full object or specific fields.
+          // Using the same structure as create for now.
+
+          const body = {
+            staffId: id,
+            residentId: data.residentId,
+            firstname: data.firstName,
+            surname: data.lastName,
+            othername: data.othernames || "",
+            gender: data.gender,
+            DoB: data.dateOfBirth,
+            fone: data.phone,
+            email: data.email,
+            empRole: data.role,
+            empType: data.employmentType,
+            empStartDate: data.startDate,
+
+            workTime: "Custom_Days",
+            cMonday: days.includes("Monday"),
+            cTuesday: days.includes("Tuesday"),
+            cWednesday: days.includes("Wednesday"),
+            cThursday: days.includes("Thursday"),
+            cFriday: days.includes("Friday"),
+            cSaturday: days.includes("Saturday"),
+            cSunday: days.includes("Sunday"),
+          };
+
+          const { encryptedPayload, hash } = await encryptPayload(body);
+
+          const formData = new FormData();
+          formData.append("body", encryptedPayload);
+
+          if (data.photo) {
+            const filename = data.photo.split("/").pop() || "photo.jpg";
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : "image/jpeg";
+            // @ts-ignore
+            formData.append("file", { uri: data.photo, name: filename, type });
+          }
+
+          const result = await baseQuery({
+            url: `/residenthead/editdomesticstaff/${id}`,
+            method: "PUT",
+            body: formData,
+            headers: { "X-Payload-Hash": hash },
+          });
+
+          if (result.error) return { error: result.error as any };
+          return { data: result.data as DomesticStaff };
+        } catch (e: any) {
+          return { error: { status: "CUSTOM_ERROR", error: e.message } };
+        }
+      },
       invalidatesTags: (result, error, { id }) => [
         "DomesticStaff",
         { type: "DomesticStaff", id },

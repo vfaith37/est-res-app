@@ -34,6 +34,7 @@ export default function EditDomesticStaffScreen() {
     // Form State - Personal
     const [firstName, setFirstName] = useState(rawData.firstname || rawData.firstName || '');
     const [lastName, setLastName] = useState(rawData.surname || rawData.lastName || '');
+    const [otherNames, setOtherNames] = useState(rawData.othername || rawData.othernames || '');
     const [phone, setPhone] = useState(rawData.fone || rawData.phoneNo || rawData.phone || '');
     const [email, setEmail] = useState(rawData.email || '');
     const [gender, setGender] = useState(rawData.gender || '');
@@ -179,8 +180,10 @@ export default function EditDomesticStaffScreen() {
             await updateStaff({
                 id: staff.id,
                 data: {
+                    residentId: rawData.residentId || 'RES-DEMO',
                     firstName,
                     lastName,
+                    othernames: otherNames,
                     gender: gender as 'Male' | 'Female',
                     dateOfBirth: formattedDob,
                     phone,
@@ -282,6 +285,11 @@ export default function EditDomesticStaffScreen() {
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Last Name <Text style={styles.red}>*</Text></Text>
                                 <TextInput style={styles.input} placeholder="enter..." value={lastName} onChangeText={setLastName} />
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Other Names <Text style={styles.optional}>(Optional)</Text></Text>
+                                <TextInput style={styles.input} placeholder="enter..." value={otherNames} onChangeText={setOtherNames} />
                             </View>
 
                             <View style={styles.inputGroup}>

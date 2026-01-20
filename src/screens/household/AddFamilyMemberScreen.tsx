@@ -51,7 +51,7 @@ export default function AddFamilyMemberScreen() {
   // Dropdown States
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  const [createMember, { isLoading }] = useCreateFamilyMemberMutation();
+  const [createMember, { isLoading, error }] = useCreateFamilyMemberMutation();
   const [showSuccess, setShowSuccess] = useState(false);
 
   const genderOptions = ['Male', 'Female'];
@@ -144,6 +144,21 @@ export default function AddFamilyMemberScreen() {
       const currentYear = new Date().getFullYear(); // Defaulting to current year since year input is removed
       const formattedDate = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
 
+      console.log({
+        residentId: user?.residentId || 'RES-123',
+        firstName,
+        othernames: otherNames,
+        surname: lastName,
+        gender: gender as any,
+        DoB: formattedDate,
+        phoneNo: phone,
+        email,
+        relationship,
+        photo: photo || undefined,
+        employmentStatus: employmentStatus as any,
+        jobTitle: jobTitle || "",
+        employerName: employerName || "",
+      });
       await createMember({
         residentId: user?.residentId || 'RES-123',
         firstName,
@@ -156,13 +171,14 @@ export default function AddFamilyMemberScreen() {
         relationship,
         photo: photo || undefined,
         employmentStatus: employmentStatus as any,
-        jobTitle: jobTitle || undefined,
-        employerName: employerName || undefined,
+        jobTitle: jobTitle || "",
+        employerName: employerName || "",
       }).unwrap();
 
       haptics.success();
       setShowSuccess(true);
     } catch (err: any) {
+      console.log(err);
       haptics.error();
       Alert.alert('Error', err?.data?.message || 'Failed to add member');
     }

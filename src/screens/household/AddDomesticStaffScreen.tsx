@@ -21,9 +21,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useCreateDomesticStaffMutation } from '@/store/api/householdApi';
 import { haptics } from '@/utils/haptics';
 import SuccessModal from '@/components/SuccessModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function AddDomesticStaffScreen() {
   const navigation = useNavigation<any>();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   // Steps: 1 = Personal, 2 = Employment
   const [currentStep, setCurrentStep] = useState(1);
@@ -31,6 +34,7 @@ export default function AddDomesticStaffScreen() {
   // Form State - Personal
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [otherNames, setOtherNames] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('');
@@ -144,8 +148,10 @@ export default function AddDomesticStaffScreen() {
       const formattedDob = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
 
       await createStaff({
+        residentId: user?.residentId || 'RES-DEMO',
         firstName,
         lastName,
+        othernames: otherNames,
         gender: gender as 'Male' | 'Female',
         dateOfBirth: formattedDob,
         phone,
@@ -170,6 +176,7 @@ export default function AddDomesticStaffScreen() {
     setCurrentStep(1);
     setFirstName('');
     setLastName('');
+    setOtherNames('');
     setDobDay('');
     setDobMonth('');
     setPhone('');
@@ -263,6 +270,11 @@ export default function AddDomesticStaffScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Last Name <Text style={styles.red}>*</Text></Text>
                 <TextInput style={styles.input} placeholder="enter..." value={lastName} onChangeText={setLastName} />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Other Names <Text style={styles.optional}>(Optional)</Text></Text>
+                <TextInput style={styles.input} placeholder="enter..." value={otherNames} onChangeText={setOtherNames} />
               </View>
 
               <View style={styles.inputGroup}>

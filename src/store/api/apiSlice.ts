@@ -43,9 +43,14 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
     const method = (args.method || "GET").toUpperCase();
 
     // Handle POST/PUT requests with body (encrypt + hash)
-    if (args.body && requiresEncryption(method) && ENCRYPTION_CONFIG.ENABLED) {
+    if (
+      args.body &&
+      requiresEncryption(method) &&
+      ENCRYPTION_CONFIG.ENABLED &&
+      !(args.body instanceof FormData)
+    ) {
       try {
-        console.log(`🚀 Encrypting ${method} request to:`, args.url);
+        // console.log(`🚀 Encrypting ${method} request to:`, args.url);
 
         // Parse body if it's a string
         const bodyData =
@@ -69,7 +74,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
           headers: newHeaders,
         };
 
-        console.log("✅ Request encrypted successfully");
+        // console.log("✅ Request encrypted successfully");
       } catch (error) {
         console.error("❌ Encryption failed:", error);
         return {
@@ -84,7 +89,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
     // Handle GET requests (hash only, no encryption)
     else if (!args.body && ENCRYPTION_CONFIG.ENABLED) {
       try {
-        console.log(`🔑 Adding hash to ${method} request:`, args.url);
+        // console.log(`🔑 Adding hash to ${method} request:`, args.url);
 
         // Generate secret-only hash for GET requests
         const hash = await generateSecretHash();
@@ -103,7 +108,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
           headers: newHeaders,
         };
 
-        console.log("✅ Hash added to GET request");
+        // console.log("✅ Hash added to GET request");
       } catch (error) {
         console.error("❌ Hash generation failed:", error);
         return {
@@ -115,11 +120,11 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
         };
       }
     } else if (!ENCRYPTION_CONFIG.ENABLED) {
-      console.log(
-        `⚠️ ${method} request to:`,
-        args.url,
-        "(encryption/hash DISABLED)"
-      );
+      // console.log(
+      //   `⚠️ ${method} request to:`,
+      //   args.url,
+      //   "(encryption/hash DISABLED)"
+      // );
     }
   }
 
@@ -178,7 +183,7 @@ const baseQueryWithReauth: BaseQueryFn<
     isJwtExpiredError(result.error)
   ) {
     if (__DEV__) {
-      console.log("🔄 JWT expired, attempting token refresh...");
+      // console.log("🔄 JWT expired, attempting token refresh...");
     }
 
     // If already refreshing, wait for the existing refresh to complete

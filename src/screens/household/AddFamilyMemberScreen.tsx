@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -13,6 +11,8 @@ import {
   Image,
   Modal,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -141,8 +141,8 @@ export default function AddFamilyMemberScreen() {
       haptics.medium();
 
       const monthIndex = months.indexOf(dobMonth) + 1;
-      const currentYear = new Date().getFullYear(); // Defaulting to current year since year input is removed
-      const formattedDate = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
+      // Format as MM-DD (removing year based on user request)
+      const formattedDate = `${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
 
       console.log({
         residentId: user?.residentId || 'RES-123',

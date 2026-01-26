@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -10,6 +8,8 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { Ionicons } from "@expo/vector-icons";
 import { useValidateVisitorTokenMutation } from "@/store/api/visitorsApi";
 import { Visitor } from "@/store/api/visitorsApi";

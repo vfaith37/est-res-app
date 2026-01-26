@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, SectionList, TouchableOpacity, RefreshControl, Image,
+  View, StyleSheet, SectionList, TouchableOpacity, RefreshControl, Image,
   Alert,
-  TextInput,
   Modal,
   Pressable,
 } from 'react-native';
+import { ThemedText as Text } from '@/components/ThemedText';
+import { ThemedTextInput as TextInput } from '@/components/ThemedTextInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -268,19 +269,23 @@ export default function VisitorsListScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header Section */}
       <View style={styles.header}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { paddingHorizontal: activeTab === 'guests' ? 20 : 0 }]}>
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[styles.toggleBtn, activeTab === 'tokens' && styles.toggleBtnActive]}
               onPress={() => setActiveTab('tokens')}
             >
-              <Text style={[styles.toggleText, activeTab === 'tokens' && styles.toggleTextActive]}>Tokens</Text>
+              <Text style={[styles.toggleText, activeTab === 'tokens' && styles.toggleTextActive]}>
+                {activeTab === 'tokens' ? 'Tokens (One time usage)' : 'Tokens'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.toggleBtn, activeTab === 'guests' && styles.toggleBtnActive]}
               onPress={() => setActiveTab('guests')}
             >
-              <Text style={[styles.toggleText, activeTab === 'guests' && styles.toggleTextActive]}>Guests</Text>
+              <Text style={[styles.toggleText, activeTab === 'guests' && styles.toggleTextActive]}>
+                {activeTab === 'guests' ? 'Guests (Multiple usage)' : 'Guests'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -432,7 +437,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingVertical: 10,
   },
   toggleContainer: {

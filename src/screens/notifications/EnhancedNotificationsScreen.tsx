@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SectionList,
@@ -11,6 +9,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -408,10 +408,10 @@ export default function EnhancedNotificationsScreen({ navigation }: any) {
                       {date === 'all'
                         ? 'All Time'
                         : date === 'today'
-                        ? 'Today'
-                        : date === 'week'
-                        ? 'This Week'
-                        : 'This Month'}
+                          ? 'Today'
+                          : date === 'week'
+                            ? 'This Week'
+                            : 'This Month'}
                     </Text>
                   </TouchableOpacity>
                 ))}

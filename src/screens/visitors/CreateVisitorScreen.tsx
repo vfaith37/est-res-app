@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -12,6 +10,8 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';

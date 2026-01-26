@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import {
     Modal,
     View,
-    Text,
     TouchableOpacity,
     Pressable,
     StyleSheet,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {

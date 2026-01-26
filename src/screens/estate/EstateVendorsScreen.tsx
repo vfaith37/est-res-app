@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Linking, Alert, StatusBar } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Linking, Alert, StatusBar } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';

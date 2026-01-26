@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -10,7 +8,10 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  TextInput as RNTextInput,
 } from "react-native";
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -38,7 +39,7 @@ type Props = {
 export default function OTPScreen({ navigation, route }: Props) {
   const { email } = route.params;
   const [otp, setOtp] = useState(Array(OTP_CONFIG.CODE_LENGTH).fill(""));
-  const [timer, setTimer] = useState(OTP_CONFIG.TIMER_SECONDS);
+  const [timer, setTimer] = useState<number>(OTP_CONFIG.TIMER_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
   // API hooks
@@ -46,7 +47,7 @@ export default function OTPScreen({ navigation, route }: Props) {
   const [resendOTP, { isLoading: isResending }] = useResendOTPMutation();
 
   // Refs for input fields
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  const inputRefs = useRef<Array<RNTextInput | null>>([]);
 
   // Timer countdown
   useEffect(() => {

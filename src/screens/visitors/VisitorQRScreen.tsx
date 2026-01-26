@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Share,
@@ -9,6 +8,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import { ThemedText as Text } from '@/components/ThemedText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     View,
-    Text,
-    TextInput,
     TouchableOpacity,
     StyleSheet,
     ScrollView,
@@ -13,6 +11,8 @@ import {
     Image,
     Modal,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -174,8 +174,7 @@ export default function EditDomesticStaffScreen() {
             haptics.medium();
 
             const monthIndex = months.indexOf(dobMonth) + 1;
-            const currentYear = new Date().getFullYear();
-            const formattedDob = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
+            const formattedDob = `${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
 
             await updateStaff({
                 id: staff.id,

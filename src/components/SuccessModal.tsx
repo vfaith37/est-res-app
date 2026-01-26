@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Image } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 
 interface SuccessModalProps {

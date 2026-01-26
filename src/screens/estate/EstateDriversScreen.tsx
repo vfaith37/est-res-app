@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
-  TextInput,
   TouchableOpacity,
   RefreshControl,
   Linking,
   Alert,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { haptics } from '@/utils/haptics';

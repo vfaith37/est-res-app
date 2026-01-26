@@ -1,16 +1,16 @@
 import { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
   Modal,
-  TextInput,
   ActivityIndicator,
   Image,
 } from "react-native";
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
@@ -212,7 +212,7 @@ export default function SecuritySettingsScreen({ navigation }: any) {
                   style={[
                     styles.menuItem,
                     itemIndex === section.items.length - 1 &&
-                      styles.menuItemLast,
+                    styles.menuItemLast,
                   ]}
                   onPress={() => {
                     haptics.light();

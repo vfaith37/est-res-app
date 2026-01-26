@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   RefreshControl,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Visitor } from '@/store/api/visitorsApi';

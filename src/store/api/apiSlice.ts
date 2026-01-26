@@ -227,7 +227,7 @@ const baseQueryWithReauth: BaseQueryFn<
             body: { refresh_token: refreshToken },
           },
           api,
-          extraOptions
+          extraOptions,
         );
 
         if (refreshResult.data) {
@@ -247,7 +247,7 @@ const baseQueryWithReauth: BaseQueryFn<
               updateTokens({
                 token: newToken,
                 refreshToken: newRefreshToken,
-              })
+              }),
             );
 
             return { success: true };
@@ -302,6 +302,7 @@ export const api = createApi({
     "Emergencies",
     "Resident",
     "EstateVendors",
+    "Complaints",
   ],
   endpoints: () => ({}),
 });

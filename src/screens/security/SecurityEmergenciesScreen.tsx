@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SectionList,
@@ -10,6 +8,8 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -351,10 +351,10 @@ export default function SecurityEmergenciesScreen({ navigation }: any) {
                         {status === 'all'
                           ? 'All'
                           : status === 'active'
-                          ? 'Unresolved'
-                          : status === 'responded'
-                          ? 'In Progress'
-                          : 'Resolved'}
+                            ? 'Unresolved'
+                            : status === 'responded'
+                              ? 'In Progress'
+                              : 'Resolved'}
                       </Text>
                     </TouchableOpacity>
                   )
@@ -387,10 +387,10 @@ export default function SecurityEmergenciesScreen({ navigation }: any) {
                       {date === 'all'
                         ? 'All Time'
                         : date === 'today'
-                        ? 'Today'
-                        : date === 'week'
-                        ? 'This Week'
-                        : 'This Month'}
+                          ? 'Today'
+                          : date === 'week'
+                            ? 'This Week'
+                            : 'This Month'}
                     </Text>
                   </TouchableOpacity>
                 ))}

@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
@@ -10,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
 import { Visitor } from '@/store/api/visitorsApi';
 import {

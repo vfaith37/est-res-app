@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -13,6 +11,8 @@ import {
   Image,
   Modal,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -191,17 +191,7 @@ export default function EditFamilyMemberScreen() {
       haptics.medium();
 
       const monthIndex = months.indexOf(dobMonth) + 1;
-      const currentYear = new Date().getFullYear(); // Defaulting to current year since year input is removed
-      // However, for EDIT, we should probably preserve the original year if possible?
-      // But the user specifically removed the Year field in a previous task ("Remove DoB Year Field").
-      // So assuming we just stick to current year or maybe keep the year from original DOB?
-      // The instruction "exact same design" implies same behavior. I will follow Add screen behavior (current year).
-      // Or better, if we have an original year, maybe use it?
-      // But the UI doesn't allow editing year.
-      // Let's stick to the Add logic for now unless I can easily grab the year from state if initialized.
-      // I'll stick to currentYear to be safe and consistent with "Remove DoB Year Field" logic.
-
-      const formattedDate = `${currentYear}-${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
+      const formattedDate = `${monthIndex.toString().padStart(2, '0')}-${dobDay}`;
 
       await updateMember({
         id: member?.id || member?.familymemberId,

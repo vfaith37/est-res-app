@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  TextInput,
   Modal,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { useCheckInVisitorMutation } from '@/store/api/visitorsApi';
+import { useCheckInVisitorMutation, useValidateVisitorTokenMutation } from '@/store/api/visitorsApi';
 import { haptics } from '@/utils/haptics';
 
 export default function QRScannerScreen() {
@@ -20,7 +20,11 @@ export default function QRScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [entryToken, setEntryToken] = useState('');
-  const [checkInVisitor, { isLoading }] = useCheckInVisitorMutation();
+
+  const [validateVisitorToken, { isLoading: isValidating }] = useValidateVisitorTokenMutation();
+  const [checkInVisitor, { isLoading: isCheckingIn }] = useCheckInVisitorMutation();
+
+  const isLoading = isValidating || isCheckingIn;
 
   useEffect(() => {
     (async () => {
@@ -36,12 +40,17 @@ export default function QRScannerScreen() {
     haptics.medium();
 
     try {
-      const visitor = await checkInVisitor({ qrCode: data }).unwrap();
+      // Step 1: Validate token and get visitor details
+      const visitor = await validateVisitorToken({ token: data }).unwrap();
+
+      // Step 2: Check in the visitor
+      await checkInVisitor({ tokenId: visitor.id }).unwrap();
+
       haptics.success();
 
       Alert.alert(
         'Check-In Successful',
-        `${visitor.name} has been checked in.\nType: ${visitor.type === 'guest' ? 'Guest' : 'Visitor'}\nUnit: ${visitor.residentName}`,
+        `${visitor.name} has been checked in.\nType: ${visitor.type === 'guest' ? 'Guest' : 'Visitor'}${visitor.address ? `\nUnit: ${visitor.address}` : ''}`,
         [
           {
             text: 'OK',
@@ -77,12 +86,18 @@ export default function QRScannerScreen() {
 
     try {
       haptics.light();
-      const visitor = await checkInVisitor({ entryToken: entryToken.trim() }).unwrap();
+
+      // Step 1: Validate token and get visitor details
+      const visitor = await validateVisitorToken({ token: entryToken.trim() }).unwrap();
+
+      // Step 2: Check in the visitor
+      await checkInVisitor({ tokenId: visitor.id }).unwrap();
+
       haptics.success();
 
       Alert.alert(
         'Check-In Successful',
-        `${visitor.name} has been checked in.\nType: ${visitor.type === 'guest' ? 'Guest' : 'Visitor'}\nUnit: ${visitor.residentName}`,
+        `${visitor.name} has been checked in.\nType: ${visitor.type === 'guest' ? 'Guest' : 'Visitor'}${visitor.address ? `\nUnit: ${visitor.address}` : ''}`,
         [
           {
             text: 'OK',

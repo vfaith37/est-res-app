@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -11,6 +9,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCreateEmergencyMutation } from '@/store/api/emergencyApi';
@@ -89,9 +89,9 @@ export default function ReportEmergencyScreen({ navigation }: any) {
                     key={t.value}
                     style={[
                       styles.typeButton,
-                      type === t.value && { 
+                      type === t.value && {
                         backgroundColor: t.color,
-                        borderColor: t.color 
+                        borderColor: t.color
                       },
                     ]}
                     onPress={() => {
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-   justifyContent: 'center',
+    justifyContent: 'center',
     gap: 8,
     backgroundColor: '#FF3B30',
     padding: 16,

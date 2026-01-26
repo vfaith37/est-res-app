@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Image,
   Alert,
   Modal,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { ThemedText as Text } from "@/components/ThemedText";
+import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -185,8 +185,8 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {user?.photoUrl ? (
-              <Image source={{ uri: user.photoUrl }} style={styles.avatar} />
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Ionicons name="person" size={40} color="#007AFF" />
@@ -194,7 +194,7 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
             )}
           </View>
           <Text style={styles.userName}>
-            {user?.firstName} {user?.lastName}
+            {user?.firstname} {user?.lastname}
           </Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
           <View style={styles.roleBadge}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -291,7 +291,7 @@ export default function EditProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#002EE5" />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </SafeAreaView>
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   changePhotoText: {
-    color: "#007AFF",
+    color: "#002EE5",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     padding: 16,
     borderRadius: 10,
     flexDirection: "row",
@@ -778,3 +778,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

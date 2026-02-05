@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, SectionList, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -74,8 +74,8 @@ export default function PaymentsListScreen() {
 
 
   const stats: StatItem[] = [
-    { label: 'Total Amount Paid', value: '₦500,000' },
-    { label: 'Current Monthly Paid', value: '₦8,000' },
+    { label: 'Total Amount Paid', value: 'â‚¦500,000' },
+    { label: 'Current Monthly Paid', value: 'â‚¦8,000' },
     { label: 'Total Paid', value: '20' },
   ];
 
@@ -108,7 +108,7 @@ export default function PaymentsListScreen() {
       >
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>{item.description}</Text>
-          <Text style={styles.amount}>₦{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
+          <Text style={styles.amount}>â‚¦{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
         </View>
 
         <View style={styles.cardRow}>

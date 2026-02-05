@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -27,7 +27,7 @@ export default function ReportEmergencyScreen({ navigation }: any) {
   const emergencyTypes = [
     { value: 'fire', label: 'Fire', icon: 'flame', color: '#FF3B30' },
     { value: 'medical', label: 'Medical', icon: 'medical', color: '#FF9500' },
-    { value: 'security', label: 'Security', icon: 'shield', color: '#007AFF' },
+    { value: 'security', label: 'Security', icon: 'shield', color: '#002EE5' },
     { value: 'other', label: 'Other', icon: 'alert-circle', color: '#8E8E93' },
   ];
 

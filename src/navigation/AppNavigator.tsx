@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
@@ -113,3 +113,4 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+

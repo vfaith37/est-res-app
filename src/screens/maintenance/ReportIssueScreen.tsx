@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
 	View,
 	TouchableOpacity,
@@ -101,7 +101,7 @@ export default function ReportIssueScreen({ navigation }: Props) {
 										<Ionicons
 											name={cat.icon as any}
 											size={24}
-											color={category === cat.value ? '#fff' : '#007AFF'}
+											color={category === cat.value ? '#fff' : '#002EE5'}
 										/>
 										<Text
 											style={[
@@ -261,19 +261,19 @@ const styles = StyleSheet.create({
 		minWidth: '30%',
 		backgroundColor: '#fff',
 		borderWidth: 2,
-		borderColor: '#007AFF',
+		borderColor: '#002EE5',
 		borderRadius: 10,
 		padding: 12,
 		alignItems: 'center',
 		gap: 4,
 	},
 	categoryButtonActive: {
-		backgroundColor: '#007AFF',
-		borderColor: '#007AFF',
+		backgroundColor: '#002EE5',
+		borderColor: '#002EE5',
 	},
 	categoryText: {
 		fontSize: 12,
-		color: '#007AFF',
+		color: '#002EE5',
 		fontWeight: '600',
 	},
 	categoryTextActive: {
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
 		borderTopColor: '#E5E5EA',
 	},
 	button: {
-		backgroundColor: '#007AFF',
+		backgroundColor: '#002EE5',
 		padding: 16,
 		borderRadius: 10,
 		alignItems: 'center',
@@ -319,3 +319,4 @@ const styles = StyleSheet.create({
 		fontWeight: '600',
 	},
 });
+

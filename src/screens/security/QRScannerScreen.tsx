@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -121,7 +121,7 @@ export default function QRScannerScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#002EE5" />
           <Text style={styles.messageText}>Requesting camera permission...</Text>
         </View>
       </SafeAreaView>
@@ -188,7 +188,7 @@ export default function QRScannerScreen() {
             setShowManualEntry(true);
           }}
         >
-          <Ionicons name="keypad-outline" size={20} color="#007AFF" />
+          <Ionicons name="keypad-outline" size={20} color="#002EE5" />
           <Text style={styles.manualButtonText}>Enter Token Manually</Text>
         </TouchableOpacity>
       </View>
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderColor: '#007AFF',
+    borderColor: '#002EE5',
     borderWidth: 4,
   },
   topLeft: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 10,
   },
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   manualButtonText: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   submitButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',

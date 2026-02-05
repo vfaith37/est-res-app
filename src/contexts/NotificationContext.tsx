@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+﻿import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { 
@@ -47,14 +47,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     // Setup listeners
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (notification) => {
-        console.log('📬 Notification received:', notification);
+        console.log('ðŸ“¬ Notification received:', notification);
         setNotification(notification);
       }
     );
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        console.log('👆 Notification tapped:', response);
+        console.log('ðŸ‘† Notification tapped:', response);
         setLastNotificationResponse(response);
         
         // Clear badge when notification is tapped

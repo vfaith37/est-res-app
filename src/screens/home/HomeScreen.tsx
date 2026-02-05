@@ -1,4 +1,4 @@
-import {
+﻿import {
   View,
   StyleSheet,
   ScrollView,
@@ -170,7 +170,7 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.actionsGrid}>
             <View style={styles.statCard}>
               <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
-                <Ionicons name="people" size={24} color="#007AFF" />
+                <Ionicons name="people" size={24} color="#002EE5" />
               </View>
               <Text style={styles.statNumber}>
                 {upcomingVisitors?.length || 0}
@@ -180,7 +180,7 @@ export default function HomeScreen({ navigation }: any) {
 
             <View style={styles.statCard}>
               <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
-                <Ionicons name="notifications" size={24} color="#007AFF" />
+                <Ionicons name="notifications" size={24} color="#002EE5" />
               </View>
               <Text style={styles.statNumber}>
                 {maintenanceRequests?.length || 0}
@@ -191,7 +191,7 @@ export default function HomeScreen({ navigation }: any) {
             {isHomeHead ? (
               <View style={styles.statCard}>
                 <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
-                  <Ionicons name="pie-chart" size={24} color="#007AFF" />
+                  <Ionicons name="pie-chart" size={24} color="#002EE5" />
                 </View>
                 <Text style={styles.statNumber}>
                   {pendingPayments?.length || 0}
@@ -201,7 +201,7 @@ export default function HomeScreen({ navigation }: any) {
             ) : (
               <View style={styles.statCard}>
                 <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
-                  <Ionicons name="alert-circle-outline" size={24} color="#007AFF" />
+                  <Ionicons name="alert-circle-outline" size={24} color="#002EE5" />
                 </View>
                 <Text style={styles.statNumber}>{activeEmergencies}</Text>
                 <Text style={styles.statLabel}>Active Alerts</Text>
@@ -210,7 +210,7 @@ export default function HomeScreen({ navigation }: any) {
 
             <View style={styles.statCard}>
               <View style={{ backgroundColor: "rgba(0, 123, 255, 0.1)", padding: 10, borderRadius: 50 }}>
-                <Ionicons name="chatbubble-ellipses" size={24} color="#007AFF" />
+                <Ionicons name="chatbubble-ellipses" size={24} color="#002EE5" />
               </View>
               <Text style={styles.statNumber}>
                 {maintenanceRequests?.length || 0}
@@ -286,7 +286,7 @@ export default function HomeScreen({ navigation }: any) {
                     data={chartData}
                     width={screenWidth - 40}
                     height={220}
-                    yAxisLabel="₦"
+                    yAxisLabel="â‚¦"
                     yAxisSuffix="k"
                     fromZero
                     chartConfig={chartConfig}
@@ -338,7 +338,7 @@ export default function HomeScreen({ navigation }: any) {
 
                 <View style={styles.paymentRight}>
                   <Text style={styles.paymentAmount}>
-                    ₦{payment.amount.toLocaleString()}
+                    â‚¦{payment.amount.toLocaleString()}
                   </Text>
                   <View style={styles.paidBadge}>
                     <Ionicons
@@ -387,7 +387,7 @@ export default function HomeScreen({ navigation }: any) {
                     <Ionicons
                       name={visitor.type === "guest" ? "person" : "people"}
                       size={20}
-                      color="#007AFF"
+                      color="#002EE5"
                     />
                   </View>
                   <View style={styles.activityContent}>
@@ -423,7 +423,7 @@ function getPaymentTypeIcon(type: string) {
 
 function getPaymentTypeColor(type: string) {
   const colors: any = {
-    service_charge: "#007AFF",
+    service_charge: "#002EE5",
     utility: "#FF9500",
     amenity: "#34C759",
     fine: "#FF3B30",
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: "#007AFF",
+    color: "#002EE5",
     fontWeight: "600",
   },
   chartContainer: {
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#007AFF20",
+    backgroundColor: "#002EE520",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -639,7 +639,8 @@ const styles = StyleSheet.create({
   },
   activityType: {
     fontSize: 12,
-    color: "#007AFF",
+    color: "#002EE5",
     marginTop: 2,
   },
 });
+

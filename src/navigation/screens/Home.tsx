@@ -1,4 +1,4 @@
-import { Button, Text } from '@react-navigation/elements';
+﻿import { Button, Text } from '@react-navigation/elements';
 import { StyleSheet, View } from 'react-native';
 
 export function Home() {
@@ -22,3 +22,4 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 });
+

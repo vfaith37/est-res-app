@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -570,3 +570,4 @@ const styles = StyleSheet.create({
     color: '#002EE5', fontWeight: '600',
   },
 });
+

@@ -1,4 +1,4 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+﻿import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "@/screens/auth/LoginScreen";
 import ForgotPasswordScreen from "@/screens/auth/ForgotPasswordScreen";
 import type { AuthStackParamList } from "@/types/navigation";
@@ -51,3 +51,4 @@ export default function AuthNavigator() {
     </Stack.Navigator>
   );
 }
+

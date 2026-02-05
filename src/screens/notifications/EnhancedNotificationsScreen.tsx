@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -164,7 +164,7 @@ export default function EnhancedNotificationsScreen({ navigation }: any) {
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
       case 'announcement':
-        return '#007AFF';
+        return '#002EE5';
       case 'visitor':
         return '#5856D6';
       case 'maintenance':
@@ -299,7 +299,7 @@ export default function EnhancedNotificationsScreen({ navigation }: any) {
           <Ionicons
             name="filter"
             size={20}
-            color={statusFilter !== 'all' || dateFilter !== 'all' ? '#fff' : '#007AFF'}
+            color={statusFilter !== 'all' || dateFilter !== 'all' ? '#fff' : '#002EE5'}
           />
         </TouchableOpacity>
       </View>
@@ -319,7 +319,7 @@ export default function EnhancedNotificationsScreen({ navigation }: any) {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={refetch}
-            tintColor="#007AFF"
+            tintColor="#002EE5"
           />
         }
         stickySectionHeadersEnabled
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#002EE5',
     marginTop: 4,
   },
   markAllButton: {
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   markAllButtonText: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
   },
   listContent: {
     paddingBottom: 20,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   },
   cardUnread: {
     borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: '#002EE5',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
   },
   notificationMessage: {
     fontSize: 14,
@@ -665,8 +665,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   filterOptionActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#002EE5',
+    borderColor: '#002EE5',
   },
   filterOptionText: {
     fontSize: 14,
@@ -691,3 +691,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

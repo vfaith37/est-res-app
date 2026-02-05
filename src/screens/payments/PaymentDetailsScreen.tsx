@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+﻿import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,7 +67,7 @@ export default function PaymentDetailsScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Amount Due</Text>
-          <Text style={styles.amount}>₦{payment.amount.toLocaleString()}</Text>
+          <Text style={styles.amount}>â‚¦{payment.amount?.toLocaleString() ?? '0.00'}</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(payment.status) }]}>
             <Text style={styles.statusText}>{payment.status.toUpperCase()}</Text>
           </View>
@@ -119,14 +119,14 @@ export default function PaymentDetailsScreen({ navigation, route }: Props) {
 
         {payment.invoiceUrl && (
           <TouchableOpacity style={styles.downloadButton}>
-            <Ionicons name="download-outline" size={20} color="#007AFF" />
+            <Ionicons name="download-outline" size={20} color="#002EE5" />
             <Text style={styles.downloadText}>Download Invoice</Text>
           </TouchableOpacity>
         )}
 
         {payment.receiptUrl && (
           <TouchableOpacity style={styles.downloadButton}>
-            <Ionicons name="receipt-outline" size={20} color="#007AFF" />
+            <Ionicons name="receipt-outline" size={20} color="#002EE5" />
             <Text style={styles.downloadText}>Download Receipt</Text>
           </TouchableOpacity>
         )}
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   downloadText: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5EA',
   },
   payButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',

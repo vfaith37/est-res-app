@@ -1,4 +1,4 @@
-import * as Crypto from "expo-crypto";
+﻿import * as Crypto from "expo-crypto";
 import forge from "node-forge";
 import "react-native-get-random-values";
 import { ENCRYPTION_CONFIG } from "@/config/encryption.config";
@@ -33,7 +33,7 @@ function getRandomBytes(length: number): Uint8Array {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     crypto.getRandomValues(array);
   } else {
-    console.warn("⚠️ Using Math.random for random bytes");
+    console.warn("âš ï¸ Using Math.random for random bytes");
     for (let i = 0; i < length; i++) {
       array[i] = Math.floor(Math.random() * 256);
     }
@@ -138,27 +138,27 @@ async function hybridEncrypt(data: any): Promise<{
   encryptedData: string;
 }> {
   try {
-    console.log("🔐 Starting hybrid encryption...");
+    console.log("ðŸ” Starting hybrid encryption...");
 
     // 1. Generate random AES key (256-bit = 32 bytes)
     const aesKey = getRandomBytes(32);
-    console.log("✓ Generated AES-256 key");
+    console.log("âœ“ Generated AES-256 key");
 
     // 2. Generate random IV (12 bytes for GCM)
     const iv = getRandomBytes(12);
-    console.log("✓ Generated IV (12 bytes)");
+    console.log("âœ“ Generated IV (12 bytes)");
 
     // 3. Encrypt data with AES-GCM
     const dataString = JSON.stringify(data);
     const encryptedData = aesGcmEncrypt(dataString, aesKey, iv);
-    console.log("✓ Data encrypted with AES-GCM");
+    console.log("âœ“ Data encrypted with AES-GCM");
 
     // 4. Encrypt AES key with RSA-OAEP
     const encryptedAesKey = rsaOaepEncrypt(
       aesKey,
       ENCRYPTION_CONFIG.PUBLIC_KEY_PEM
     );
-    console.log("✓ AES key encrypted with RSA-OAEP");
+    console.log("âœ“ AES key encrypted with RSA-OAEP");
 
     return {
       encryptedAesKey,
@@ -166,7 +166,7 @@ async function hybridEncrypt(data: any): Promise<{
       encryptedData,
     };
   } catch (error) {
-    console.error("❌ Hybrid encryption error:", error);
+    console.error("âŒ Hybrid encryption error:", error);
     throw error;
   }
 }
@@ -181,7 +181,7 @@ export async function encryptPayload(data: any): Promise<{
   hash: string;
 }> {
   try {
-    console.log("🔒 Encrypting payload...");
+    console.log("ðŸ”’ Encrypting payload...");
 
     // Perform hybrid encryption
     const encryptedPayload = await hybridEncrypt(data);
@@ -193,7 +193,7 @@ export async function encryptPayload(data: any): Promise<{
       encryptedData: encryptedPayload.encryptedData,
     });
 
-    console.log("📦 Encrypted payload length:", finalPayload.length);
+    console.log("ðŸ“¦ Encrypted payload length:", finalPayload.length);
 
     // Create hash for payload integrity verification
     const inputToHash =
@@ -204,16 +204,16 @@ export async function encryptPayload(data: any): Promise<{
       { encoding: Crypto.CryptoEncoding.BASE64 }
     );
 
-    console.log("🔑 Generated hash:", hash.substring(0, 30) + "...");
+    console.log("ðŸ”‘ Generated hash:", hash.substring(0, 30) + "...");
     console.log(hash, finalPayload);
-    console.log("✅ Encryption complete!");
+    console.log("âœ… Encryption complete!");
 
     return {
       encryptedPayload: finalPayload,
       hash,
     };
   } catch (error) {
-    console.error("❌ Encryption failed:", error);
+    console.error("âŒ Encryption failed:", error);
     throw new Error(`Encryption failed: ${error}`);
   }
 }
@@ -248,12 +248,12 @@ export async function generateSecretHash(): Promise<string> {
     );
 
     if (__DEV__) {
-      console.log("🔑 Generated secret-only hash for GET request");
+      console.log("ðŸ”‘ Generated secret-only hash for GET request");
     }
 
     return hash;
   } catch (error) {
-    console.error("❌ Failed to generate secret hash:", error);
+    console.error("âŒ Failed to generate secret hash:", error);
     throw new Error(`Hash generation failed: ${error}`);
   }
 }
@@ -270,13 +270,13 @@ export async function testEncryption(testData?: any): Promise<boolean> {
 
   try {
     console.log("");
-    console.log("🧪 ========== ENCRYPTION TEST START ==========");
-    console.log("📥 Test data:", sampleData);
+    console.log("ðŸ§ª ========== ENCRYPTION TEST START ==========");
+    console.log("ðŸ“¥ Test data:", sampleData);
 
     const { encryptedPayload, hash } = await encryptPayload(sampleData);
 
     console.log("");
-    console.log("📤 Test Results:");
+    console.log("ðŸ“¤ Test Results:");
     console.log("   Encrypted payload length:", encryptedPayload.length);
     console.log("   Hash length:", hash.length);
     console.log(
@@ -284,15 +284,16 @@ export async function testEncryption(testData?: any): Promise<boolean> {
       encryptedPayload.substring(0, 100) + "..."
     );
     console.log("   Sample hash:", hash.substring(0, 50) + "...");
-    console.log("✅ ========== ENCRYPTION TEST PASSED ==========");
+    console.log("âœ… ========== ENCRYPTION TEST PASSED ==========");
     console.log("");
 
     return true;
   } catch (error) {
     console.error("");
-    console.error("❌ ========== ENCRYPTION TEST FAILED ==========");
+    console.error("âŒ ========== ENCRYPTION TEST FAILED ==========");
     console.error("Error:", error);
     console.error("");
     return false;
   }
 }
+

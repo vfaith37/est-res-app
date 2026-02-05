@@ -1,4 +1,4 @@
-import * as Notifications from "expo-notifications";
+﻿import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
@@ -155,7 +155,7 @@ export async function sendPaymentNotification(amount: number, dueDate: string) {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: "Payment Reminder",
-      body: `Payment of ₦${amount.toLocaleString()} is due on ${dueDate}`,
+      body: `Payment of â‚¦${amount.toLocaleString()} is due on ${dueDate}`,
       data: { type: "payment", amount, dueDate },
       sound: true,
     },
@@ -166,7 +166,7 @@ export async function sendPaymentNotification(amount: number, dueDate: string) {
 export async function sendEmergencyNotification(message: string) {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: "🚨 EMERGENCY ALERT",
+      title: "ðŸš¨ EMERGENCY ALERT",
       body: message,
       data: { type: "emergency", message },
       sound: true,
@@ -200,3 +200,4 @@ export async function setBadgeCount(count: number) {
 export async function clearBadge() {
   await Notifications.setBadgeCountAsync(0);
 }
+

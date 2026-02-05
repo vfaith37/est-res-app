@@ -1,4 +1,4 @@
-import { createMMKV } from "react-native-mmkv";
+﻿import { createMMKV } from "react-native-mmkv";
 
 export const storage = createMMKV({
   id: "estate-manager-storage",
@@ -38,3 +38,4 @@ export const clearAllStates = () => {
     console.error("Failed to clear all states:", error);
   }
 };
+

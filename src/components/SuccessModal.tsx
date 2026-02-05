@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, Image } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
@@ -123,3 +123,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

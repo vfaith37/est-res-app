@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -72,7 +72,7 @@ export default function ActiveTokensScreen() {
       >
         <View style={styles.cardHeader}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={24} color="#007AFF" />
+            <Ionicons name="person" size={24} color="#002EE5" />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.visitorName}>{item.name}</Text>
@@ -134,7 +134,7 @@ export default function ActiveTokensScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#007AFF"
+            tintColor="#002EE5"
           />
         }
       />
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -257,3 +257,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+

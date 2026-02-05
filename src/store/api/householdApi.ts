@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 import { encryptPayload } from "@/utils/encryption";
 
 export interface FamilyMember {
@@ -419,3 +419,4 @@ export const {
   useUpdateStaffStatusMutation,
   useDeleteDomesticStaffMutation,
 } = householdApi;
+

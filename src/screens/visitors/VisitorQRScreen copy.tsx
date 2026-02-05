@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   View,
   Text,
@@ -117,7 +117,7 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Validity Period</Text>
               <Text style={styles.detailValue} numberOfLines={1}>
-                {new Date(visitor.visitDate).toLocaleDateString('en-GB')} – {visitor.departureDate ? new Date(visitor.departureDate).toLocaleDateString('en-GB') : new Date(visitor.visitDate).toLocaleDateString('en-GB')}
+                {new Date(visitor.visitDate).toLocaleDateString('en-GB')} â€“ {visitor.departureDate ? new Date(visitor.departureDate).toLocaleDateString('en-GB') : new Date(visitor.visitDate).toLocaleDateString('en-GB')}
               </Text>
             </View>
             <Text style={styles.generatedDate}>
@@ -130,13 +130,13 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
       {/* FOOTER Actions */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('email')}>
-          <Ionicons name="mail-outline" size={24} color="#007AFF" />
+          <Ionicons name="mail-outline" size={24} color="#002EE5" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('whatsapp')}>
-          <Ionicons name="logo-whatsapp" size={24} color="#007AFF" />
+          <Ionicons name="logo-whatsapp" size={24} color="#002EE5" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareOption('copy')}>
-          <Ionicons name="copy-outline" size={24} color="#007AFF" />
+          <Ionicons name="copy-outline" size={24} color="#002EE5" />
         </TouchableOpacity>
       </View>
 
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 24,
     fontWeight: '700',
-    color: '#007AFF', // Blue color from design
+    color: '#002EE5', // Blue color from design
     letterSpacing: 1,
   },
   detailsContainer: {
@@ -272,3 +272,4 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
 });
+

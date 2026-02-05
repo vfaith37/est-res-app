@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -238,7 +238,7 @@ export default function LoginScreen({ navigation }: Props) {
             {/* Copyright section */}
             <View style={styles.copyrightContainer}>
               <Text style={styles.copyrightText}>
-                © 2025 Estate Resident Management App (ERMA). All Rights Reserved.
+                Â© 2025 Estate Resident Management App (ERMA). All Rights Reserved.
               </Text>
             </View>
           </View>
@@ -343,8 +343,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+    backgroundColor: "#002EE5",
+    borderColor: "#002EE5",
   },
   rememberMeText: {
     fontSize: 13,
@@ -352,11 +352,11 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 13,
-    color: "#007AFF",
+    color: "#002EE5",
     fontWeight: "400",
   },
   loginButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
@@ -383,3 +383,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

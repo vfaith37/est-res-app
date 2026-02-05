@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -116,7 +116,7 @@ export default function EstateDriversScreen() {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.avatarContainer}>
-            <Ionicons name="car" size={24} color="#007AFF" />
+            <Ionicons name="car" size={24} color="#002EE5" />
           </View>
           <View style={styles.cardContent}>
             <View style={styles.nameRow}>
@@ -126,7 +126,7 @@ export default function EstateDriversScreen() {
               </View>
             </View>
             <Text style={styles.vehicleInfo}>
-              {item.vehicleType} • {item.vehicleNumber}
+              {item.vehicleType} â€¢ {item.vehicleNumber}
             </Text>
             <Text style={styles.phoneNumber}>{item.phone}</Text>
           </View>
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   phoneNumber: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#002EE5',
   },
   callButton: {
     width: 44,
@@ -298,3 +298,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+

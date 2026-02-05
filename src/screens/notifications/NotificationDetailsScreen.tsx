@@ -1,4 +1,4 @@
-import {
+﻿import {
   View,
   StyleSheet,
   ScrollView,
@@ -65,7 +65,7 @@ export default function NotificationDetailsScreen({
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
       case 'announcement':
-        return '#007AFF';
+        return '#002EE5';
       case 'visitor':
         return '#5856D6';
       case 'maintenance':
@@ -143,7 +143,7 @@ export default function NotificationDetailsScreen({
               onPress={handleOpenAttachment}
             >
               <View style={styles.attachmentIconContainer}>
-                <Ionicons name="document-attach" size={32} color="#007AFF" />
+                <Ionicons name="document-attach" size={32} color="#002EE5" />
               </View>
               <View style={styles.attachmentInfo}>
                 <Text style={styles.attachmentName}>View Attachment</Text>
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   attachmentAction: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#002EE5',
   },
   messageSection: {
     marginBottom: 24,
@@ -338,3 +338,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -217,7 +217,7 @@ export default function FamilyMemberEditProfileScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#002EE5" />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </SafeAreaView>
@@ -252,7 +252,7 @@ export default function FamilyMemberEditProfileScreen() {
                 <Image source={{ uri: selectedPhoto || resident.signedUrl }} style={styles.photo} />
               ) : (
                 <View style={styles.photoPlaceholder}>
-                  <Ionicons name="person" size={60} color="#007AFF" />
+                  <Ionicons name="person" size={60} color="#002EE5" />
                 </View>
               )}
             </View>
@@ -356,7 +356,7 @@ export default function FamilyMemberEditProfileScreen() {
                   <Text style={[styles.dateButtonText, !dob && styles.dateButtonPlaceholder]}>
                     {formatDate(dob)}
                   </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+                  <Ionicons name="calendar-outline" size={20} color="#002EE5" />
                 </TouchableOpacity>
               </View>
 
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
   photoPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   changePhotoText: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -663,8 +663,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#002EE5',
+    borderColor: '#002EE5',
   },
   selectButtonText: {
     fontSize: 14,
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -708,3 +708,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

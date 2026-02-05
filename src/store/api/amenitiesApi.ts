@@ -1,4 +1,4 @@
-import { api } from './apiSlice';
+﻿import { api } from './apiSlice';
 
 export interface Amenity {
   id: string;

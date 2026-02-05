@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
   View, StyleSheet, SectionList, TouchableOpacity, RefreshControl, Image,
   Alert,
@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { VisitorsStackParamList } from '@/types/navigation';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { useGetVisitorsQuery } from '@/store/api/visitorsApi';
+import { useGetVisitorsQuery, useRevokeVisitorMutation } from '@/store/api/visitorsApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { haptics } from '@/utils/haptics';
@@ -37,6 +37,8 @@ export default function VisitorsListScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+
+  const [revokeVisitor] = useRevokeVisitorMutation();
 
   // Guest Category Modal State
   const [isGuestCategoryModalVisible, setIsGuestCategoryModalVisible] = useState(false);
@@ -86,7 +88,41 @@ export default function VisitorsListScreen({ navigation }: Props) {
 
   const handleVisitorPress = (visitor: any) => {
     haptics.light();
-    navigation.navigate('VisitorQR', { visitor });
+    // Navigate to Details instead of QR
+    navigation.navigate('VisitorDetails', { visitorId: visitor.uuid });
+  };
+
+  const handleEditVisitor = (visitor: any) => {
+    haptics.medium();
+    navigation.navigate('CreateVisitor', {
+      mode: 'edit',
+      initialType: visitor.type,
+      visitor
+    });
+  };
+
+  const handleRevokeVisitor = (visitor: any) => {
+    haptics.warning();
+    Alert.alert(
+      "Revoke Token",
+      "Are you sure you want to revoke this token? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Revoke",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await revokeVisitor({ tokenId: visitor.id }).unwrap();
+              haptics.success();
+            } catch (error) {
+              haptics.error();
+              Alert.alert("Error", "Failed to revoke token");
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Group visitors by date for SectionList
@@ -185,75 +221,87 @@ export default function VisitorsListScreen({ navigation }: Props) {
     const statusStyle = getStatusStyle(displayStatus);
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => handleVisitorPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.visitorName}>{item.name}</Text>
-        </View>
+      <View style={styles.card}>
+        <TouchableOpacity
+          onPress={() => handleVisitorPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={styles.visitorName}>{item.name}</Text>
+            {/* Actions moved to Details Screen */}
+            {/* {item.status !== "Revoked" && item.status !== "Expired" && item.status !== "Used" && (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity onPress={() => handleEditVisitor(item)}>
+                  <Ionicons name="create-outline" size={20} color="#2563EB" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleRevokeVisitor(item)}>
+                  <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                </TouchableOpacity>
+              </View>
+            )} */}
+          </View>
 
-        {isGuest ? (
-          // Guest Card Layout
-          <View>
-            <View style={styles.cardRow}>
-              <View style={styles.infoColumn}>
-                <Text style={styles.label}>Guest ID</Text>
-                <Text style={styles.value}>{item.id}</Text>
+          {isGuest ? (
+            // Guest Card Layout
+            <View>
+              <View style={styles.cardRow}>
+                <View style={styles.infoColumn}>
+                  <Text style={styles.label}>Guest ID</Text>
+                  <Text style={styles.value}>{item.id}</Text>
+                </View>
+                <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
+                  <Text style={styles.label}>
+                    {item.visitorMainCategory === 'Event' ? 'Event Title' : 'Relationship'}
+                  </Text>
+                  <Text style={styles.value}>
+                    {item.visitorMainCategory === 'Event' ? item.eventTitle : (item.visitorRelationship || 'Guest')}
+                  </Text>
+                </View>
               </View>
-              <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
-                <Text style={styles.label}>
-                  {item.visitorMainCategory === 'Event' ? 'Event Title' : 'Relationship'}
-                </Text>
-                <Text style={styles.value}>
-                  {item.visitorMainCategory === 'Event' ? item.eventTitle : (item.visitorRelationship || 'Guest')}
-                </Text>
-              </View>
-            </View>
 
-            <View style={[styles.cardRow, { marginTop: 12 }]}>
-              <View style={styles.infoColumn}>
-                <Text style={styles.label}>Validity Period</Text>
-                <Text style={styles.value}>
-                  {format(parseISO(item.visitDate), 'dd/MM/yyyy HH:mm')} - {item.departureDate ? format(parseISO(item.departureDate), 'dd/MM/yyyy HH:mm') : 'N/A'}
-                </Text>
-              </View>
-              <View style={styles.statusContainer}>
-                <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-                  <Text style={[styles.statusText, { color: statusStyle.text }]}>{displayStatus}</Text>
+              <View style={[styles.cardRow, { marginTop: 12 }]}>
+                <View style={styles.infoColumn}>
+                  <Text style={styles.label}>Validity Period</Text>
+                  <Text style={styles.value}>
+                    {format(parseISO(item.visitDate), 'dd/MM/yyyy HH:mm')} - {item.departureDate ? format(parseISO(item.departureDate), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                  </Text>
+                </View>
+                <View style={styles.statusContainer}>
+                  <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                    <Text style={[styles.statusText, { color: statusStyle.text }]}>{displayStatus}</Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        ) : (
-          // Visitor Token Card Layout
-          <View>
-            <View style={styles.cardRow}>
-              <View style={styles.infoColumn}>
-                <Text style={styles.label}>Email Address</Text>
-                <Text style={styles.value}>{item.email || 'N/A'}</Text>
+          ) : (
+            // Visitor Token Card Layout
+            <View>
+              <View style={styles.cardRow}>
+                <View style={styles.infoColumn}>
+                  <Text style={styles.label}>Email Address</Text>
+                  <Text style={styles.value}>{item.email || 'N/A'}</Text>
+                </View>
+                <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
+                  <Text style={styles.label}>Expected Visit Date</Text>
+                  <Text style={styles.value}>{format(parseISO(item.visitDate), 'dd/MM/yyyy')}</Text>
+                </View>
               </View>
-              <View style={[styles.infoColumn, { alignItems: 'flex-end' }]}>
-                <Text style={styles.label}>Expected Visit Date</Text>
-                <Text style={styles.value}>{format(parseISO(item.visitDate), 'dd/MM/yyyy')}</Text>
-              </View>
-            </View>
 
-            <View style={[styles.cardRow, { marginTop: 12 }]}>
-              <View style={styles.infoColumn}>
-                <Text style={styles.label}>Reason for Visit</Text>
-                <Text style={styles.value}>{item.purpose}</Text>
-              </View>
-              <View style={styles.statusContainer}>
-                <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-                  <Text style={[styles.statusText, { color: statusStyle.text }]}>{item.status}</Text>
+              <View style={[styles.cardRow, { marginTop: 12 }]}>
+                <View style={styles.infoColumn}>
+                  <Text style={styles.label}>Reason for Visit</Text>
+                  <Text style={styles.value}>{item.purpose}</Text>
+                </View>
+                <View style={styles.statusContainer}>
+                  <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+                    <Text style={[styles.statusText, { color: statusStyle.text }]}>{item.status}</Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
-      </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -590,6 +638,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   visitorName: {
@@ -671,3 +722,4 @@ const styles = StyleSheet.create({
   //   fontSize: 16,
   // },
 });
+

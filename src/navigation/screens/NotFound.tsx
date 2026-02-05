@@ -1,4 +1,4 @@
-import { Text, Button } from '@react-navigation/elements';
+﻿import { Text, Button } from '@react-navigation/elements';
 import { StyleSheet, View } from 'react-native';
 
 export function NotFound() {
@@ -18,3 +18,4 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 });
+

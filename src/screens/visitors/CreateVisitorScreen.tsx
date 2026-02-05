@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -21,7 +21,9 @@ import { RouteProp } from '@react-navigation/native';
 import { VisitorsStackParamList } from '@/types/navigation';
 import {
   useCreateVisitorMutation,
+  useEditVisitorMutation,
   useGetGuestCategoryListQuery,
+  CreateVisitorRequest,
 } from '@/store/api/visitorsApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -43,6 +45,8 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
   const user = useSelector((state: RootState) => state.auth.user);
   const residentId = user?.residentId || '';
   const initialType = route.params?.initialType;
+  const mode = route.params?.mode || 'create';
+  const editingVisitor = route.params?.visitor;
 
   // State
   const [type, setType] = useState<'guest' | 'visitor'>(initialType || 'visitor');
@@ -54,14 +58,14 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
   const [phone, setPhone] = useState('');
 
   // Visitor Specific
-  const [visitorNum, setVisitorNum] = useState('1');
+  const [visitorNum, setVisitorNum] = useState('0');
   const [visitDate, setVisitDate] = useState(new Date());
   const [showVisitDatePicker, setShowVisitDatePicker] = useState(false);
   const [purpose, setPurpose] = useState(''); // "Reason for Visit"
 
   // Guest Specific
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
-  const [visitorRelationship, setVisitorRelationship] = useState('PERSONAL_GUESTS'); // Default or empty? Image implies select.
+  const [visitorRelationship, setVisitorRelationship] = useState(''); // Default or empty? Image implies select.
   // Actually image shows "select...". I should start with empty string if strict?
   // But I'll keep default to avoid validation error for now, or change to '' and validate.
   // Image shows "select...", so I will set initial to '' and validate.
@@ -97,17 +101,54 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
   const [isRelationshipDropdownOpen, setIsRelationshipDropdownOpen] = useState(false);
   const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState(false);
 
-  const [createVisitor, { isLoading }] = useCreateVisitorMutation();
+  const [createVisitor, { isLoading: isCreating }] = useCreateVisitorMutation();
+  const [editVisitor, { isLoading: isEditing }] = useEditVisitorMutation();
+  const isLoading = isCreating || isEditing;
   const { data: relationshipCategories = [] } = useGetGuestCategoryListQuery();
+
+  // Populate form if editing
+  React.useEffect(() => {
+    if (mode === 'edit' && editingVisitor) {
+      setType(editingVisitor.type);
+      setFirstName(editingVisitor.name.split(' ')[0] || '');
+      setLastName(editingVisitor.name.split(' ')[1] || '');
+      setPhone(editingVisitor.phone);
+      setEmail(editingVisitor.email);
+      setVisitorNum(editingVisitor.visitorNum.toString());
+
+      if (editingVisitor.visitDate) {
+        setVisitDate(new Date(editingVisitor.visitDate));
+        setStartDate(new Date(editingVisitor.visitDate));
+      }
+
+      if (editingVisitor.departureDate) {
+        setEndDate(new Date(editingVisitor.departureDate));
+      }
+
+      if (editingVisitor.type === 'visitor') {
+        setPurpose(editingVisitor.purpose);
+      } else {
+        setGuestNote(editingVisitor.purpose);
+        // Try to match relationship from categories if possible, or leave as is
+        // visitorRelationship is just a string, so we can set it.
+        // But we don't have it on Visitor type directly?
+        // Wait, Visitor type has `visitorRelationship`? No, let's check visitorsApi.ts
+      }
+    }
+  }, [mode, editingVisitor]);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: type === 'guest' ? 'Create Guest' : 'Generate New Token'
+      title: mode === 'edit'
+        ? (type === 'guest' ? 'Edit Guest' : 'Edit Token')
+        : (type === 'guest' ? 'Create Guest' : 'Generate New Token')
     });
-  }, [navigation, type]);
+  }, [navigation, type, mode]);
 
   const handleSubmit = async () => {
     // Validate required fields based on Type
+    console.log('guestCategory', guestCategory);
+
     if (type === 'visitor') {
       if (!firstName || !lastName || !purpose || !phone) {
         haptics.error();
@@ -116,10 +157,12 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       }
     } else {
       // Guest Validation
-      if (!firstName || !lastName || !visitorRelationship || !gender) {
-        haptics.error();
-        Alert.alert('Error', 'Please fill in all required fields');
-        return;
+      if (guestCategory !== 'Event') {
+        if (!firstName || !lastName || !visitorRelationship || !gender || !eventTitle) {
+          haptics.error();
+          Alert.alert('Error', 'Please fill in all required fields');
+          return;
+        }
       }
     }
 
@@ -174,22 +217,19 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         }
 
         // Helper to format payload
-        const payload = {
+        const payload: CreateVisitorRequest = {
           residentId,
-          firstName: eventTitle, // Using Event Title as placeholder name
-          lastName: 'Event',
-          email: eventGuests[0].email || '', // Use first guest email?
-          phone: eventGuests[0].phone || '',
-          arriveDate: formattedArriveDate,
-          departureDate: formattedDepartureDate,
-          visitorNum: eventGuests.length,
-          purpose: 'Event: ' + eventTitle,
-          type: type,
-          visitorMainCategory: 'Event' as const,
+          tokenType: 'One-Off',
+          visitorMainCategory: 'Event Guest',
           eventTitle: eventTitle,
-          eventVisitors: eventGuests
+          additionnote: 'Event: ' + eventTitle,
+          durationnStartDate: formattedArriveDate,
+          durationEndDate: formattedDepartureDate || formattedArriveDate,
+          eventVisitors: eventGuests,
+          visitorNum: eventGuests.length,
         };
 
+        console.log('Create Event Visitor Payload:', payload);
         const visitor = await createVisitor(payload).unwrap();
         haptics.success();
 
@@ -201,40 +241,101 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       // END Event Handling
 
       const finalPurpose = type === 'visitor' ? purpose : (guestNote || 'Personal Visit');
-      const finalVisitorNum = type === 'visitor' ? parseInt(visitorNum, 10) || 1 : 1;
+      const parsedNum = parseInt(visitorNum, 10);
+      const isCasualGuest = type === 'guest' && guestCategory === 'Casual';
+      const finalVisitorNum = type === 'visitor'
+        ? (isNaN(parsedNum) ? 1 : parsedNum)
+        : (isCasualGuest ? 0 : 1);
 
-      const visitor = await createVisitor({
-        residentId,
-        firstName,
-        lastName,
-        email,
-        phone,
-        arriveDate: formattedArriveDate,
-        departureDate: formattedDepartureDate,
-        visitorNum: finalVisitorNum,
-        purpose: finalPurpose,
-        type,
-        visitorMainCategory: guestCategory || 'Casual', // Use param or Default
-        visitorRelationship: type === 'guest' ? visitorRelationship : undefined,
-      }).unwrap();
+      let resultVisitor: any;
 
-      haptics.success();
-      const message = type === 'guest'
-        ? 'Guest ID Generated Successfully'
-        : 'Visitor Token Generated Successfully';
+      if (mode === 'edit' && editingVisitor) {
+        // Edit Mode
+        const updates = {
+          residentid: residentId,
+          visitFirstname: firstName,
+          visitLastname: lastName,
+          email,
+          phoneno: phone,
+          arrivedate: formattedArriveDate,
+          departuredate: formattedDepartureDate,
+          visitorNum: finalVisitorNum,
+          visitReason: finalPurpose,
+          tokenType: (type === 'visitor' ? 'One-Off' : 'Re-Usable') as "One-Off" | "Re-Usable",
+          visitorMainCategory: guestCategory as any || 'Casual',
+          visitorRelationship: type === 'guest' ? visitorRelationship : undefined,
+          // Handle Event updates if necessary (not fully implemented in UI above yet for edit)
+        };
 
-      Alert.alert('Success', message, [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('VisitorQR', { visitor }),
-        },
-      ]);
+        resultVisitor = await editVisitor({
+          tokenId: editingVisitor.id,
+          updates
+        }).unwrap();
+
+        haptics.success();
+        Alert.alert('Success', 'Visitor Updated Successfully', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+
+      } else {
+        // Create Mode
+        // Create Mode
+        const payload: any = {
+          residentId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          arriveDate: formattedArriveDate,
+          departureDate: formattedDepartureDate,
+          visitorNum: finalVisitorNum,
+          purpose: finalPurpose,
+          tokenType: type === 'visitor' ? 'One-Off' : 'Re-Usable',
+        };
+
+        if (type === 'visitor') {
+          // One-Off Payload Construction
+          payload.visitorMainCategory = 'Visitor';
+          payload.gender = gender || 'Male'; // Default to Male if not captured, or should we expose gender for visitors? User payload has it.
+          // Removing fields not relevant to One-Off if they exist
+          delete payload.departureDate;
+          delete payload.visitorRelationship;
+        } else {
+          // Re-Usable (Guest) Payload Construction
+          payload.visitorMainCategory = isCasualGuest ? 'Casual Guest' : 'Visitor';
+          payload.visitorRelationship = visitorRelationship;
+          payload.additionnote = guestNote || 'Personal Visit';
+          payload.gender = gender;
+          payload.durationnStartDate = formattedArriveDate;
+          payload.durationEndDate = formattedDepartureDate;
+        }
+
+        console.log('Create Visitor Payload:', payload);
+
+        resultVisitor = await createVisitor(payload).unwrap();
+
+        haptics.success();
+        const message = type === 'guest'
+          ? 'Guest ID Generated Successfully'
+          : 'Visitor Token Generated Successfully';
+
+        Alert.alert('Success', message, [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('VisitorQR', { visitor: resultVisitor }),
+          },
+        ]);
+      }
+
     } catch (error: any) {
       haptics.error();
       if (__DEV__) {
         console.error('Create visitor error:', error);
       }
-      Alert.alert('Error', error?.data?.message || 'Failed to create pass');
+      Alert.alert('Error', error?.data?.message || 'Failed to process request');
     }
   };
 
@@ -369,7 +470,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                   style={[styles.secondaryButton, { marginTop: 16, flexDirection: 'row', justifyContent: 'center', gap: 8 }]}
                   onPress={handleAddGuest}
                 >
-                  <Ionicons name="add" size={18} color="#007AFF" />
+                  <Ionicons name="add" size={18} color="#002EE5" />
                   <Text style={styles.secondaryButtonText}>Add Guest</Text>
                 </TouchableOpacity>
               </View>
@@ -533,6 +634,20 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
               {/* GUEST FORM */}
               {type === 'guest' && (
                 <>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>
+                      Events/Visit Title <Text style={styles.required}>*</Text>
+                    </Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="e.g. Birthday Party"
+                      placeholderTextColor="#A0A0A0"
+                      value={eventTitle}
+                      onChangeText={setEventTitle}
+                      editable={!isLoading}
+                    />
+                  </View>
+
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>
                       Guest First Name <Text style={styles.required}>*</Text>
@@ -706,7 +821,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>
-                  {type === 'guest' ? 'Generate ID' : 'Generate Token'}
+                  {mode === 'edit' ? 'Update Token' : (type === 'guest' ? 'Generate ID' : 'Generate Token')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -752,7 +867,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                     {category.name.replace(/_/g, ' ')}
                   </Text>
                   {visitorRelationship === category.name && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                    <Ionicons name="checkmark" size={20} color="#002EE5" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -793,7 +908,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
                     {option}
                   </Text>
                   {gender === option && (
-                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                    <Ionicons name="checkmark" size={20} color="#002EE5" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -872,7 +987,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5EA',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -942,7 +1057,7 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   modalOptionTextActive: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontWeight: '600',
   },
   // New Styles
@@ -966,7 +1081,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -985,7 +1100,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   categoryOptionActive: {
-    borderColor: '#007AFF',
+    borderColor: '#002EE5',
     backgroundColor: '#F0F8FF',
   },
   dropdownList: {
@@ -1018,7 +1133,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   categoryTitleActive: {
-    color: '#007AFF',
+    color: '#002EE5',
   },
   categorySubtitle: {
     fontSize: 14,
@@ -1040,7 +1155,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
   },
   modalFooter: {
     padding: 16,
@@ -1053,7 +1168,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   textButtonLabel: {
-    color: '#007AFF',
+    color: '#002EE5',
     fontSize: 16,
   }
 });

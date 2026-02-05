@@ -1,4 +1,4 @@
-import { View, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+﻿import { View, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,7 +45,7 @@ export default function CheckedInVisitorsScreen() {
             <Ionicons
               name={item.type === 'guest' ? 'person' : 'people'}
               size={24}
-              color="#007AFF"
+              color="#002EE5"
             />
           </View>
           <View style={styles.visitorDetails}>
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF20',
+    backgroundColor: '#002EE520',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   visitorType: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#002EE5',
     fontWeight: '500',
   },
   visitorMeta: {

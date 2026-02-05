@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -113,7 +113,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
                 style={[
                   styles.loginButton,
                   isLoading && styles.loginButtonDisabled,
-                  { backgroundColor: "#007AFF", marginBottom: 20 },
+                  { backgroundColor: "#002EE5", marginBottom: 20 },
                 ]}
                 onPress={handleResetPassword}
                 disabled={isLoading}
@@ -137,7 +137,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate("OTP", { email })}
                 disabled={isLoading}
               >
-                <Text style={[styles.loginButtonText, { color: "#007AFF" }]}>
+                <Text style={[styles.loginButtonText, { color: "#002EE5" }]}>
                   Enter OTP
                 </Text>
               </TouchableOpacity>
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "#007AFF20",
+    backgroundColor: "#002EE520",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 32,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     height: 56,
     borderRadius: 12,
     justifyContent: "center",
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButtonText: {
-    color: "#007AFF",
+    color: "#002EE5",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -312,3 +312,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

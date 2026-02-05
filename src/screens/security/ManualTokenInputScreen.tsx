@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   View,
   TouchableOpacity,
@@ -68,7 +68,7 @@ export default function ManualTokenInputScreen() {
         {/* Instructions */}
         <View style={styles.instructionsCard}>
           <View style={styles.iconContainer}>
-            <Ionicons name="keypad" size={48} color="#007AFF" />
+            <Ionicons name="keypad" size={48} color="#002EE5" />
           </View>
           <Text style={styles.title}>Manual Token Entry</Text>
           <Text style={styles.subtitle}>
@@ -127,7 +127,7 @@ export default function ManualTokenInputScreen() {
         {/* Help Card */}
         <View style={styles.helpCard}>
           <View style={styles.helpHeader}>
-            <Ionicons name="information-circle" size={20} color="#007AFF" />
+            <Ionicons name="information-circle" size={20} color="#002EE5" />
             <Text style={styles.helpTitle}>How to use</Text>
           </View>
           <View style={styles.helpItem}>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#007AFF15",
+    backgroundColor: "#002EE515",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   validateButton: {
     flexDirection: "row",
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     padding: 16,
     borderRadius: 10,
     alignItems: "center",
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#007AFF15",
+    backgroundColor: "#002EE515",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   helpBulletText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#007AFF",
+    color: "#002EE5",
   },
   helpText: {
     flex: 1,
@@ -303,3 +303,4 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
 });
+

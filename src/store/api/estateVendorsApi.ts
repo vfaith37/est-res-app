@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 import { ApiResponse } from "@/utils/apiHelpers";
 
 // ==================== TYPES ====================
@@ -86,3 +86,4 @@ export const estateVendorsApi = api.injectEndpoints({
 });
 
 export const { useGetEstateVendorsQuery } = estateVendorsApi;
+

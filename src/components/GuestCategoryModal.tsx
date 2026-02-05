@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     Modal,
     View,
@@ -72,7 +72,7 @@ export default function GuestCategoryModal({ visible, onClose, onContinue }: Pro
                                     }}
                                 >
                                     <Text style={styles.dropdownItemText}>Casual Guests (for friends, family e.t.c.)</Text>
-                                    {selectedCategory === 'Casual' && <Ionicons name="checkmark" size={20} color="#007AFF" />}
+                                    {selectedCategory === 'Casual' && <Ionicons name="checkmark" size={20} color="#002EE5" />}
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.dropdownItem}
@@ -82,7 +82,7 @@ export default function GuestCategoryModal({ visible, onClose, onContinue }: Pro
                                     }}
                                 >
                                     <Text style={styles.dropdownItemText}>Events Guests (for gatherings and events)</Text>
-                                    {selectedCategory === 'Event' && <Ionicons name="checkmark" size={20} color="#007AFF" />}
+                                    {selectedCategory === 'Event' && <Ionicons name="checkmark" size={20} color="#002EE5" />}
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -182,3 +182,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

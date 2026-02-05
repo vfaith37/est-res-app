@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+﻿import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
 class HapticsManager {

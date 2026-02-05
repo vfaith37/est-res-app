@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, Pressable } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { Ionicons } from '@expo/vector-icons';
@@ -116,7 +116,7 @@ export default function FilterModal({
                                         {/* Checkmark Logic */}
                                         {((!selectedFilter && (opt === 'All Status' || opt === 'All Categories')) ||
                                             (selectedFilter && opt.toLowerCase() === selectedFilter.toLowerCase())) && (
-                                                <Ionicons name="checkmark" size={16} color="#007AFF" />
+                                                <Ionicons name="checkmark" size={16} color="#002EE5" />
                                             )}
                                     </TouchableOpacity>
                                 ))}
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     },
     resetText: {
         fontSize: 16,
-        color: '#007AFF', // Blue
+        color: '#002EE5', // Blue
         fontWeight: '600',
     },
     divider: {
@@ -275,3 +275,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+

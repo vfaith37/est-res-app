@@ -1,4 +1,4 @@
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+﻿import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FamilyMembersListScreen from './FamilyMembersListScreen';
 import DomesticStaffListScreen from './DomesticStaffListScreen';
@@ -10,9 +10,9 @@ export default function HouseholdMainScreen() {
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#007AFF',
+          tabBarActiveTintColor: '#002EE5',
           tabBarInactiveTintColor: '#8E8E93',
-          tabBarIndicatorStyle: { backgroundColor: '#007AFF' },
+          tabBarIndicatorStyle: { backgroundColor: '#002EE5' },
           tabBarLabelStyle: { fontWeight: '600', fontSize: 14 },
         }}
       >

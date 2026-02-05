@@ -1,4 +1,4 @@
-import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+﻿import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -96,7 +96,7 @@ function getCategoryIcon(category: string) {
 
 function getCategoryColor(category: string) {
   const colors: any = {
-    plumbing: '#007AFF',
+    plumbing: '#002EE5',
     electrical: '#FF9500',
     cleaning: '#34C759',
     carpentry: '#8E8E93',
@@ -111,7 +111,7 @@ function getStatusColor(status: string) {
     case 'pending':
       return '#FF9500';
     case 'assigned':
-      return '#007AFF';
+      return '#002EE5';
     case 'in-progress':
       return '#5856D6';
     case 'completed':
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

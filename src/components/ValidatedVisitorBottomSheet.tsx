@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+﻿import { useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -272,7 +272,7 @@ function InfoRow({
   return (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}>
-        <Ionicons name={icon} size={20} color="#007AFF" />
+        <Ionicons name={icon} size={20} color="#002EE5" />
       </View>
       <View style={styles.infoContent}>
         <Text style={styles.infoLabel}>{label}</Text>
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -399,3 +399,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

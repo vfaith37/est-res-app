@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { CompanyDetails, Role } from "../api/authApi";
 
 export interface User {
@@ -98,3 +98,4 @@ export const {
 } = authSlice.actions;
 
 export default authSlice.reducer;
+

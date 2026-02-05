@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
+﻿import { View, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,27 +32,27 @@ export default function PrivacyPolicyScreen() {
             We collect the following types of information:
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Personal Information:</Text> Name, email address, phone
+            â€¢ <Text style={styles.bold}>Personal Information:</Text> Name, email address, phone
             number, residential address
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Account Information:</Text> Username, password, user
+            â€¢ <Text style={styles.bold}>Account Information:</Text> Username, password, user
             role, unit number
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Visitor Information:</Text> Visitor names, contact
+            â€¢ <Text style={styles.bold}>Visitor Information:</Text> Visitor names, contact
             details, visit dates and purposes
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Household Information:</Text> Family member and
+            â€¢ <Text style={styles.bold}>Household Information:</Text> Family member and
             domestic staff details
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Usage Data:</Text> App usage patterns, feature
+            â€¢ <Text style={styles.bold}>Usage Data:</Text> App usage patterns, feature
             interactions, device information
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Payment Information:</Text> Payment history and status
+            â€¢ <Text style={styles.bold}>Payment Information:</Text> Payment history and status
             (payment processing is handled securely)
           </Text>
         </View>
@@ -62,13 +62,13 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.paragraph}>
             We use your information to:
           </Text>
-          <Text style={styles.bulletPoint}>• Provide and maintain the application services</Text>
-          <Text style={styles.bulletPoint}>• Manage visitor access and security</Text>
-          <Text style={styles.bulletPoint}>• Process maintenance requests and emergencies</Text>
-          <Text style={styles.bulletPoint}>• Send important notifications and announcements</Text>
-          <Text style={styles.bulletPoint}>• Track payments and generate reports</Text>
-          <Text style={styles.bulletPoint}>• Improve application functionality and user experience</Text>
-          <Text style={styles.bulletPoint}>• Comply with legal and regulatory requirements</Text>
+          <Text style={styles.bulletPoint}>â€¢ Provide and maintain the application services</Text>
+          <Text style={styles.bulletPoint}>â€¢ Manage visitor access and security</Text>
+          <Text style={styles.bulletPoint}>â€¢ Process maintenance requests and emergencies</Text>
+          <Text style={styles.bulletPoint}>â€¢ Send important notifications and announcements</Text>
+          <Text style={styles.bulletPoint}>â€¢ Track payments and generate reports</Text>
+          <Text style={styles.bulletPoint}>â€¢ Improve application functionality and user experience</Text>
+          <Text style={styles.bulletPoint}>â€¢ Comply with legal and regulatory requirements</Text>
         </View>
 
         <View style={styles.section}>
@@ -77,19 +77,19 @@ export default function PrivacyPolicyScreen() {
             We do not sell your personal information. We may share your data with:
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Estate Management:</Text> To fulfill estate management
+            â€¢ <Text style={styles.bold}>Estate Management:</Text> To fulfill estate management
             and security purposes
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Security Personnel:</Text> For visitor verification and
+            â€¢ <Text style={styles.bold}>Security Personnel:</Text> For visitor verification and
             emergency response
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Service Providers:</Text> Third-party services that help
+            â€¢ <Text style={styles.bold}>Service Providers:</Text> Third-party services that help
             us operate the application
           </Text>
           <Text style={styles.bulletPoint}>
-            • <Text style={styles.bold}>Legal Authorities:</Text> When required by law or to
+            â€¢ <Text style={styles.bold}>Legal Authorities:</Text> When required by law or to
             protect rights and safety
           </Text>
         </View>
@@ -99,11 +99,11 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.paragraph}>
             We implement appropriate security measures to protect your personal information:
           </Text>
-          <Text style={styles.bulletPoint}>• Encrypted data transmission (HTTPS/SSL)</Text>
-          <Text style={styles.bulletPoint}>• Secure password storage with hashing</Text>
-          <Text style={styles.bulletPoint}>• Regular security audits and updates</Text>
-          <Text style={styles.bulletPoint}>• Access controls and authentication</Text>
-          <Text style={styles.bulletPoint}>• Secure server infrastructure</Text>
+          <Text style={styles.bulletPoint}>â€¢ Encrypted data transmission (HTTPS/SSL)</Text>
+          <Text style={styles.bulletPoint}>â€¢ Secure password storage with hashing</Text>
+          <Text style={styles.bulletPoint}>â€¢ Regular security audits and updates</Text>
+          <Text style={styles.bulletPoint}>â€¢ Access controls and authentication</Text>
+          <Text style={styles.bulletPoint}>â€¢ Secure server infrastructure</Text>
         </View>
 
         <View style={styles.section}>
@@ -111,9 +111,9 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.paragraph}>
             We retain your personal information for as long as necessary to:
           </Text>
-          <Text style={styles.bulletPoint}>• Provide services to you</Text>
-          <Text style={styles.bulletPoint}>• Comply with legal obligations</Text>
-          <Text style={styles.bulletPoint}>• Resolve disputes and enforce agreements</Text>
+          <Text style={styles.bulletPoint}>â€¢ Provide services to you</Text>
+          <Text style={styles.bulletPoint}>â€¢ Comply with legal obligations</Text>
+          <Text style={styles.bulletPoint}>â€¢ Resolve disputes and enforce agreements</Text>
           <Text style={styles.paragraph}>
             When data is no longer needed, it is securely deleted or anonymized.
           </Text>
@@ -124,12 +124,12 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.paragraph}>
             You have the right to:
           </Text>
-          <Text style={styles.bulletPoint}>• Access your personal data</Text>
-          <Text style={styles.bulletPoint}>• Correct inaccurate information</Text>
-          <Text style={styles.bulletPoint}>• Request deletion of your data</Text>
-          <Text style={styles.bulletPoint}>• Object to data processing</Text>
-          <Text style={styles.bulletPoint}>• Withdraw consent at any time</Text>
-          <Text style={styles.bulletPoint}>• Export your data in a portable format</Text>
+          <Text style={styles.bulletPoint}>â€¢ Access your personal data</Text>
+          <Text style={styles.bulletPoint}>â€¢ Correct inaccurate information</Text>
+          <Text style={styles.bulletPoint}>â€¢ Request deletion of your data</Text>
+          <Text style={styles.bulletPoint}>â€¢ Object to data processing</Text>
+          <Text style={styles.bulletPoint}>â€¢ Withdraw consent at any time</Text>
+          <Text style={styles.bulletPoint}>â€¢ Export your data in a portable format</Text>
         </View>
 
         <View style={styles.section}>
@@ -174,9 +174,9 @@ export default function PrivacyPolicyScreen() {
             If you have questions about this Privacy Policy or how we handle your data, please
             contact:
           </Text>
-          <Text style={styles.bulletPoint}>• Estate Management Office</Text>
-          <Text style={styles.bulletPoint}>• Email: privacy@estatemanagement.com</Text>
-          <Text style={styles.bulletPoint}>• In-app support features</Text>
+          <Text style={styles.bulletPoint}>â€¢ Estate Management Office</Text>
+          <Text style={styles.bulletPoint}>â€¢ Email: privacy@estatemanagement.com</Text>
+          <Text style={styles.bulletPoint}>â€¢ In-app support features</Text>
         </View>
 
         {/* Footer */}
@@ -262,3 +262,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+

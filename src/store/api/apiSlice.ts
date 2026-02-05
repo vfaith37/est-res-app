@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+﻿import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type {
   BaseQueryFn,
   FetchArgs,
@@ -50,7 +50,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
       !(args.body instanceof FormData)
     ) {
       try {
-        // console.log(`🚀 Encrypting ${method} request to:`, args.url);
+        // console.log(`ðŸš€ Encrypting ${method} request to:`, args.url);
 
         // Parse body if it's a string
         const bodyData =
@@ -74,9 +74,9 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
           headers: newHeaders,
         };
 
-        // console.log("✅ Request encrypted successfully");
+        // console.log("âœ… Request encrypted successfully");
       } catch (error) {
-        console.error("❌ Encryption failed:", error);
+        console.error("âŒ Encryption failed:", error);
         return {
           error: {
             status: "CUSTOM_ERROR",
@@ -89,7 +89,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
     // Handle GET requests (hash only, no encryption)
     else if (!args.body && ENCRYPTION_CONFIG.ENABLED) {
       try {
-        // console.log(`🔑 Adding hash to ${method} request:`, args.url);
+        // console.log(`ðŸ”‘ Adding hash to ${method} request:`, args.url);
 
         // Generate secret-only hash for GET requests
         const hash = await generateSecretHash();
@@ -108,9 +108,9 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
           headers: newHeaders,
         };
 
-        // console.log("✅ Hash added to GET request");
+        // console.log("âœ… Hash added to GET request");
       } catch (error) {
-        console.error("❌ Hash generation failed:", error);
+        console.error("âŒ Hash generation failed:", error);
         return {
           error: {
             status: "CUSTOM_ERROR",
@@ -121,7 +121,7 @@ const baseQueryWithEncryption = (async (args, api, extraOptions) => {
       }
     } else if (!ENCRYPTION_CONFIG.ENABLED) {
       // console.log(
-      //   `⚠️ ${method} request to:`,
+      //   `âš ï¸ ${method} request to:`,
       //   args.url,
       //   "(encryption/hash DISABLED)"
       // );
@@ -183,7 +183,7 @@ const baseQueryWithReauth: BaseQueryFn<
     isJwtExpiredError(result.error)
   ) {
     if (__DEV__) {
-      // console.log("🔄 JWT expired, attempting token refresh...");
+      // console.log("ðŸ”„ JWT expired, attempting token refresh...");
     }
 
     // If already refreshing, wait for the existing refresh to complete
@@ -196,7 +196,7 @@ const baseQueryWithReauth: BaseQueryFn<
       } catch (error) {
         // Refresh failed, logout
         if (__DEV__) {
-          console.error("❌ Token refresh failed, logging out");
+          console.error("âŒ Token refresh failed, logging out");
         }
         api.dispatch(logout());
         return result;
@@ -239,7 +239,7 @@ const baseQueryWithReauth: BaseQueryFn<
             const newRefreshToken = data.data.refresh_token;
 
             if (__DEV__) {
-              console.log("✅ Token refreshed successfully");
+              console.log("âœ… Token refreshed successfully");
             }
 
             // Update tokens in state
@@ -259,7 +259,7 @@ const baseQueryWithReauth: BaseQueryFn<
         }
       } catch (error) {
         if (__DEV__) {
-          console.error("❌ Token refresh error:", error);
+          console.error("âŒ Token refresh error:", error);
         }
         // Logout on refresh failure
         api.dispatch(logout());
@@ -277,7 +277,7 @@ const baseQueryWithReauth: BaseQueryFn<
     } catch (error) {
       // Refresh failed, already logged out
       if (__DEV__) {
-        console.error("❌ Failed to refresh token and retry request");
+        console.error("âŒ Failed to refresh token and retry request");
       }
     }
   }
@@ -306,3 +306,4 @@ export const api = createApi({
   ],
   endpoints: () => ({}),
 });
+

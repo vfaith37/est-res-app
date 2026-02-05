@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#E5E5EA', backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center',
   },
   dayButtonActive: {
-    backgroundColor: '#007AFF', borderColor: '#007AFF',
+    backgroundColor: '#002EE5', borderColor: '#002EE5',
   },
   dayText: {
     fontSize: 12, fontWeight: '600', color: '#000',
@@ -628,3 +628,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

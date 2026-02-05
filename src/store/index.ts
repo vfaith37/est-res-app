@@ -1,8 +1,9 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
+﻿import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { api } from "./api/apiSlice";
 import authReducer from "./slices/authSlice";
 import { loadState, saveState } from "./mmkvStorage";
+import { rtkQueryToastMiddleware } from "./middleware/rtkQueryToastMiddleware";
 
 // Load persisted state
 const preloadedState = {
@@ -22,7 +23,9 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: ["persist/PERSIST"],
       },
-    }).concat(api.middleware),
+    })
+      .concat(api.middleware)
+      .concat(rtkQueryToastMiddleware),
 });
 
 // Enable refetchOnFocus and refetchOnReconnect
@@ -42,3 +45,4 @@ store.subscribe(() => {
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+

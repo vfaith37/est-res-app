@@ -1,4 +1,4 @@
-// @utils/apiHelpers.ts
+﻿// @utils/apiHelpers.ts
 
 /**
  * Standard API response structure from backend
@@ -39,6 +39,9 @@ export function getErrorMessage(error: any): string {
   // Check for API error response
   if (error?.data?.message) {
     return error.data.message;
+  }
+  if (error?.data?.msg) {
+    return error.data.msg;
   }
 
   // Check for network errors
@@ -95,7 +98,7 @@ export const RESPONSE_CODES = {
  */
 export function hasResponseCode(
   response: ApiResponse<any>,
-  code: string
+  code: string,
 ): boolean {
   return response.respCode === code;
 }
@@ -113,3 +116,4 @@ export function transformApiError(error: any) {
     },
   };
 }
+

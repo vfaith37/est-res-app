@@ -1,4 +1,4 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+﻿import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HeaderButton, Text } from '@react-navigation/elements';
 import {
   createStaticNavigation,
@@ -103,3 +103,4 @@ declare global {
     interface RootParamList extends RootStackParamList {}
   }
 }
+

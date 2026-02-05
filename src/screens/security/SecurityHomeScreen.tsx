@@ -1,4 +1,4 @@
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+﻿import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText as Text } from "@/components/ThemedText";
@@ -131,3 +131,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+

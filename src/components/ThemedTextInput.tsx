@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { TextInput, TextInputProps, StyleSheet, Platform } from 'react-native';
 
 /**
@@ -35,3 +35,4 @@ export function ThemedTextInput(props: TextInputProps & { ref?: React.Ref<TextIn
 }
 
 const styles = StyleSheet.create({});
+

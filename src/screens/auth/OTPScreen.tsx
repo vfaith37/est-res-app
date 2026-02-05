@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -362,7 +362,7 @@ export default function OTPScreen({ navigation, route }: Props) {
       {/* Copyright section */}
       <View style={styles.copyrightContainer}>
         <Text style={styles.copyrightText}>
-          © 2025 Estate Resident Management App (ERMA). All Rights Reserved.
+          Â© 2025 Estate Resident Management App (ERMA). All Rights Reserved.
         </Text>
       </View>
     </View>
@@ -508,3 +508,4 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
 });
+

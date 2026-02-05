@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Text, TextProps, StyleSheet, Platform } from 'react-native';
 
 /**
@@ -33,3 +33,4 @@ export function ThemedText(props: TextProps) {
 const styles = StyleSheet.create({
     // Add any default styles here if needed in the future
 });
+

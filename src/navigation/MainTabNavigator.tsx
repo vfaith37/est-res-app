@@ -1,4 +1,4 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+﻿import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppSelector } from "@/store/hooks";
@@ -105,6 +105,11 @@ function VisitorsNavigator() {
         name="VisitorQR"
         component={VisitorQRScreen}
         options={{ title: "Visitor Pass", presentation: "modal" }}
+      />
+      <VisitorsStack.Screen
+        name="VisitorDetails"
+        component={require("@/screens/visitors/VisitorDetailsScreen").default}
+        options={{ title: "View Details" }}
       />
     </VisitorsStack.Navigator>
   );
@@ -419,7 +424,7 @@ function SecurityTabNavigator() {
     <SecurityTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#007AFF",
+        tabBarActiveTintColor: "#002EE5",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
           height: 60 + insets.bottom,
@@ -478,7 +483,7 @@ function HomeHeadTabNavigator() {
     <HomeHeadTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#007AFF",
+        tabBarActiveTintColor: "#002EE5",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
           height: Platform.OS !== "ios" ? 60 + insets.bottom : insets.bottom + 30,
@@ -542,7 +547,7 @@ function FamilyMemberTabNavigator() {
     <FamilyMemberTab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#007AFF",
+        tabBarActiveTintColor: "#002EE5",
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
           height: 60 + insets.bottom,
@@ -620,3 +625,4 @@ export default function MainTabNavigator() {
   // Default fallback
   return <HomeHeadTabNavigator />;
 }
+

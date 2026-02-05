@@ -1,4 +1,4 @@
-import { Assets as NavigationAssets } from '@react-navigation/elements';
+﻿import { Assets as NavigationAssets } from '@react-navigation/elements';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
 import { createURL } from 'expo-linking';
@@ -35,3 +35,4 @@ export function App() {
     />
   );
 }
+

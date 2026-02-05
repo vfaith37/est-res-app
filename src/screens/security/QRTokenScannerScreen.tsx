@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -92,7 +92,7 @@ export default function QRTokenScannerScreen() {
   if (hasPermission === null) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#002EE5" />
         <Text style={styles.messageText}>Requesting camera permission...</Text>
       </View>
     );
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 40,
     height: 40,
-    borderColor: "#007AFF",
+    borderColor: "#002EE5",
     borderWidth: 4,
   },
   topLeft: {
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     padding: 16,
     borderRadius: 10,
   },
@@ -315,3 +315,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

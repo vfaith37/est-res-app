@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -189,7 +189,7 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={40} color="#007AFF" />
+                <Ionicons name="person" size={40} color="#002EE5" />
               </View>
             )}
           </View>
@@ -221,7 +221,7 @@ export default function FamilyMemberSettingsScreen({ navigation }: FamilyMemberS
                       <Ionicons
                         name={item.icon as any}
                         size={22}
-                        color="#007AFF"
+                        color="#002EE5"
                       />
                     </View>
                     <View style={styles.menuItemText}>
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5EA',
   },
   submitButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#002EE5',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -496,3 +496,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

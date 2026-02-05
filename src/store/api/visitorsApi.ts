@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 import {
   ApiResponse,
   unwrapApiResponse,
@@ -23,6 +23,24 @@ export interface VisitorTokenData {
   assigneddays: any[]; // Array of assigned days
   qr?: string; // Base64 QR code image data (from create response)
   address?: string; // Address (from create response)
+  // New API fields
+  gender?: string;
+  tokenType?: string;
+  visitorMainCategory?: string;
+  visitorRelationship?: string;
+  eventTitle?: string;
+  durationnStartDate?: string | null;
+  durationEndDate?: string | null;
+  signinby?: string | null;
+  signintime?: string | null;
+  signingate?: string | null;
+  signoutby?: string | null;
+  signouttime?: string | null;
+  signoutgate?: string | null;
+  signouttime?: string | null;
+  signoutgate?: string | null;
+  additionnote?: string | null;
+  revokedAt?: string | null;
 }
 
 // Backend response structure for getresidenttoken
@@ -59,6 +77,7 @@ export interface GetVisitorsResponse {
 }
 
 // Frontend normalized Visitor type
+// Frontend normalized Visitor type
 export interface Visitor {
   id: string; // tok from backend
   uuid: string; // id (UUID) from backend
@@ -77,39 +96,75 @@ export interface Visitor {
   createdAt: string; // createdat
   companyId: string; // coyid
   assignedDays: any[]; // assigneddays
+  // Extended details
+  gender?: string;
+  tokenType?: string;
+  mainCategory?: string;
+  relationship?: string;
+  eventTitle?: string;
+  durationStartDate?: string;
+  durationEndDate?: string;
+  signInBy?: string;
+  signInTime?: string;
+  signInGate?: string;
+  signOutBy?: string;
+  signOutTime?: string;
+  signOutGate?: string;
+  signOutTime?: string | null;
+  signOutGate?: string | null;
+  additionalNote?: string | null;
+  revokedAt?: string | null;
 }
 
 // Backend API request for creating visitor token
 export interface CreateVisitorTokenRequest {
-  residentid: string;
-  visitFirstname: string;
-  visitLastname: string;
-  email: string;
-  phoneno: string;
-  arrivedate: string; // Format: "2025-11-25"
-  departuredate?: string; // Format: "2025-11-27" - Only for guests (overnight stays)
-  visitorNum: number;
-  visitReason: string;
-  visitorMainCategory: "Casual" | "Event";
-  visitorRelationship: string;
-  eventTitle: string;
-  eventVisitors: any[];
+  residentid: string; // Required
+  visitFirstname?: string; // Optional for Event
+  visitLastname?: string; // Optional for Event
+  email?: string; // Optional for Event
+  phoneno?: string; // Optional for Event
+  arrivedate?: string; // Optional for Event? No, Event usually has durationnStartDate
+  visitorNum?: number; // Optional?
+  visitReason?: string; // Optional?
+  tokenType: "One-Off" | "Re-Usable";
+  visitorMainCategory:
+    | "Casual"
+    | "Event"
+    | "Casual Guest"
+    | "Event Guest"
+    | "Visitor";
+  visitorRelationship?: string;
+  gender?: string;
+  additionnote?: string;
+  durationnStartDate?: string;
+  durationEndDate?: string;
+  eventTitle?: string;
+  eventVisitors?: any[];
 }
 
 // Frontend create visitor request (user-friendly)
 export interface CreateVisitorRequest {
   residentId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  arriveDate: string;
-  departureDate?: string; // Only for guests (type: "guest")
-  visitorNum: number;
-  purpose: string;
-  type: "guest" | "visitor"; // guest = has departure date, visitor = day visit only
-  visitorMainCategory?: "Casual" | "Event";
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  arriveDate?: string;
+  departureDate?: string;
+  visitorNum?: number;
+  purpose?: string;
+  tokenType: "One-Off" | "Re-Usable";
+  visitorMainCategory?:
+    | "Casual"
+    | "Event"
+    | "Casual Guest"
+    | "Event Guest"
+    | "Visitor";
   visitorRelationship?: string;
+  gender?: string;
+  additionnote?: string;
+  durationnStartDate?: string;
+  durationEndDate?: string;
   eventTitle?: string;
   eventVisitors?: {
     firstName: string;
@@ -150,6 +205,23 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
     createdAt: tokenData.createdat,
     companyId: tokenData.coyid,
     assignedDays: tokenData.assigneddays,
+    // Extended fields
+    gender: tokenData.gender,
+    tokenType: tokenData.tokenType,
+    mainCategory: tokenData.visitorMainCategory,
+    relationship: tokenData.visitorRelationship,
+    eventTitle: tokenData.eventTitle,
+    durationStartDate: tokenData.durationnStartDate || undefined,
+    durationEndDate: tokenData.durationEndDate || undefined,
+    signInBy: tokenData.signinby || undefined,
+    signInTime: tokenData.signintime || undefined,
+    signInGate: tokenData.signingate || undefined,
+    signOutBy: tokenData.signoutby || undefined,
+    signOutTime: tokenData.signouttime || undefined,
+    signOutGate: tokenData.signoutgate || undefined,
+    signOutGate: tokenData.signoutgate || undefined,
+    additionalNote: tokenData.additionnote || undefined,
+    revokedAt: tokenData.revokedAt || undefined,
   };
 }
 
@@ -157,9 +229,9 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
  * Transform frontend CreateVisitorRequest to backend CreateVisitorTokenRequest
  */
 function transformCreateVisitorRequest(
-  request: CreateVisitorRequest
+  request: CreateVisitorRequest,
 ): CreateVisitorTokenRequest {
-  const baseRequest: CreateVisitorTokenRequest = {
+  const baseRequest: any = {
     residentid: request.residentId,
     visitFirstname: request.firstName,
     visitLastname: request.lastName,
@@ -168,36 +240,104 @@ function transformCreateVisitorRequest(
     arrivedate: request.arriveDate,
     visitorNum: request.visitorNum,
     visitReason: request.purpose,
-    visitorMainCategory: request.visitorMainCategory || "Casual",
-    visitorRelationship: request.visitorRelationship || "PERSONAL_GUESTS",
-    eventTitle: request.eventTitle || "",
-    eventVisitors:
-      request.eventVisitors?.map((g) => ({
-        visitorName: `${g.firstName} ${g.lastName}`,
-        gender: g.gender,
-        fone: g.phone,
-        email: g.email,
-      })) || [],
+    tokenType: request.tokenType,
   };
 
-  console.log(baseRequest);
-
-  // Add departuredate only for guests (overnight stays)
-  if (request.type === "guest" && request.departureDate) {
+  // Case 1: One-Off (Casual Guest -> Visitor)
+  if (
+    request.tokenType === "One-Off" &&
+    request.visitorMainCategory === "Visitor"
+  ) {
     return {
       ...baseRequest,
-      departuredate: request.departureDate,
+      visitorMainCategory: "Visitor",
+      gender: request.gender || "Male",
+      visitorRelationship: "",
+      additionnote: "",
+      durationnStartDate: "",
+      durationEndDate: "",
+      eventTitle: "",
+      eventVisitors: [],
     };
   }
 
+  // Case 2: Re-Usable (Visitor)
+  if (
+    request.tokenType === "Re-Usable" &&
+    request.visitorMainCategory === "Visitor"
+  ) {
+    return {
+      ...baseRequest,
+      visitorMainCategory: "Visitor",
+      visitorRelationship: request.visitorRelationship,
+      additionnote: request.additionnote,
+      durationnStartDate: request.durationnStartDate,
+      durationEndDate: request.durationEndDate,
+      gender: request.gender,
+      eventTitle: "",
+      eventVisitors: [],
+    };
+  }
+
+  // Case 3: Event Guest
+  if (request.visitorMainCategory === "Event Guest") {
+    return {
+      residentid: request.residentId,
+      tokenType: "One-Off",
+      visitorMainCategory: "Event Guest",
+      eventTitle: request.eventTitle,
+      visitorNum: request.visitorNum,
+      additionnote: request.additionnote,
+      durationnStartDate: request.durationnStartDate,
+      durationEndDate: request.durationEndDate,
+      eventVisitors:
+        request.eventVisitors?.map((g) => ({
+          visitorName: `${g.firstName} ${g.lastName}`,
+          gender: g.gender,
+          fone: g.phone,
+          email: g.email,
+        })) || [],
+      // Ensure other fields are present as empty if strictly required by "all payloads" rule,
+      // but user specifically excluded firstName etc. previously.
+      // Assuming "excluded" refers to the optional fields we were tossing around.
+      visitorRelationship: "",
+      gender: "",
+    };
+  }
+
+  // Case 4: Casual Guest
+  if (request.visitorMainCategory === "Casual Guest") {
+    const payload: any = {
+      ...baseRequest,
+      visitorMainCategory: "Casual Guest",
+      visitorRelationship: request.visitorRelationship,
+      additionnote: request.additionnote,
+      durationnStartDate: request.durationnStartDate,
+      durationEndDate: request.durationEndDate,
+      gender: request.gender,
+      eventTitle: request.eventTitle,
+      eventVisitors: [],
+    };
+    console.log("Final Transformed CreateVisitor Payload:", payload);
+    return payload;
+  }
+
+  // Fallback / default behavior if needed (shouldn't be reached if strict)
+  console.log(
+    "Final Transformed CreateVisitor Payload (Fallback):",
+    baseRequest,
+  );
   return baseRequest;
 }
 
 export const visitorsApi = api.injectEndpoints({
   overrideExisting: true, // Allow HMR to override endpoints in development
   endpoints: (builder) => ({
-    // ✅ Get all visitor tokens for a resident
-    getVisitors: builder.query<GetVisitorsResponse, { residentId: string; status?: string }>({
+    // âœ… Get all visitor tokens for a resident
+    getVisitors: builder.query<
+      GetVisitorsResponse,
+      { residentId: string; status?: string }
+    >({
       query: ({ residentId, status }) => ({
         url: `resident/getallresidenttoken`,
         method: "GET",
@@ -206,41 +346,37 @@ export const visitorsApi = api.injectEndpoints({
           status,
         },
       }),
-      transformResponse: (
-        response: ApiResponse<GetResidentTokensResponse>
-      ) => {
+      transformResponse: (response: ApiResponse<GetResidentTokensResponse>) => {
         if (response.respCode !== "00") {
-          throw new Error(
-            response.message || "Failed to fetch visitor tokens"
-          );
+          throw new Error(response.message || "Failed to fetch visitor tokens");
         }
         // Response has nested structure: data.data[]
         const tokens = response.data.data || [];
         const summary = response.data.summary || {
-            total_tokens: 0,
-            unUsed_token: 0,
-            used_token: 0,
-            inUsed_token: 0,
-            revoked_token: 0,
-            expired_token: 0
+          total_tokens: 0,
+          unUsed_token: 0,
+          used_token: 0,
+          inUsed_token: 0,
+          revoked_token: 0,
+          expired_token: 0,
         };
 
         return {
-            visitors: tokens.map((token) => transformVisitorToken(token)),
-            stats: {
-                total: summary.total_tokens,
-                unused: summary.unUsed_token,
-                used: summary.used_token,
-                inUse: summary.inUsed_token,
-                revoked: summary.revoked_token,
-                expired: summary.expired_token
-            }
+          visitors: tokens.map((token) => transformVisitorToken(token)),
+          stats: {
+            total: summary.total_tokens,
+            unused: summary.unUsed_token,
+            used: summary.used_token,
+            inUse: summary.inUsed_token,
+            revoked: summary.revoked_token,
+            expired: summary.expired_token,
+          },
         };
       },
       providesTags: ["Visitors"],
     }),
 
-    // ✅ Get guest category list
+    // âœ… Get guest category list
     getGuestCategoryList: builder.query<{ name: string }[], void>({
       query: () => ({
         url: "resident/getguestcategorylist",
@@ -249,14 +385,47 @@ export const visitorsApi = api.injectEndpoints({
       transformResponse: (response: ApiResponse<{ name: string }[]>) => {
         if (response.respCode !== "00") {
           throw new Error(
-            response.message || "Failed to fetch guest categories"
+            response.message || "Failed to fetch guest categories",
           );
         }
         return response.data;
       },
     }),
 
-    // ✅ Create new visitor token (generate pass)
+    // âœ… Get Resident Details
+    getResident: builder.query<any, string>({
+      query: (residentId) => ({
+        url: `resident/getresident/${residentId}`,
+        method: "GET",
+      }),
+      transformResponse: (response: ApiResponse<any>) => {
+        if (response.respCode !== "00") {
+          throw new Error(
+            response.message || "Failed to fetch resident details",
+          );
+        }
+        return response.data;
+      },
+    }),
+
+    // âœ… Get Single Visitor Details
+    getVisitorById: builder.query<Visitor, string>({
+      query: (visitorId) => ({
+        url: `estatemgt/getresidenttokenbyid/${visitorId}`,
+        method: "GET",
+      }),
+      transformResponse: (response: ApiResponse<VisitorTokenData>) => {
+        if (response.respCode !== "00") {
+          throw new Error(
+            response.message || "Failed to fetch visitor details",
+          );
+        }
+        return transformVisitorToken(response.data);
+      },
+      providesTags: (_result, _error, id) => [{ type: "Visitors", id }],
+    }),
+
+    // âœ… Create new visitor token (generate pass)
     createVisitor: builder.mutation<Visitor, CreateVisitorRequest>({
       query: (visitor) => ({
         url: "resident/addresidenttoken",
@@ -266,12 +435,10 @@ export const visitorsApi = api.injectEndpoints({
       transformResponse: (
         response: ApiResponse<VisitorTokenData>,
         meta,
-        request
+        request,
       ) => {
         if (response.respCode !== "00") {
-          throw new Error(
-            response.message || "Failed to create visitor token"
-          );
+          throw new Error(response.message || "Failed to create visitor token");
         }
         // Create response may not have all fields, fill in defaults
         const tokenData: VisitorTokenData = {
@@ -290,7 +457,7 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Change visitor token status
+    // âœ… Change visitor token status
     changeVisitorStatus: builder.mutation<
       void,
       {
@@ -314,7 +481,7 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Revoke visitor token (convenience wrapper)
+    // âœ… Revoke visitor token (convenience wrapper)
     revokeVisitor: builder.mutation<void, { tokenId: string }>({
       query: ({ tokenId }) => ({
         url: "resident/statustokenchange",
@@ -332,7 +499,7 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Edit visitor token
+    // âœ… Edit visitor token
     editVisitor: builder.mutation<
       Visitor,
       { tokenId: string; updates: Partial<CreateVisitorTokenRequest> }
@@ -354,7 +521,7 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Validate visitor token (for security check-in)
+    // âœ… Validate visitor token (for security check-in)
     validateVisitorToken: builder.mutation<Visitor, { token: string }>({
       query: ({ token }) => ({
         url: "estatemgt/validatetoken",
@@ -369,7 +536,7 @@ export const visitorsApi = api.injectEndpoints({
       },
     }),
 
-    // ✅ Check in visitor (change status to "In-Use")
+    // âœ… Check in visitor (change status to "In-Use")
     checkInVisitor: builder.mutation<void, { tokenId: string }>({
       query: ({ tokenId }) => ({
         url: "resident/statustokenchange",
@@ -387,7 +554,7 @@ export const visitorsApi = api.injectEndpoints({
       invalidatesTags: ["Visitors"],
     }),
 
-    // ✅ Check out visitor (change status to "Used")
+    // âœ… Check out visitor (change status to "Used")
     checkOutVisitor: builder.mutation<void, { tokenId: string }>({
       query: ({ tokenId }) => ({
         url: "resident/statustokenchange",
@@ -417,6 +584,8 @@ export const visitorsApi = api.injectEndpoints({
 export const {
   useGetVisitorsQuery,
   useGetGuestCategoryListQuery,
+  useGetResidentQuery,
+  useGetVisitorByIdQuery,
   useCreateVisitorMutation,
   useChangeVisitorStatusMutation,
   useRevokeVisitorMutation,

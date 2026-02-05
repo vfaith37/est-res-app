@@ -1,4 +1,5 @@
-import 'react-native-gesture-handler';
+﻿import 'react-native-gesture-handler';
+import { Toaster } from 'sonner-native';
 import { StatusBar } from 'expo-status-bar';
 import { Provider } from 'react-redux';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -10,7 +11,7 @@ import { useEffect } from 'react';
 import { testEncryption } from './utils/encryption';
 
 export function App() {
-   useEffect(() => {
+  useEffect(() => {
     // Test encryption on app start
     setTimeout(() => {
       testEncryption({
@@ -18,14 +19,22 @@ export function App() {
         password: 'test123456',
       });
     }, 2000);
-   }, []);
-  
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <SafeAreaProvider>
           <NotificationProvider>
             <AppNavigator />
+            <Toaster
+              toastOptions={{
+                style: { backgroundColor: '#002EE5' },
+                descriptionStyle: { color: 'white' },
+                actionButtonStyle: { backgroundColor: 'white' },
+                cancelButtonStyle: { backgroundColor: 'white' },
+              }}
+            />
             <StatusBar style="auto" />
           </NotificationProvider>
         </SafeAreaProvider>

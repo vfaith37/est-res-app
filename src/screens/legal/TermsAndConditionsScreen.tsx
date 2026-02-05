@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView } from 'react-native';
+﻿import { View, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,7 @@ export default function TermsAndConditionsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <Ionicons name="document-text" size={48} color="#007AFF" />
+            <Ionicons name="document-text" size={48} color="#002EE5" />
           </View>
           <Text style={styles.title}>Terms & Conditions</Text>
           <Text style={styles.subtitle}>Last updated: January 2025</Text>
@@ -40,11 +40,11 @@ export default function TermsAndConditionsScreen() {
           <Text style={styles.paragraph}>
             The application provides estate management services including but not limited to:
           </Text>
-          <Text style={styles.bulletPoint}>• Visitor management and pass generation</Text>
-          <Text style={styles.bulletPoint}>• Maintenance request submissions</Text>
-          <Text style={styles.bulletPoint}>• Payment tracking and history</Text>
-          <Text style={styles.bulletPoint}>• Emergency reporting</Text>
-          <Text style={styles.bulletPoint}>• Household member management</Text>
+          <Text style={styles.bulletPoint}>â€¢ Visitor management and pass generation</Text>
+          <Text style={styles.bulletPoint}>â€¢ Maintenance request submissions</Text>
+          <Text style={styles.bulletPoint}>â€¢ Payment tracking and history</Text>
+          <Text style={styles.bulletPoint}>â€¢ Emergency reporting</Text>
+          <Text style={styles.bulletPoint}>â€¢ Household member management</Text>
           <Text style={styles.paragraph}>
             You agree to use these services only for their intended purposes and in compliance
             with all applicable laws and regulations.
@@ -56,11 +56,11 @@ export default function TermsAndConditionsScreen() {
           <Text style={styles.paragraph}>
             Users must:
           </Text>
-          <Text style={styles.bulletPoint}>• Provide accurate and up-to-date information</Text>
-          <Text style={styles.bulletPoint}>• Maintain the security of their login credentials</Text>
-          <Text style={styles.bulletPoint}>• Use the application responsibly and lawfully</Text>
-          <Text style={styles.bulletPoint}>• Report any security concerns immediately</Text>
-          <Text style={styles.bulletPoint}>• Respect the privacy of other residents</Text>
+          <Text style={styles.bulletPoint}>â€¢ Provide accurate and up-to-date information</Text>
+          <Text style={styles.bulletPoint}>â€¢ Maintain the security of their login credentials</Text>
+          <Text style={styles.bulletPoint}>â€¢ Use the application responsibly and lawfully</Text>
+          <Text style={styles.bulletPoint}>â€¢ Report any security concerns immediately</Text>
+          <Text style={styles.bulletPoint}>â€¢ Respect the privacy of other residents</Text>
         </View>
 
         <View style={styles.section}>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   footer: {
-    backgroundColor: '#007AFF15',
+    backgroundColor: '#002EE515',
     padding: 20,
     borderRadius: 12,
     marginTop: 16,
@@ -210,8 +210,9 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#007AFF',
+    color: '#002EE5',
     textAlign: 'center',
     fontWeight: '500',
   },
 });
+

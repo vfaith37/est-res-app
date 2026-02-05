@@ -1,4 +1,4 @@
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+﻿import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type {
   CompositeNavigationProp,
@@ -73,8 +73,14 @@ export type HomeStackParamList = {
 // Visitors Stack
 export type VisitorsStackParamList = {
   VisitorsList: undefined;
-  CreateVisitor: { initialType?: 'guest' | 'visitor'; guestCategory?: 'Casual' | 'Event' };
+  CreateVisitor: {
+    initialType?: "guest" | "visitor";
+    guestCategory?: "Casual" | "Event";
+    visitor?: Visitor;
+    mode?: "create" | "edit";
+  };
   VisitorQR: { visitor: Visitor };
+  VisitorDetails: { visitorId: string };
 };
 
 // Maintenance Stack

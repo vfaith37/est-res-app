@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   View,
   StyleSheet,
@@ -127,14 +127,14 @@ export default function SecuritySettingsScreen({ navigation }: any) {
           title: "Profile",
           onPress: handleEditProfile,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
         {
           icon: "key-outline",
           title: "Change Password",
           onPress: handleChangePassword,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
       ],
     },
@@ -146,14 +146,14 @@ export default function SecuritySettingsScreen({ navigation }: any) {
           title: "Complaints",
           onPress: handleComplaints,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
         {
           icon: "megaphone-outline",
           title: "Notifications & Announcements",
           onPress: handleNotifications,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
       ],
     },
@@ -165,14 +165,14 @@ export default function SecuritySettingsScreen({ navigation }: any) {
           title: "Terms & Conditions",
           onPress: handleTerms,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
         {
           icon: "document-text-outline",
           title: "Privacy Policy",
           onPress: handlePrivacy,
           iconBg: "#E8F1FF",
-          iconColor: "#007AFF",
+          iconColor: "#002EE5",
         },
       ],
     },
@@ -191,7 +191,7 @@ export default function SecuritySettingsScreen({ navigation }: any) {
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="shield-checkmark" size={48} color="#007AFF" />
+                <Ionicons name="shield-checkmark" size={48} color="#002EE5" />
               </View>
             )}
           </View>
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   submitButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#002EE5",
     padding: 16,
     borderRadius: 10,
     alignItems: "center",
@@ -495,3 +495,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

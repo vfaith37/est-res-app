@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 
 export interface Emergency {
   id: string;
@@ -84,3 +84,4 @@ export const {
   useUpdateEmergencyStatusMutation,
   useRespondToEmergencyMutation,
 } = emergencyApi;
+

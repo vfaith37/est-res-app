@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 import { ApiResponse } from "@/utils/apiHelpers";
 
 export interface Complaint {
@@ -109,3 +109,4 @@ export const complaintsApi = api.injectEndpoints({
 });
 
 export const { useGetComplaintsQuery } = complaintsApi;
+

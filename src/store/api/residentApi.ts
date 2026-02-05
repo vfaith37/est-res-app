@@ -1,4 +1,4 @@
-import { api } from "./apiSlice";
+﻿import { api } from "./apiSlice";
 import { ApiResponse } from "@/utils/apiHelpers";
 
 // ==================== TYPES ====================
@@ -114,3 +114,4 @@ export const residentApi = api.injectEndpoints({
 });
 
 export const { useGetResidentQuery, useEditResidentMutation } = residentApi;
+

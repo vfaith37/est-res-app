@@ -25,7 +25,11 @@
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to upload images.",
         "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby amenities.",
         "NSCalendarsUsageDescription": "This app needs calendar access to schedule amenity bookings.",
-        "NSContactsUsageDescription": "This app needs access to contacts for emergency contacts."
+        "NSContactsUsageDescription": "This app needs access to contacts for emergency contacts.",
+        "LSApplicationQueriesSchemes": [
+          "whatsapp",
+          "mailto"
+        ]
       }
     },
     "android": {

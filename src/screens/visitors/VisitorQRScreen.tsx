@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useRef } from 'react';
 import { toast } from 'sonner-native';
 import {
   View,
@@ -14,6 +14,8 @@ import { RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
 import * as Clipboard from 'expo-clipboard';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { format, parseISO } from 'date-fns';
 
 import { VisitorsStackParamList } from '@/types/navigation';
@@ -33,6 +35,7 @@ type Props = {
 
 export default function VisitorQRScreen({ navigation, route }: Props) {
   const { visitor } = route.params;
+  const viewRef = useRef(null);
 
   const handleCopy = async () => {
     haptics.light();
@@ -42,16 +45,39 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
 
   const handleWhatsApp = async () => {
     haptics.light();
-    const message = `Hello ${visitor.name}, here is your visitor pass for getting into the estate.\nToken: ${visitor.id}`;
-    const url = `whatsapp://send?text=${encodeURIComponent(message)}`;
+    try {
+      if (viewRef.current) {
+        console.log('Capturing view ref...');
+        const uri = await captureRef(viewRef, {
+          format: 'png',
+          quality: 0.8,
+          result: 'tmpfile',
+        });
+        console.log('Image captured at:', uri);
 
-    const canOpen = await Linking.canOpenURL(url);
-    if (canOpen) {
-      await Linking.openURL(url);
-    } else {
-      toast.error('WhatsApp is not installed');
+        // Check if sharing is available
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          console.log('Sharing is available, opening share sheet...');
+          await Sharing.shareAsync(uri, {
+            mimeType: 'image/png',
+            dialogTitle: 'Share Visitor Pass',
+            UTI: 'public.image', // iOS
+          });
+        } else {
+          console.warn('Sharing not available');
+          toast.error("Sharing is not available on this device");
+        }
+      } else {
+        console.warn('View ref is null');
+        toast.error("Could not capture QR code");
+      }
+    } catch (error) {
+      console.error("Error sharing QR code:", error);
+      toast.error("Failed to share QR code");
     }
   };
+
 
   const handleMessage = async () => {
     haptics.light();
@@ -80,9 +106,9 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
       {/* Header / Handle */}
       <View style={styles.header}>
         <View style={styles.handle} />
-        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
+        {/* <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="close" size={24} color="#374151" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -96,7 +122,11 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
         </View>
 
         {/* Main Card */}
-        <View style={styles.card}>
+        <View
+          ref={viewRef}
+          collapsable={false}
+          style={[styles.card, { backgroundColor: '#fff' }]}
+        >
           <Text style={styles.warningText}>
             This token expires after the scheduled visit time if not used after it has been generated.
           </Text>
@@ -113,10 +143,6 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
           <View style={styles.detailsContainer}>
             <DetailRow label="Visitor's Name" value={visitor.name} />
             <DetailRow label="Phone Number" value={visitor.phone} />
-            {/* Using a placeholder or assuming address is available on visitor object or resident details need to be fetched.
-                        For now, displaying N/A if not present, or removing if undefined. 
-                        The image shows "Resident Address".
-                     */}
             <DetailRow label="Resident Address" value={visitor.address || "Zone 1, BLOCK 3, Plot 25"} />
             <DetailRow label="Expected Visit Date" value={visitDate} />
             <DetailRow label="Reason for Visit" value={visitor.purpose} />

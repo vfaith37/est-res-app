@@ -147,8 +147,6 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
 
   const handleSubmit = async () => {
     // Validate required fields based on Type
-    console.log('guestCategory', guestCategory);
-
     if (type === 'visitor') {
       if (!firstName || !lastName || !purpose || !phone) {
         haptics.error();
@@ -229,7 +227,6 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
           visitorNum: eventGuests.length,
         };
 
-        console.log('Create Event Visitor Payload:', payload);
         const visitor = await createVisitor(payload).unwrap();
         haptics.success();
 
@@ -313,8 +310,6 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
           payload.durationEndDate = formattedDepartureDate;
         }
 
-        console.log('Create Visitor Payload:', payload);
-
         resultVisitor = await createVisitor(payload).unwrap();
 
         haptics.success();
@@ -325,7 +320,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         Alert.alert('Success', message, [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('VisitorQR', { visitor: resultVisitor }),
+            onPress: () => navigation.replace('VisitorQR', { visitor: resultVisitor }),
           },
         ]);
       }

@@ -21,6 +21,7 @@ export interface VisitorTokenData {
   status: "Un-Used" | "Used" | "In-Use" | "Revoked" | "Expired";
   createdat: string; // ISO date string
   assigneddays: any[]; // Array of assigned days
+  qrcode?: string; // Base64 QR code image data (from create response)
   qr?: string; // Base64 QR code image data (from create response)
   address?: string; // Address (from create response)
   // New API fields
@@ -35,8 +36,6 @@ export interface VisitorTokenData {
   signintime?: string | null;
   signingate?: string | null;
   signoutby?: string | null;
-  signouttime?: string | null;
-  signoutgate?: string | null;
   signouttime?: string | null;
   signoutgate?: string | null;
   additionnote?: string | null;
@@ -110,8 +109,6 @@ export interface Visitor {
   signOutBy?: string;
   signOutTime?: string;
   signOutGate?: string;
-  signOutTime?: string | null;
-  signOutGate?: string | null;
   additionalNote?: string | null;
   revokedAt?: string | null;
 }
@@ -198,7 +195,7 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
     visitDate: tokenData.arriveDate,
     departureDate: tokenData.departureDate,
     visitorNum: tokenData.visitorNum,
-    qrCode: tokenData.qr,
+    qrCode: tokenData.qrcode,
     status: tokenData.status,
     residentId: tokenData.residentid,
     type: type,
@@ -218,7 +215,6 @@ function transformVisitorToken(tokenData: VisitorTokenData): Visitor {
     signInGate: tokenData.signingate || undefined,
     signOutBy: tokenData.signoutby || undefined,
     signOutTime: tokenData.signouttime || undefined,
-    signOutGate: tokenData.signoutgate || undefined,
     signOutGate: tokenData.signoutgate || undefined,
     additionalNote: tokenData.additionnote || undefined,
     revokedAt: tokenData.revokedAt || undefined,
@@ -318,15 +314,8 @@ function transformCreateVisitorRequest(
       eventTitle: request.eventTitle,
       eventVisitors: [],
     };
-    console.log("Final Transformed CreateVisitor Payload:", payload);
     return payload;
   }
-
-  // Fallback / default behavior if needed (shouldn't be reached if strict)
-  console.log(
-    "Final Transformed CreateVisitor Payload (Fallback):",
-    baseRequest,
-  );
   return baseRequest;
 }
 
@@ -447,6 +436,7 @@ export const visitorsApi = api.injectEndpoints({
           coyid: response.data.coyid || "",
           residentid: response.data.residentid || request.residentId,
           status: response.data.status || "Un-Used",
+          qrcode: response.data.qr,
           createdat: response.data.createdat || new Date().toISOString(),
           assigneddays: response.data.assigneddays || [],
         };

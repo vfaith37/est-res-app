@@ -31,7 +31,6 @@ export default function VisitorDetailsScreen({ navigation }: Props) {
 
     const { data: visitor, isLoading, refetch } = useGetVisitorByIdQuery(visitorId);
     const [revokeVisitor, { isLoading: isRevoking }] = useRevokeVisitorMutation();
-    console.log(visitor);
 
     const [showRevokeModal, setShowRevokeModal] = useState(false);
 

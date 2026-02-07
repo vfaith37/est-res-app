@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { toast } from 'sonner-native';
 import { ThemedText as Text } from "@/components/ThemedText";
 import { ThemedTextInput as TextInput } from "@/components/ThemedTextInput";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -150,7 +151,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
     if (type === 'visitor') {
       if (!firstName || !lastName || !purpose || !phone) {
         haptics.error();
-        Alert.alert('Error', 'Please fill in all required fields');
+        toast.error('Please fill in all required fields');
         return;
       }
     } else {
@@ -158,7 +159,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       if (guestCategory !== 'Event') {
         if (!firstName || !lastName || !visitorRelationship || !gender || !eventTitle) {
           haptics.error();
-          Alert.alert('Error', 'Please fill in all required fields');
+          toast.error('Please fill in all required fields');
           return;
         }
       }
@@ -169,7 +170,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         haptics.error();
-        Alert.alert('Error', 'Please enter a valid email address');
+        toast.error('Please enter a valid email address');
         return;
       }
     }
@@ -181,14 +182,14 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
 
       if (startDay === endDay) {
         haptics.error();
-        Alert.alert('Error', 'Duration End Date must be different from Start Date');
+        toast.error('Duration End Date must be different from Start Date');
         return;
       }
     }
 
     if (!residentId) {
       haptics.error();
-      Alert.alert('Error', 'Unable to identify resident. Please log in again.');
+      toast.error('Unable to identify resident. Please log in again.');
       return;
     }
 
@@ -206,11 +207,11 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       // START Event Handling
       if (type === 'guest' && guestCategory === 'Event') {
         if (!eventTitle) {
-          Alert.alert('Error', 'Please enter Event Title');
+          toast.error('Please enter Event Title');
           return;
         }
         if (eventGuests.length === 0) {
-          Alert.alert('Error', 'Please add at least one guest');
+          toast.error('Please add at least one guest');
           return;
         }
 
@@ -230,9 +231,8 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         const visitor = await createVisitor(payload).unwrap();
         haptics.success();
 
-        Alert.alert('Success', 'Event Guests Added Successfully', [
-          { text: 'OK', onPress: () => navigation.navigate('VisitorQR', { visitor }) }
-        ]);
+        toast.success('Event Guests Added Successfully');
+        navigation.navigate('VisitorQR', { visitor });
         return;
       }
       // END Event Handling
@@ -270,12 +270,9 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         }).unwrap();
 
         haptics.success();
-        Alert.alert('Success', 'Visitor Updated Successfully', [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]);
+        haptics.success();
+        toast.success('Visitor Updated Successfully');
+        navigation.goBack();
 
       } else {
         // Create Mode
@@ -317,12 +314,8 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
           ? 'Guest ID Generated Successfully'
           : 'Visitor Token Generated Successfully';
 
-        Alert.alert('Success', message, [
-          {
-            text: 'OK',
-            onPress: () => navigation.replace('VisitorQR', { visitor: resultVisitor }),
-          },
-        ]);
+        toast.success(message);
+        navigation.replace('VisitorQR', { visitor: resultVisitor });
       }
 
     } catch (error: any) {
@@ -330,13 +323,13 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
       if (__DEV__) {
         console.error('Create visitor error:', error);
       }
-      Alert.alert('Error', error?.data?.message || 'Failed to process request');
+      toast.error(error?.data?.message || 'Failed to process request');
     }
   };
 
   const handleAddGuest = () => {
     if (!currentGuest.firstName || !currentGuest.lastName) {
-      Alert.alert('Required', 'Please enter Guest Name');
+      toast.error('Please enter Guest Name');
       return;
     }
     setEventGuests([...eventGuests, currentGuest]);
@@ -360,6 +353,10 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'top']}>
       {/* Event Guest Form */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>{type === 'guest' ? 'Create Guest (Multiple usage)' : 'Generate New Token (One time usage)'}</Text>
+        <Ionicons name="close" size={24} color="#000" onPress={() => navigation.goBack()} />
+      </View>
       {type === 'guest' && guestCategory === 'Event' ? (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -920,6 +917,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
     paddingTop: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    // backgroundColor: '#fff',
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
   },
   keyboardView: {
     flex: 1,

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, FlatList } from 'react-native';
+import { toast } from 'sonner-native';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,19 +64,19 @@ export default function VisitorDetailsScreen({ navigation }: Props) {
             haptics.success();
             setShowRevokeModal(false);
             refetch();
+            toast.success("Visitor revoked successfully");
         } catch (error) {
             haptics.error();
-            // Optional: Show error toast or alert if needed, effectively handled by global error handler usually
-            Alert.alert("Error", "Failed to revoke token");
+            toast.error("Failed to revoke token");
         }
     };
 
     const getStatusStyle = (status: string = '') => {
         switch (status.toLowerCase()) {
-            case 'un-used':
-            case 'unused':
             case 'active':
                 return { bg: '#DBEAFE', text: '#2563EB' }; // Blueish
+            case 'un-used':
+            case 'unused':
             case 'pending':
                 return { bg: '#FEF9C3', text: '#CA8A04' }; // Yellowish
             case 'in-use':
@@ -142,7 +143,7 @@ export default function VisitorDetailsScreen({ navigation }: Props) {
         return (
             <SafeAreaView style={styles.errorContainer}>
                 <Header />
-                <Text>Visitor details not found.</Text>
+                <Text style={styles.errorText}>Visitor details not found.</Text>
             </SafeAreaView>
         );
     }
@@ -320,7 +321,7 @@ export default function VisitorDetailsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff', // Or #F9FAFB based on image analysis, usually light gray background for cards to pop
+        // backgroundColor: '#fff', // Or #F9FAFB based on image analysis, usually light gray background for cards to pop
     },
     loadingContainer: {
         flex: 1,
@@ -329,8 +330,18 @@ const styles = StyleSheet.create({
     },
     errorContainer: {
         flex: 1,
+        backgroundColor: '#fff',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+    },
+    errorText: {
+        color: '#9CA3AF',
+        fontSize: 23,
+        fontStyle: 'italic',
+        textAlign: 'center',
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 20,
     },
     header: {
         flexDirection: 'row',
@@ -351,8 +362,8 @@ const styles = StyleSheet.create({
         color: '#111827',
     },
     scrollContent: {
-        padding: 20,
-        paddingBottom: 80, // Space for FAB
+        // padding: 20,
+        // paddingBottom: 80, // Space for FAB
     },
     actionRow: {
         flexDirection: 'row',
@@ -360,6 +371,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 24,
         gap: 8,
+        paddingHorizontal: 20,
+        paddingTop: 20,
     },
     shareBtn: {
         width: 48,
@@ -405,6 +418,8 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: 32,
+        backgroundColor: '#fff',
+        padding: 20,
     },
     sectionTitle: {
         fontSize: 12,

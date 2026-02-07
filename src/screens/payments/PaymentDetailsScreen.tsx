@@ -67,7 +67,7 @@ export default function PaymentDetailsScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Amount Due</Text>
-          <Text style={styles.amount}>â‚¦{payment.amount?.toLocaleString() ?? '0.00'}</Text>
+          <Text style={styles.amount}>₦{payment.amount?.toLocaleString() ?? '0.00'}</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(payment.status) }]}>
             <Text style={styles.statusText}>{payment.status.toUpperCase()}</Text>
           </View>

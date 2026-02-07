@@ -5,6 +5,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import { toast } from 'sonner-native';
 import { ThemedText as Text } from '@/components/ThemedText';
 import { ThemedTextInput as TextInput } from '@/components/ThemedTextInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -117,7 +118,7 @@ export default function VisitorsListScreen({ navigation }: Props) {
               haptics.success();
             } catch (error) {
               haptics.error();
-              Alert.alert("Error", "Failed to revoke token");
+              toast.error("Failed to revoke token");
             }
           }
         }
@@ -178,10 +179,10 @@ export default function VisitorsListScreen({ navigation }: Props) {
 
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'un-used':
-      case 'unused':
       case 'active': // Mapping 'active' to blue/green depending on preference, using 'used' style for now or new one? Design shows "Active" in blue.
         return { bg: '#DBEAFE', text: '#2563EB' }; // Blueish for Active
+      case 'unused':
+      case 'un-used':
       case 'pending':
         return { bg: '#FEF9C3', text: '#CA8A04' }; // Yellowish
       case 'in-use':
@@ -347,46 +348,50 @@ export default function VisitorsListScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Stats Section */}
-        {activeTab === 'tokens' && stats && (
-          <View style={styles.statsContainer}>
-            {renderStatsCard('Total Tokens\nGenerated', stats.total)}
-            {renderStatsCard('Total Unused\nTokens', stats.unused)}
-            {renderStatsCard('Total In Use', stats.inUse)}
-          </View>
-        )}
 
-        {/* Guest Stats Section */}
-        {activeTab === 'guests' && (
-          <View style={styles.statsContainer}>
-            {renderStatsCard('Total Guest IDs\nGenerated', guestStats.total)}
-            {renderStatsCard('Unused Guests\nCodes', guestStats.unused)}
-            {renderStatsCard('In Use Guests', guestStats.inUse)}
-          </View>
-        )}
-
-        <View>
-
-          {/* Search & Filter Section - Always visible now for both tabs */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="#9CA3AF" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search"
-                placeholderTextColor="#9CA3AF"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
+        <View style={{ backgroundColor: "#fff", borderRadius: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 }}>
+          {/* Stats Section */}
+          {activeTab === 'tokens' && stats && (
+            <View style={styles.statsContainer}>
+              {renderStatsCard('Total Tokens\nGenerated', stats.total)}
+              {renderStatsCard('Total Unused\nTokens', stats.unused)}
+              {renderStatsCard('Total In Use', stats.inUse)}
             </View>
-            <TouchableOpacity
-              style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
-              onPress={handleFilterPress}
-            >
-              <Ionicons name="funnel-outline" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
-            </TouchableOpacity>
+          )}
+
+          {/* Guest Stats Section */}
+          {activeTab === 'guests' && (
+            <View style={styles.statsContainer}>
+              {renderStatsCard('Total Guest IDs\nGenerated', guestStats.total)}
+              {renderStatsCard('Unused Guests\nCodes', guestStats.unused)}
+              {renderStatsCard('In Use Guests', guestStats.inUse)}
+            </View>
+          )}
+
+          <View>
+
+            {/* Search & Filter Section - Always visible now for both tabs */}
+            <View style={styles.searchContainer}>
+              <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="#9CA3AF" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search"
+                  placeholderTextColor="#9CA3AF"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.filterBtn, filterStatus && styles.filterBtnActive]}
+                onPress={handleFilterPress}
+              >
+                <Ionicons name="funnel-outline" size={20} color={filterStatus ? "#fff" : "#6B7280"} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
+
       </View>
 
       {/* Main Content */}
@@ -472,14 +477,16 @@ export default function VisitorsListScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB', // Light gray background
+    // backgroundColor: '#F9FAFB', // Light gray background
   },
   header: {
     paddingHorizontal: 10,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   headerRow: {
     flexDirection: 'row',

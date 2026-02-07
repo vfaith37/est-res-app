@@ -286,7 +286,7 @@ export default function HomeScreen({ navigation }: any) {
                     data={chartData}
                     width={screenWidth - 40}
                     height={220}
-                    yAxisLabel="â‚¦"
+                    yAxisLabel="₦"
                     yAxisSuffix="k"
                     fromZero
                     chartConfig={chartConfig}
@@ -338,7 +338,7 @@ export default function HomeScreen({ navigation }: any) {
 
                 <View style={styles.paymentRight}>
                   <Text style={styles.paymentAmount}>
-                    â‚¦{payment.amount.toLocaleString()}
+                    ₦{payment.amount.toLocaleString()}
                   </Text>
                   <View style={styles.paidBadge}>
                     <Ionicons

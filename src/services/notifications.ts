@@ -86,15 +86,17 @@ export async function registerForPushNotificationsAsync() {
 
 export function setupNotificationListeners(
   onNotificationReceived: (notification: Notifications.Notification) => void,
-  onNotificationResponse: (response: Notifications.NotificationResponse) => void
+  onNotificationResponse: (
+    response: Notifications.NotificationResponse,
+  ) => void,
 ) {
   const notificationListener = Notifications.addNotificationReceivedListener(
-    onNotificationReceived
+    onNotificationReceived,
   );
 
   const responseListener =
     Notifications.addNotificationResponseReceivedListener(
-      onNotificationResponse
+      onNotificationResponse,
     );
 
   return () => {
@@ -107,7 +109,7 @@ export async function scheduleLocalNotification(
   title: string,
   body: string,
   data?: any,
-  trigger?: Notifications.NotificationTriggerInput
+  trigger?: Notifications.NotificationTriggerInput,
 ) {
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -123,7 +125,7 @@ export async function scheduleLocalNotification(
 // Helper function to send different types of notifications
 export async function sendVisitorNotification(
   visitorName: string,
-  time: string
+  time: string,
 ) {
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -138,7 +140,7 @@ export async function sendVisitorNotification(
 
 export async function sendMaintenanceNotification(
   title: string,
-  status: string
+  status: string,
 ) {
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -155,7 +157,7 @@ export async function sendPaymentNotification(amount: number, dueDate: string) {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: "Payment Reminder",
-      body: `Payment of â‚¦${amount.toLocaleString()} is due on ${dueDate}`,
+      body: `Payment of ₦${amount.toLocaleString()} is due on ${dueDate}`,
       data: { type: "payment", amount, dueDate },
       sound: true,
     },
@@ -200,4 +202,3 @@ export async function setBadgeCount(count: number) {
 export async function clearBadge() {
   await Notifications.setBadgeCountAsync(0);
 }
-

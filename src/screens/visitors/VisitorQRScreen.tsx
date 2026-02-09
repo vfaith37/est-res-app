@@ -141,12 +141,12 @@ export default function VisitorQRScreen({ navigation, route }: Props) {
 
           {/* Details Section */}
           <View style={styles.detailsContainer}>
-            <DetailRow label="Visitor's Name" value={visitor.name} />
-            <DetailRow label="Phone Number" value={visitor.phone} />
-            <DetailRow label="Resident Address" value={visitor.address || "Zone 1, BLOCK 3, Plot 25"} />
-            <DetailRow label="Expected Visit Date" value={visitDate} />
-            <DetailRow label="Reason for Visit" value={visitor.purpose} />
-            <DetailRow label="Number of additional Visitor(s)" value={visitor.visitorNum ? String(Math.max(0, visitor.visitorNum - 1)) : "0"} />
+            {visitor.name && <DetailRow label="Visitor's Name" value={visitor.name} />}
+            {visitor.phone && <DetailRow label="Phone Number" value={visitor.phone} />}
+            {visitor.address && <DetailRow label="Resident Address" value={visitor.address || "Zone 1, BLOCK 3, Plot 25"} />}
+            {visitor.visitDate && <DetailRow label="Expected Visit Date" value={visitDate} />}
+            {visitor.purpose && <DetailRow label="Reason for Visit" value={visitor.purpose} />}
+            {visitor.visitorNum && <DetailRow label="Number of additional Visitor(s)" value={visitor.visitorNum ? String(Math.max(0, visitor.visitorNum - 1)) : "0"} />}
           </View>
 
           <Text style={styles.generatedDate}>Date Generated: {formattedDate}</Text>

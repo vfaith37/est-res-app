@@ -67,7 +67,6 @@ export default function VisitorDetailsScreen({ navigation }: Props) {
             toast.success("Visitor revoked successfully");
         } catch (error) {
             haptics.error();
-            toast.error("Failed to revoke token");
         }
     };
 

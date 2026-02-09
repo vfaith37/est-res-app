@@ -232,7 +232,7 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
         haptics.success();
 
         toast.success('Event Guests Added Successfully');
-        navigation.navigate('VisitorQR', { visitor });
+        navigation.replace('VisitorQR', { visitor });
         return;
       }
       // END Event Handling
@@ -320,10 +320,6 @@ export default function CreateVisitorScreen({ navigation, route }: Props) {
 
     } catch (error: any) {
       haptics.error();
-      if (__DEV__) {
-        console.error('Create visitor error:', error);
-      }
-      toast.error(error?.data?.message || 'Failed to process request');
     }
   };
 

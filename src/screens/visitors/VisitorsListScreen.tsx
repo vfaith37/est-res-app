@@ -118,7 +118,6 @@ export default function VisitorsListScreen({ navigation }: Props) {
               haptics.success();
             } catch (error) {
               haptics.error();
-              toast.error("Failed to revoke token");
             }
           }
         }

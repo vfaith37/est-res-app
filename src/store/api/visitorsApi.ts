@@ -284,6 +284,7 @@ function transformCreateVisitorRequest(
       eventTitle: request.eventTitle,
       visitorNum: request.visitorNum,
       additionnote: request.additionnote,
+      arrivedate: request.durationnStartDate,
       durationnStartDate: request.durationnStartDate,
       durationEndDate: request.durationEndDate,
       eventVisitors:
@@ -297,7 +298,7 @@ function transformCreateVisitorRequest(
       // but user specifically excluded firstName etc. previously.
       // Assuming "excluded" refers to the optional fields we were tossing around.
       visitorRelationship: "",
-      gender: "",
+      gender: "Male",
     };
   }
 
